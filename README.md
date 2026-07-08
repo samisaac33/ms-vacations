@@ -1,12 +1,16 @@
-# ms-vacations
+# MS Vacations
 
-Microservicio de gestión de vacaciones construido con [Next.js 16](https://nextjs.org) (App Router), React 19 y TypeScript.
+Alojamientos vacacionales en **San Clemente** (playa) y **Portoviejo** (ciudad), Manabí, Ecuador. Reserva directa sin comisiones.
 
 ## Estado del proyecto
 
-El repositorio está en **Fase 0**: fundamentos de calidad y documentación de dominio. La lógica de negocio (API, base de datos, UI de vacaciones) se implementará en fases posteriores.
+**Fase A** en progreso: home con selector de destino, propiedades reales y nueva identidad visual costera.
 
-Consulta [docs/DOMAIN.md](./docs/DOMAIN.md) para el modelo de dominio, flujos y roadmap.
+Consulta [docs/DOMAIN.md](./docs/DOMAIN.md) para el modelo de dominio y roadmap.
+
+## Producción
+
+[https://ms-vacations.vercel.app](https://ms-vacations.vercel.app)
 
 ## Requisitos
 
@@ -16,64 +20,47 @@ Consulta [docs/DOMAIN.md](./docs/DOMAIN.md) para el modelo de dominio, flujos y 
 ## Inicio rápido
 
 ```bash
-# Instalar dependencias
 npm install
-
-# Copiar variables de entorno
 cp .env.example .env
-
-# Servidor de desarrollo
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000) en el navegador.
+Abre [http://localhost:3000](http://localhost:3000).
 
 ## Scripts
 
-| Comando        | Descripción                              |
-|----------------|------------------------------------------|
-| `npm run dev`  | Servidor de desarrollo con hot reload    |
-| `npm run build`| Build de producción                      |
-| `npm run start`| Servidor de producción                   |
-| `npm run lint` | Análisis estático con ESLint             |
-| `npm test`     | Tests en modo watch (Vitest)             |
-| `npm run test:ci` | Tests en modo CI (una sola ejecución) |
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción |
+| `npm run start` | Servidor de producción |
+| `npm run lint` | ESLint |
+| `npm test` | Tests (watch) |
+| `npm run test:ci` | Tests (CI) |
 
 ## Estructura
 
 ```
 ms-vacations/
-├── app/              # App Router (páginas y API routes)
-├── docs/             # Documentación de dominio
-├── __tests__/        # Tests unitarios
-├── public/           # Assets estáticos
-└── .github/workflows # CI con GitHub Actions
+├── app/                    # App Router
+├── components/
+│   ├── destinations/       # Selector San Clemente / Portoviejo
+│   ├── properties/         # Cards y secciones de alojamientos
+│   ├── trust/              # Badges y ventajas
+│   └── layout/             # Header, footer, WhatsApp
+├── lib/properties.ts       # Datos de propiedades
+└── docs/DOMAIN.md
 ```
 
-## CI
+## Variables de entorno
 
-Cada push y pull request a `main` ejecuta automáticamente:
-
-1. `npm ci`
-2. `npm run lint`
-3. `npm run test:ci`
-4. `npm run build`
-
-## Convenciones para agentes
-
-Las reglas para agentes de IA (Cursor, etc.) están en [AGENTS.md](./AGENTS.md).
+| Variable | Descripción |
+|----------|-------------|
+| `NEXT_PUBLIC_APP_URL` | URL pública del sitio |
+| `NEXT_PUBLIC_WHATSAPP_URL` | Enlace de contacto WhatsApp |
 
 ## Stack
 
-- **Framework:** Next.js 16.2 (App Router, Turbopack)
-- **UI:** React 19, Tailwind CSS 4
-- **Lenguaje:** TypeScript (strict)
-- **Tests:** Vitest, React Testing Library
-- **Lint:** ESLint con `eslint-config-next`
-
-## Próximos pasos (Fase 1)
-
-- Modelo de datos con Prisma y PostgreSQL
-- Route Handlers REST en `app/api/vacations/`
-- Validación de entrada con Zod
-- Endpoint de health check en `app/api/health/`
+- Next.js 16 (App Router)
+- React 19, TypeScript, Tailwind CSS 4
+- Vitest + React Testing Library

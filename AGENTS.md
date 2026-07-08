@@ -8,7 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Contexto del proyecto
 
-`ms-vacations` es un microservicio de gestión de vacaciones. El dominio está documentado en [docs/DOMAIN.md](./docs/DOMAIN.md). Consulta ese archivo antes de implementar lógica de negocio.
+**MS Vacations** es una plataforma de alquiler vacacional directo en San Clemente (playa) y Portoviejo (ciudad), Manabí, Ecuador. El dominio está documentado en [docs/DOMAIN.md](./docs/DOMAIN.md).
 
 ## Stack y versiones
 
@@ -28,17 +28,18 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ```
 app/
-  (dashboard)/          # Rutas de UI agrupadas (Fase 2)
-  api/
-    health/route.ts     # Health check
-    vacations/route.ts  # CRUD de solicitudes
-components/             # Componentes reutilizables
+  alojamientos/[slug]/   # Fichas de propiedad (Fase B)
+  api/                   # Route Handlers futuros
+components/
+  destinations/          # Selector de destino
+  properties/            # Cards y listados
+  trust/                 # Badges, ventajas
+  layout/                # Header, footer, WhatsApp
 lib/
-  validations/          # Esquemas Zod
-  db/                   # Cliente Prisma
-types/                  # Tipos de dominio compartidos
-__tests__/              # Tests unitarios
-docs/                   # Documentación
+  properties.ts          # Datos de propiedades
+types/
+__tests__/
+docs/
 ```
 
 ### Nombres
@@ -70,15 +71,14 @@ docs/                   # Documentación
 
 ### Estilo y UI
 
-- **Dirección visual:** inspirada en Airbnb — limpia, cálida, espaciosa
-- **Color primario:** `#FF385C` (token `--primary` / clase `text-primary`, `bg-primary`)
-- **Tipografía:** Plus Jakarta Sans (sustituto de Cereal)
-- **Patrones:** búsqueda en píldora con sombra, cards con `rounded-xl`, filtros en pills, hover sutil en cards
-- Tailwind CSS para estilos; evitar CSS modules salvo casos excepcionales
-- Textos de interfaz en **español**
-- `lang="es"` en el layout raíz
-- Componentes accesibles: labels, roles ARIA, navegación por teclado
-- Componentes reutilizables en `components/ui/` y `components/vacations/`
+- **Dirección visual:** costa cálida + confianza local (NO clonar Airbnb)
+- **Color primario:** `#0D6E6E` (mar) — clases `text-primary`, `bg-primary`
+- **Acento:** `#E8A838` (sol/arena) — precios y destacados
+- **Tipografía:** DM Sans (cuerpo) + Fraunces (titulares, clase `font-display`)
+- **Patrones:** selector de destino primero, cards con foto real, badge "Reserva directa", WhatsApp visible
+- Textos en **español ecuatoriano** (`lang="es-EC"`)
+- Fotos reales de propiedades; evitar gradientes abstractos como sustituto
+- Componentes en `components/properties/`, `components/destinations/`, `components/trust/`
 
 ## Flujo de trabajo para agentes
 
@@ -96,10 +96,10 @@ Ver [.env.example](./.env.example). Nunca commitear archivos `.env` con secretos
 
 | Fase | Estado      | Alcance principal                        |
 |------|-------------|------------------------------------------|
-| 0    | En progreso | CI, tests, docs, convenciones            |
-| 1    | Pendiente   | Prisma, API REST, Zod, health check      |
-| 2    | Pendiente   | Dashboard UI, formularios, i18n          |
-| 3    | Pendiente   | Seguridad, E2E, Docker, observabilidad   |
+| A    | En progreso | Home, destinos, cards reales, identidad  |
+| B    | Pendiente   | Fichas de propiedad, landings por destino|
+| C    | Pendiente   | Calendario, reserva, WhatsApp integrado  |
+| D    | Pendiente   | CMS/DB, disponibilidad, admin            |
 
 Al implementar una fase, actualizar el estado en `docs/DOMAIN.md` y esta tabla.
 

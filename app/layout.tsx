@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "ms-vacations · Planifica tus vacaciones",
+  title: "MS Vacations · Alojamientos en San Clemente y Portoviejo",
   description:
-    "Gestiona tus días libres con una experiencia clara, cálida y fácil de usar.",
+    "Casas vacacionales con piscina en San Clemente y apartamentos en Portoviejo, Manabí. Reserva directa sin comisiones.",
 };
 
 export default function RootLayout({
@@ -20,7 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${plusJakarta.variable} h-full antialiased`}>
+    <html
+      lang="es-EC"
+      className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
