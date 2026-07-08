@@ -3,6 +3,12 @@ import { createElement } from "react";
 import { vi } from "vitest";
 
 vi.mock("next/image", () => ({
-  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) =>
-    createElement("img", props),
+  default: ({
+    fill: _fill,
+    priority: _priority,
+    ...props
+  }: React.ImgHTMLAttributes<HTMLImageElement> & {
+    fill?: boolean;
+    priority?: boolean;
+  }) => createElement("img", props),
 }));

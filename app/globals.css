@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #222222;
-  --muted: #717171;
-  --border: #dddddd;
-  --surface: #f7f7f7;
-  --primary: #ff385c;
-  --primary-hover: #e31c5f;
-  --primary-light: #fff0f3;
-  --shadow-search: 0 3px 12px 0 rgb(0 0 0 / 0.1), 0 1px 2px 0 rgb(0 0 0 / 0.08);
-  --shadow-card: 0 6px 16px rgb(0 0 0 / 0.12);
-  --radius-card: 12px;
-  --radius-pill: 9999px;
+  --background: #fafaf8;
+  --foreground: #1a2b2b;
+  --muted: #5c6b6b;
+  --border: #e2e8e8;
+  --surface: #f0f4f4;
+  --primary: #0d6e6e;
+  --primary-hover: #0a5858;
+  --primary-light: #e8f4f4;
+  --accent: #e8a838;
+  --accent-light: #fdf6e8;
+  --shadow-card: 0 8px 24px rgb(13 110 110 / 0.1);
+  --shadow-soft: 0 4px 16px rgb(26 43 43 / 0.06);
 }
 
 @theme inline {
@@ -24,19 +24,26 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-light: var(--primary-light);
-  --font-sans: var(--font-plus-jakarta);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-fraunces);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-plus-jakarta), system-ui, sans-serif;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-fraunces), Georgia, serif;
 }
 
 @keyframes fade-in-up {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -45,22 +52,14 @@ body {
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.4s ease-out both;
+  animation: fade-in-up 0.45s ease-out both;
 }
 
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
 .card-hover:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-card);
-}
-
-.search-bar-shadow {
-  box-shadow: var(--shadow-search);
-}
-
-.search-bar-shadow:hover {
-  box-shadow: 0 6px 20px 0 rgb(0 0 0 / 0.12), 0 2px 4px 0 rgb(0 0 0 / 0.08);
 }

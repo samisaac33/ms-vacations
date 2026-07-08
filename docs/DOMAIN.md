@@ -1,104 +1,90 @@
-# Dominio: ms-vacations
+# Dominio: MS Vacations
 
-Microservicio de gestión de vacaciones para empleados. Este documento define el modelo de dominio y los flujos que guiarán las fases de implementación.
+Plataforma de alquiler vacacional directo en **San Clemente** (playa) y **Portoviejo** (ciudad), Manabí, Ecuador.
 
 ## Objetivo
 
-Permitir que los empleados consulten su saldo de vacaciones, soliciten días libres y hagan seguimiento del estado de sus solicitudes. En fases posteriores, los managers podrán aprobar o rechazar solicitudes.
+Permitir que huéspedes descubran propiedades, consulten disponibilidad y reserven directamente con MS Vacations, sin comisiones de plataformas externas.
+
+## Destinos
+
+| Destino | Tipo | Perfil de viaje |
+|---------|------|-----------------|
+| San Clemente | Playa | Familias, grupos grandes (hasta 21 huéspedes), casas con piscina |
+| Portoviejo | Ciudad | Viajes laborales, parejas, estadías urbanas cortas |
 
 ## Entidades
 
-### Employee
+### Property (Propiedad)
 
-Representa a un empleado de la organización.
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | string | Identificador único |
+| `slug` | string | URL amigable |
+| `name` | string | Nombre comercial |
+| `destination` | enum | `san-clemente` \| `portoviejo` |
+| `guests` | number | Capacidad máxima |
+| `bedrooms` | number | Dormitorios |
+| `bathrooms` | number | Baños |
+| `priceFrom` | number | Tarifa desde (USD/noche) |
+| `description` | string | Descripción para ficha |
+| `highlights` | string[] | Amenidades destacadas |
+| `imageUrl` | string | Foto principal |
 
-| Campo        | Tipo     | Descripción                          |
-|--------------|----------|--------------------------------------|
-| `id`         | UUID     | Identificador único                  |
-| `name`       | string   | Nombre completo                      |
-| `email`      | string   | Correo corporativo (único)           |
-| `department` | string   | Departamento o área                  |
-| `hireDate`   | date     | Fecha de incorporación               |
+### BookingRequest (Fase C — pendiente)
 
-### VacationBalance
-
-Saldo anual de días de vacaciones por empleado.
-
-| Campo         | Tipo   | Descripción                              |
-|---------------|--------|------------------------------------------|
-| `employeeId`  | UUID   | Referencia al empleado                   |
-| `year`        | number | Año calendario                           |
-| `totalDays`   | number | Días asignados al año                    |
-| `usedDays`    | number | Días ya consumidos                       |
-| `pendingDays` | number | Días en solicitudes pendientes de aprobación |
-
-### VacationRequest
-
-Solicitud de vacaciones de un empleado.
-
-| Campo        | Tipo     | Descripción                    |
-|--------------|----------|--------------------------------|
-| `id`         | UUID     | Identificador único            |
-| `employeeId` | UUID     | Empleado solicitante           |
-| `startDate`  | date     | Primer día de vacaciones       |
-| `endDate`    | date     | Último día de vacaciones       |
-| `status`     | enum     | Ver estados abajo              |
-| `reason`     | string?  | Motivo opcional                |
-| `createdAt`  | datetime | Fecha de creación              |
-
-#### Estados (`VacationRequestStatus`)
-
-| Estado     | Descripción                                      |
-|------------|--------------------------------------------------|
-| `DRAFT`    | Borrador, aún no enviada                         |
-| `PENDING`  | Enviada, esperando aprobación                    |
-| `APPROVED` | Aprobada por manager                             |
-| `REJECTED` | Rechazada por manager                            |
-| `CANCELLED`| Cancelada por el empleado                        |
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `propertyId` | string | Propiedad solicitada |
+| `checkIn` | date | Entrada |
+| `checkOut` | date | Salida |
+| `guests` | number | Huéspedes |
+| `guestName` | string | Nombre del contacto |
+| `guestPhone` | string | Teléfono / WhatsApp |
+| `guestEmail` | string | Email |
+| `status` | enum | `PENDING` \| `CONFIRMED` \| `CANCELLED` |
 
 ## Flujos principales
 
-### 1. Consultar saldo
+### 1. Descubrir destino
 
-El empleado accede a su dashboard y ve los días disponibles, usados y pendientes del año en curso.
+El usuario llega al home y elige **San Clemente** (playa) o **Portoviejo** (ciudad).
 
-### 2. Crear solicitud
+### 2. Explorar propiedades
 
-1. El empleado indica rango de fechas (`startDate`, `endDate`).
-2. El sistema valida que las fechas sean futuras y que el saldo sea suficiente.
-3. La solicitud se crea con estado `PENDING`.
+Navega el listado filtrado por destino, ve capacidad, precio desde y fotos.
 
-### 3. Seguimiento
+### 3. Consultar / reservar (Fase C)
 
-El empleado consulta el listado de sus solicitudes con el estado actual de cada una.
-
-### 4. Aprobación (Fase posterior)
-
-Un manager revisa solicitudes `PENDING` y las aprueba o rechaza.
+Selecciona fechas, completa datos y envía solicitud. El equipo confirma por WhatsApp.
 
 ## Reglas de negocio
 
-- `endDate` debe ser igual o posterior a `startDate`.
-- Los días solicitados no pueden superar el saldo disponible (`totalDays - usedDays - pendingDays`).
-- No se permiten solicitudes con fechas en el pasado.
-- Una solicitud `APPROVED` incrementa `usedDays` y decrementa `pendingDays` en el saldo.
+- Tarifas publicadas en **USD**.
+- Reserva directa: sin comisión de plataformas externas.
+- Ubicación exacta se confirma al reservar (mapa de referencia en ficha).
+- Atención al cliente principalmente por **WhatsApp**.
 
-## API prevista (Fase 1)
+## Inventario actual
 
-| Método | Ruta                      | Descripción                    |
-|--------|---------------------------|--------------------------------|
-| GET    | `/api/health`             | Health check del servicio      |
-| GET    | `/api/vacations`          | Listar solicitudes             |
-| POST   | `/api/vacations`          | Crear solicitud                |
-| GET    | `/api/vacations/[id]`     | Obtener solicitud por ID       |
-| PATCH  | `/api/vacations/[id]`     | Actualizar estado o cancelar   |
-| GET    | `/api/balances/[employeeId]` | Consultar saldo anual       |
+### San Clemente (5 propiedades)
+
+- Alojamiento en Arrecife — 14 huéspedes — desde $250/noche
+- Casa vacacional Home One — 18 huéspedes — desde $260/noche
+- Casa vacacional Home Two — 21 huéspedes — desde $280/noche
+- Casa rústica — 18 huéspedes — desde $300/noche
+- Home Luxury La Punta — 18 huéspedes — desde $500/noche
+
+### Portoviejo (2 propiedades)
+
+- Apartamento MS Vacations — 4 huéspedes — desde $65/noche
+- Suite MS Vacations — 2 huéspedes — desde $45/noche
 
 ## Roadmap de fases
 
-| Fase | Alcance                                              | Estado      |
-|------|------------------------------------------------------|-------------|
-| 0    | CI, tests, documentación, convenciones para agentes  | En progreso |
-| 1    | Modelo de datos, API REST, validación con Zod        | Pendiente   |
-| 2    | UI de dashboard, formularios, i18n (español)         | En progreso |
-| 3    | Seguridad, E2E, Docker, observabilidad               | Pendiente   |
+| Fase | Alcance | Estado |
+|------|---------|--------|
+| A | Home, selector de destino, cards reales, identidad visual | En progreso |
+| B | Fichas `/alojamientos/[slug]` + landings por destino | Pendiente |
+| C | Calendario, formulario de reserva, WhatsApp | Pendiente |
+| D | CMS / base de datos para propiedades y disponibilidad | Pendiente |
