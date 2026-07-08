@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { WHATSAPP_URL } from "@/lib/properties";
+import { WHATSAPP_URL } from "@/lib/catalog";
 
 export function SiteFooter() {
   return (

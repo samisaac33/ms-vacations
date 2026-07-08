@@ -1,0 +1,36 @@
+{
+  "currency": "USD",
+  "whatsappUrl": "https://wa.me/593998297151",
+  "paymentMethods": [
+    {
+      "id": "transferencia",
+      "label": "Transferencia bancaria",
+      "description": "Banco Pichincha · Cuenta corriente MS Vacations. Enviamos los datos al confirmar.",
+      "icon": "bank"
+    },
+    {
+      "id": "paypal",
+      "label": "PayPal",
+      "description": "Pago seguro en USD. Ideal para reservas internacionales.",
+      "icon": "paypal"
+    },
+    {
+      "id": "payphone",
+      "label": "Tarjeta (PayPhone)",
+      "description": "Visa y Mastercard. Te enviamos el enlace de pago tras confirmar fechas.",
+      "icon": "card"
+    },
+    {
+      "id": "efectivo",
+      "label": "Efectivo al llegar",
+      "description": "Disponible solo con reserva confirmada y depósito previo del 50%.",
+      "icon": "cash"
+    }
+  ],
+  "bookingPolicy": {
+    "depositPercent": 50,
+    "minLeadDays": 1,
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00"
+  }
+}

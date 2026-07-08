@@ -1,20 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { DirectBookingBadge } from "@/components/trust/DirectBookingBadge";
-import type { Property } from "@/lib/properties";
+import type { PropertyRecord } from "@/lib/catalog";
+import { getCoverImage } from "@/lib/catalog";
 
 interface PropertyCardProps {
-  property: Property;
+  property: PropertyRecord;
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
   return (
     <article className="card-hover group">
-      <Link href={`#${property.slug}`} className="block">
+      <Link href={`/alojamientos/${property.slug}`} className="block">
         <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
           <Image
-            src={property.imageUrl}
-            alt={property.imageAlt}
+            src={getCoverImage(property)}
+            alt={property.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -30,7 +31,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
               {property.name}
             </h3>
             <p className="shrink-0 text-sm font-semibold text-accent">
-              ~${property.priceFrom}
+              ${property.pricePerNight}
               <span className="font-normal text-muted">/noche</span>
             </p>
           </div>
@@ -40,7 +41,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           </p>
 
           <p className="mt-2 text-sm text-muted line-clamp-2">
-            {property.description}
+            {property.shortDescription}
           </p>
 
           <p className="mt-3 text-sm text-foreground">

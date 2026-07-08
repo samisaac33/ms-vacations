@@ -1,6 +1,6 @@
 import { PropertyCard } from "@/components/properties/PropertyCard";
-import type { DestinationId } from "@/lib/properties";
-import { getPropertiesByDestination } from "@/lib/properties";
+import type { DestinationId } from "@/lib/catalog";
+import { getPropertiesByDestination } from "@/lib/catalog";
 
 interface PropertySectionProps {
   id: DestinationId;

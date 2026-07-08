@@ -1,4 +1,4 @@
-import { WHATSAPP_URL } from "@/lib/properties";
+import { WHATSAPP_URL } from "@/lib/catalog";
 
 export function WhatsAppButton() {
   return (

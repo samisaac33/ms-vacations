@@ -84,7 +84,7 @@ Selecciona fechas, completa datos y envía solicitud. El equipo confirma por Wha
 
 | Fase | Alcance | Estado |
 |------|---------|--------|
-| A | Home, selector de destino, cards reales, identidad visual | En progreso |
-| B | Fichas `/alojamientos/[slug]` + landings por destino | Pendiente |
-| C | Calendario, formulario de reserva, WhatsApp | Pendiente |
-| D | CMS / base de datos para propiedades y disponibilidad | Pendiente |
+| A | Home, destinos, cards, identidad visual | Completada |
+| B | Fichas `/alojamientos/[slug]` con galería y reserva | Completada |
+| C | iCal, cotización, formas de pago, API de reservas | Completada |
+| D | Persistencia en DB, panel admin, notificaciones | Pendiente |

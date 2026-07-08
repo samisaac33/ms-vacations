@@ -1,0 +1,179 @@
+{
+  "destinations": [
+    {
+      "id": "san-clemente",
+      "name": "San Clemente",
+      "tagline": "Playa y casas con piscina",
+      "description": "Viviendas vacacionales en la costa de Manabí, ideales para familias y grupos grandes.",
+      "priceFrom": 250,
+      "image": "/images/destinations/san-clemente.jpg",
+      "vibe": "playa"
+    },
+    {
+      "id": "portoviejo",
+      "name": "Portoviejo",
+      "tagline": "Apartamentos en la ciudad",
+      "description": "Alojamientos urbanos para viajes de trabajo, familia o estadías cortas en Manabí.",
+      "priceFrom": 45,
+      "image": "/images/destinations/portoviejo.jpg",
+      "vibe": "ciudad"
+    }
+  ],
+  "properties": [
+    {
+      "id": "1",
+      "slug": "alojamiento-arrecife",
+      "name": "Alojamiento en Arrecife",
+      "destination": "san-clemente",
+      "shortDescription": "Villa moderna de dos plantas con piscina iluminada y amplia zona exterior.",
+      "description": "Disfruta de una estadía privada y confortable en esta hermosa casa con piscina y área de hidromasaje. Con capacidad para hasta 14 personas, es ideal para familias y grupos que buscan comodidad y exclusividad.",
+      "guests": 14,
+      "bedrooms": 5,
+      "bathrooms": 4,
+      "pricePerNight": 250,
+      "cleaningFee": 80,
+      "minNights": 2,
+      "images": [
+        "/images/properties/alojamiento-arrecife/1.jpg",
+        "/images/properties/alojamiento-arrecife/2.jpg",
+        "/images/properties/alojamiento-arrecife/3.jpg"
+      ],
+      "amenities": ["Piscina", "Zona exterior", "Parrilla", "Estacionamiento", "WiFi"],
+      "highlights": ["Piscina iluminada", "Ideal para familias", "Zona tranquila"],
+      "googleMapsUrl": "https://maps.google.com/?q=San+Clemente+Manabi+Ecuador",
+      "icalEnvKey": "ICAL_URL_ARRECIFE"
+    },
+    {
+      "id": "2",
+      "slug": "casa-home-one",
+      "name": "Casa vacacional Home One",
+      "destination": "san-clemente",
+      "shortDescription": "Casa de gran capacidad con piscina para hasta 18 huéspedes.",
+      "description": "Casa vacacional de gran capacidad con piscina y zona de esparcimiento. Perfecta para reuniones familiares, celebraciones y grupos que buscan espacio y privacidad en la costa.",
+      "guests": 18,
+      "bedrooms": 6,
+      "bathrooms": 5,
+      "pricePerNight": 260,
+      "cleaningFee": 90,
+      "minNights": 2,
+      "images": [
+        "/images/properties/casa-home-one/1.jpg",
+        "/images/properties/casa-home-one/2.jpg"
+      ],
+      "amenities": ["Piscina", "Zona BBQ", "Estacionamiento", "WiFi", "Cocina equipada"],
+      "highlights": ["Hasta 18 huéspedes", "Piscina privada", "Grupos grandes"],
+      "googleMapsUrl": "https://maps.google.com/?q=San+Clemente+Manabi+Ecuador",
+      "icalEnvKey": "ICAL_URL_HOME_ONE"
+    },
+    {
+      "id": "3",
+      "slug": "casa-home-two",
+      "name": "Casa vacacional Home Two",
+      "destination": "san-clemente",
+      "shortDescription": "La mayor capacidad del portafolio: hasta 21 huéspedes.",
+      "description": "La opción de mayor capacidad de MS Vacations. Hasta 21 huéspedes, ideal para retiros, familias numerosas o eventos privados con piscina y amplias áreas sociales.",
+      "guests": 21,
+      "bedrooms": 7,
+      "bathrooms": 6,
+      "pricePerNight": 280,
+      "cleaningFee": 100,
+      "minNights": 2,
+      "images": [
+        "/images/properties/casa-home-two/1.jpg",
+        "/images/properties/casa-home-two/2.jpg"
+      ],
+      "amenities": ["Piscina", "Zona social", "Estacionamiento", "WiFi", "Cocina"],
+      "highlights": ["Hasta 21 huéspedes", "Retiros", "Piscina"],
+      "googleMapsUrl": "https://maps.google.com/?q=San+Clemente+Manabi+Ecuador",
+      "icalEnvKey": "ICAL_URL_HOME_TWO"
+    },
+    {
+      "id": "4",
+      "slug": "casa-rustica",
+      "name": "Casa rústica",
+      "destination": "san-clemente",
+      "shortDescription": "Casa con estética rústica, madera y piedra, con piscina.",
+      "description": "Casa con estética rústica, madera y piedra; hasta 18 huéspedes con piscina y zona exterior. Ambiente acogedor para quienes buscan calidez y estilo en la playa.",
+      "guests": 18,
+      "bedrooms": 6,
+      "bathrooms": 5,
+      "pricePerNight": 300,
+      "cleaningFee": 95,
+      "minNights": 2,
+      "images": [
+        "/images/properties/casa-rustica/1.jpg",
+        "/images/properties/casa-rustica/2.jpg"
+      ],
+      "amenities": ["Piscina", "Estilo rústico", "Parrilla", "WiFi"],
+      "highlights": ["Madera y piedra", "Ambiente acogedor", "Piscina"],
+      "googleMapsUrl": "https://maps.google.com/?q=San+Clemente+Manabi+Ecuador",
+      "icalEnvKey": "ICAL_URL_CASA_RUSTICA"
+    },
+    {
+      "id": "5",
+      "slug": "home-luxury-la-punta",
+      "name": "Home Luxury La Punta",
+      "destination": "san-clemente",
+      "shortDescription": "Casa de lujo frente al mar con jacuzzi y terraza.",
+      "description": "Casa de lujo frente a la playa con piscina, jacuzzi, terraza y vistas al mar. La experiencia premium de MS Vacations en San Clemente para hasta 18 huéspedes.",
+      "guests": 18,
+      "bedrooms": 6,
+      "bathrooms": 5,
+      "pricePerNight": 500,
+      "cleaningFee": 150,
+      "minNights": 3,
+      "images": [
+        "/images/properties/home-luxury-la-punta/1.jpg",
+        "/images/properties/home-luxury-la-punta/2.jpg",
+        "/images/properties/home-luxury-la-punta/3.jpg"
+      ],
+      "amenities": ["Frente al mar", "Jacuzzi", "Piscina", "Terraza", "WiFi"],
+      "highlights": ["Vistas al mar", "Lujo", "Jacuzzi"],
+      "googleMapsUrl": "https://maps.google.com/?q=La+Punta+San+Clemente+Ecuador",
+      "icalEnvKey": "ICAL_URL_LUXURY_LA_PUNTA"
+    },
+    {
+      "id": "6",
+      "slug": "apartamento-portoviejo",
+      "name": "Apartamento MS Vacations",
+      "destination": "portoviejo",
+      "shortDescription": "Apartamento equipado en Portoviejo para trabajo o familia.",
+      "description": "Apartamento equipado en Portoviejo, ideal para viajes de trabajo, familia o escapadas urbanas en Manabí. Ubicación práctica y todo lo necesario para una estadía cómoda.",
+      "guests": 4,
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "pricePerNight": 65,
+      "cleaningFee": 25,
+      "minNights": 1,
+      "images": [
+        "/images/properties/apartamento-portoviejo/1.jpg",
+        "/images/properties/apartamento-portoviejo/2.jpg"
+      ],
+      "amenities": ["WiFi", "Cocina", "TV", "Estacionamiento"],
+      "highlights": ["Céntrico", "Equipado", "Familias"],
+      "googleMapsUrl": "https://maps.google.com/?q=Portoviejo+Manabi+Ecuador",
+      "icalEnvKey": "ICAL_URL_APT_PORTOVIEJO"
+    },
+    {
+      "id": "7",
+      "slug": "suite-portoviejo",
+      "name": "Suite MS Vacations",
+      "destination": "portoviejo",
+      "shortDescription": "Suite amoblada para parejas o viajeros en solitario.",
+      "description": "Suite amoblada para parejas o viajeros en solitario, con lo esencial para una estadía cómoda en Portoviejo a un precio accesible.",
+      "guests": 2,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "pricePerNight": 45,
+      "cleaningFee": 15,
+      "minNights": 1,
+      "images": [
+        "/images/properties/suite-portoviejo/1.jpg"
+      ],
+      "amenities": ["WiFi", "Aire acondicionado", "TV"],
+      "highlights": ["Parejas", "Económico", "Cómodo"],
+      "googleMapsUrl": "https://maps.google.com/?q=Portoviejo+Manabi+Ecuador",
+      "icalEnvKey": "ICAL_URL_SUITE_PORTOVIEJO"
+    }
+  ]
+}

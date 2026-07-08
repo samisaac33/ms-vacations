@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DirectBookingBadge } from "@/components/trust/DirectBookingBadge";
-import { WHATSAPP_URL } from "@/lib/properties";
+import { WHATSAPP_URL } from "@/lib/catalog";
 
 function WhatsAppIcon() {
   return (

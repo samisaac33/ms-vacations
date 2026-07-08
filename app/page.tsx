@@ -5,7 +5,7 @@ import { DestinationPicker } from "@/components/destinations/DestinationPicker";
 import { PropertySection } from "@/components/properties/PropertySection";
 import { DirectBookingBadge } from "@/components/trust/DirectBookingBadge";
 import { TrustStrip } from "@/components/trust/TrustStrip";
-import { destinations, WHATSAPP_URL } from "@/lib/properties";
+import { destinations, WHATSAPP_URL } from "@/lib/catalog";
 
 export default function Home() {
   return (
@@ -23,7 +23,7 @@ export default function Home() {
               Propiedades seleccionadas en{" "}
               <strong className="font-medium text-foreground">San Clemente</strong> y{" "}
               <strong className="font-medium text-foreground">Portoviejo</strong>.
-              Consulta disponibilidad y reserva en línea, sin comisiones de plataforma.
+              Consulta disponibilidad en tiempo real y reserva directo, sin comisiones.
             </p>
           </div>
 

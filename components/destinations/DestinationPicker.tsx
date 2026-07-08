@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Destination } from "@/lib/properties";
+import type { DestinationRecord } from "@/lib/catalog";
 
 interface DestinationPickerProps {
-  destinations: Destination[];
+  destinations: DestinationRecord[];
 }
 
 export function DestinationPicker({ destinations }: DestinationPickerProps) {
@@ -12,13 +12,13 @@ export function DestinationPicker({ destinations }: DestinationPickerProps) {
       {destinations.map((destination, index) => (
         <Link
           key={destination.id}
-          href={destination.href}
+          href={`#${destination.id}`}
           className="card-hover group relative overflow-hidden rounded-2xl"
           style={{ animationDelay: `${index * 80}ms` }}
         >
           <div className="relative aspect-[16/10]">
             <Image
-              src={destination.imageUrl}
+              src={destination.image}
               alt={`Alojamientos en ${destination.name}`}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -37,7 +37,7 @@ export function DestinationPicker({ destinations }: DestinationPickerProps) {
             </h3>
             <p className="mt-1 text-sm text-white/90">{destination.tagline}</p>
             <p className="mt-3 text-sm font-medium">
-              {destination.propertyCount} alojamientos · desde ${destination.priceFrom}/noche
+              Desde ${destination.priceFrom}/noche
             </p>
             <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold underline-offset-4 group-hover:underline">
               Ver alojamientos →

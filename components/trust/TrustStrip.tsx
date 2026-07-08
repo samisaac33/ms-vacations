@@ -1,4 +1,4 @@
-import { trustFeatures } from "@/lib/properties";
+import { trustFeatures } from "@/lib/catalog";
 
 export function TrustStrip() {
   return (
