@@ -100,5 +100,5 @@ Un manager revisa solicitudes `PENDING` y las aprueba o rechaza.
 |------|------------------------------------------------------|-------------|
 | 0    | CI, tests, documentación, convenciones para agentes  | En progreso |
 | 1    | Modelo de datos, API REST, validación con Zod        | Pendiente   |
-| 2    | UI de dashboard, formularios, i18n (español)         | Pendiente   |
+| 2    | UI de dashboard, formularios, i18n (español)         | En progreso |
 | 3    | Seguridad, E2E, Docker, observabilidad               | Pendiente   |

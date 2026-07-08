@@ -70,10 +70,15 @@ docs/                   # Documentación
 
 ### Estilo y UI
 
+- **Dirección visual:** inspirada en Airbnb — limpia, cálida, espaciosa
+- **Color primario:** `#FF385C` (token `--primary` / clase `text-primary`, `bg-primary`)
+- **Tipografía:** Plus Jakarta Sans (sustituto de Cereal)
+- **Patrones:** búsqueda en píldora con sombra, cards con `rounded-xl`, filtros en pills, hover sutil en cards
 - Tailwind CSS para estilos; evitar CSS modules salvo casos excepcionales
 - Textos de interfaz en **español**
-- `lang="es"` en el layout raíz (aplicar en Fase 2)
+- `lang="es"` en el layout raíz
 - Componentes accesibles: labels, roles ARIA, navegación por teclado
+- Componentes reutilizables en `components/ui/` y `components/vacations/`
 
 ## Flujo de trabajo para agentes
 
