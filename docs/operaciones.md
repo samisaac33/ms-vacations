@@ -1,0 +1,93 @@
+# Operación MS Vacations
+
+## Base de datos
+
+1. Crear proyecto Postgres (p. ej. Neon) y copiar `DATABASE_URL`.
+2. Aplicar esquema: `npm run db:push` (desarrollo) o migraciones generadas con `npm run db:generate` + `npm run db:migrate`.
+3. Poblar las 5 propiedades con precios e URLs iCal desde el catálogo en código: `npm run db:seed`.
+
+## Sincronización iCal (Airbnb → web)
+
+Importa reservas y bloqueos **desde Airbnb hacia la web** para evitar doble reserva en el canal directo.
+
+### Mapa propiedad ↔ Google Maps
+
+| Slug (web) | Google Maps |
+|------------|-------------|
+| `casa-rustica-18-personas-max` | [Rustic House](https://maps.app.goo.gl/qg4NrzUQuzQUhGhn9) |
+| `casa-vacacional-home-one-18-personas-max` | [Home One / Home Two (compartido)](https://maps.app.goo.gl/GYGPf5TnSTMtAUkR9) |
+| `casa-vacacional-home-two-21-personas` | Mismo enlace que Home One |
+| `alojamiento-en-arrecife` | [Home Deluxe Arrecife](https://maps.app.goo.gl/pb7RNYVtzTSdk1Wm9) |
+| `home-luxury-la-punta-18-personas-max` | [Home Luxury La Punta](https://maps.app.goo.gl/AcMXwczwft2fmtrZA) |
+
+### Mapa propiedad ↔ listing Airbnb
+
+| Slug (web) | Nombre | Listing iCal (ID en URL) |
+|------------|--------|--------------------------|
+| `alojamiento-en-arrecife` | Alojamiento en Arrecife | `847175742779477105` |
+| `casa-vacacional-home-one-18-personas-max` | Home One | `43089929` |
+| `casa-vacacional-home-two-21-personas` | Home Two | `43093803` |
+| `casa-rustica-18-personas-max` | Casa rústica | `50403775` |
+| `home-luxury-la-punta-18-personas-max` | Home Luxury La Punta | `664011177607035357` |
+
+Las URLs completas (con token `t=...`) viven en `properties.ical_url` (seed desde `lib/properties.ts` o edición en `/admin`).
+
+### Cómo sincronizar
+
+**Panel admin (recomendado):**
+
+1. Definir `ADMIN_SECRET` y `DATABASE_URL`.
+2. Entrar en `/admin`.
+3. Revisar URLs enmascaradas por propiedad; pegar una nueva URL si cambia en Airbnb.
+4. Pulsar **Sincronizar iCal ahora** y revisar logs en la misma página.
+
+**Cron automático (Vercel):**
+
+- Variables: `CRON_SECRET`, `DATABASE_URL`.
+- Job programado: `GET /api/cron/sync-ical` con cabecera `Authorization: Bearer <CRON_SECRET>` (ver `vercel.json`).
+- Alternativa manual: misma URL y cabecera desde curl o Postman.
+
+**Límites:** el feed iCal no es tiempo real; hay latencia de Airbnb + intervalo del cron. En Vercel plan Hobby el cron solo puede ejecutarse **como mucho una vez al día** (13:00 UTC en `vercel.json`). Con plan Pro puedes usar intervalos más frecuentes.
+
+**Export inverso (web → Airbnb):** no implementado aún. Las reservas hechas en la web no bloquean Airbnb automáticamente hasta importar un calendario de exportación en el panel de Airbnb (fase 2).
+
+## Pagos (transferencia, PayPal, PayPhone)
+
+### Transferencia bancaria (−7% sobre el total directo)
+
+- Variables: `BANK_ACCOUNT_HOLDER`, `BANK_NAME`, `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_TYPE`, `BANK_ID_TYPE`, `BANK_ID_NUMBER`, `BANK_EMAIL` (opcional).
+- Plazo para transferir y subir comprobante: **72 h** (`pending_payment` → `pending_verification`).
+- Comprobantes: bucket Supabase `MS_VACATIONS/payment-proofs/` — requiere `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`.
+- Confirmación manual en `/admin` (sección «Transferencias pendientes»).
+
+### PayPal
+
+- `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_MODE=sandbox|live`.
+- Retorno: `/reserva/exito?provider=paypal&bookingId=…&token={ORDER_ID}` → captura vía `POST /api/payments/confirm`.
+
+### PayPhone
+
+- `PAYPHONE_TOKEN`, `PAYPHONE_STORE_ID`.
+- Opcionales: `PAYPHONE_DEFAULT_PHONE`, `PAYPHONE_DEFAULT_DOCUMENT`.
+- Retorno: `/reserva/exito?provider=payphone&bookingId=…` → consulta estado vía API Sale.
+
+### General
+
+- `NEXT_PUBLIC_SITE_URL` — URLs de retorno y cancelación.
+- Reservas en línea (PayPal/PayPhone) expiran a los **30 min** si no se completa el pago.
+
+## Precios (calendario admin)
+
+- **Hub multi-calendario:** `/admin` — todas las propiedades en filas, días en columnas, precios por noche y barras de estancia (Airbnb / reserva web). `/admin/calendario` redirige aquí.
+- **Detalle por propiedad:** `/admin/propiedades/{slug}/precios` — vista mes estilo Airbnb, panel lateral para editar precios por rango.
+- Tarifa **base**: editable en el panel lateral «Precios» o vía seed inicial.
+- **Overrides por noche:** selecciona días y define el precio final por noche; la web cobra ese valor.
+- Días bloqueados (iCal / reserva web) se muestran con patrón rayado y no son editables.
+- Cotización en reserva: `GET /api/pricing?slug=…&checkIn=…&checkOut=…` suma cada noche (override o base).
+- No hay importación automática de precios desde Airbnb.
+
+## Panel `/admin`
+
+- `ADMIN_SECRET`: contraseña para iniciar sesión (cookie httpOnly).
+- Gestión de URLs iCal por propiedad, **calendario multi** en `/admin`, detalle de precios por propiedad, **configuración** en `/admin/configuracion`, sincronización manual y logs.
+- Valores iniciales de precio: `npm run db:seed` desde `lib/properties.ts`. Overrides y tarifa base en `/admin/propiedades/{slug}/precios`.

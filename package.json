@@ -6,10 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:migrate:payment-proof": "tsx scripts/migrate-payment-proof.ts",
+    "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
+    "drizzle-orm": "^0.41.0",
     "next": "16.2.4",
+    "node-ical": "^0.20.1",
+    "postgres": "^3.4.5",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -18,9 +27,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.30.6",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
+    "tsx": "^4.19.3",
     "typescript": "^5"
   }
 }

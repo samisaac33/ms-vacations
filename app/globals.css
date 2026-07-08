@@ -1,26 +1,114 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --sand: #faf7f2;
+  --sand-dark: #f0e8dc;
+  --ocean: #0c6e7a;
+  --ocean-dark: #0a5a64;
+  --ocean-light: #e6f4f6;
+  --coral: #d97757;
+  --ink: #1a2b2e;
+  --muted: #5c6b6e;
+  --background: var(--sand);
+  --foreground: var(--ink);
 }
 
 @theme inline {
+  --color-sand: var(--sand);
+  --color-sand-dark: var(--sand-dark);
+  --color-ocean: var(--ocean);
+  --color-ocean-dark: var(--ocean-dark);
+  --color-ocean-light: var(--ocean-light);
+  --color-coral: var(--coral);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply overflow-hidden rounded-2xl border border-sand-dark bg-white shadow-sm;
+  }
+
+  .section-alt {
+    @apply bg-sand-dark;
+  }
+
+  .prose-legal {
+    @apply space-y-4 text-sm leading-relaxed text-muted;
+  }
+
+  .prose-legal h2 {
+    @apply mt-8 text-base font-semibold text-ink first:mt-0;
+  }
+
+  .prose-legal p {
+    @apply text-muted;
+  }
+
+  .prose-legal ul {
+    @apply list-inside list-disc space-y-1;
+  }
+
+  .admin-cal-cell {
+    @apply relative flex min-h-[4.5rem] flex-col rounded-2xl border border-zinc-200 bg-white p-2 text-left transition-colors;
+  }
+
+  .admin-cal-cell--muted {
+    @apply border-transparent opacity-35;
+  }
+
+  .admin-cal-cell--blocked {
+    @apply cursor-not-allowed border-zinc-200 text-zinc-400;
+    background: repeating-linear-gradient(
+      -45deg,
+      #f4f4f5,
+      #f4f4f5 4px,
+      #e4e4e7 4px,
+      #e4e4e7 8px
+    );
+  }
+
+  .admin-cal-cell--selected {
+    @apply border-zinc-900 bg-zinc-900 text-white;
+  }
+
+  .admin-cal-cell--override:not(.admin-cal-cell--selected) {
+    @apply ring-1 ring-zinc-400 ring-inset;
+  }
+
+  .admin-stay-bar {
+    @apply absolute top-1 z-10 flex h-7 items-center overflow-hidden rounded-md px-2 text-[11px] font-medium text-white shadow-sm;
+  }
+
+  .admin-stay-bar--booking {
+    @apply bg-teal-700;
+  }
+
+  .admin-stay-bar--external {
+    @apply bg-zinc-500;
+  }
+
+  .admin-timeline-cell {
+    @apply flex h-14 min-w-[3.25rem] shrink-0 flex-col items-center justify-center border-r border-zinc-200 text-center;
+  }
+
+  .admin-timeline-cell--blocked {
+    background: repeating-linear-gradient(
+      -45deg,
+      #fafafa,
+      #fafafa 3px,
+      #ececec 3px,
+      #ececec 6px
+    );
+  }
 }
