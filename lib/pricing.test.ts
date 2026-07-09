@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   BANK_TRANSFER_DISCOUNT_RATE,
+  basePriceFromPriorDirectUsd,
   formatUsd,
   totalCentsForPaymentMethod,
   totalUsdForPaymentMethod,
@@ -35,5 +36,15 @@ describe("totalUsdForPaymentMethod", () => {
   it("convierte centavos a USD", () => {
     expect(totalUsdForPaymentMethod(12_500, "paypal")).toBe(125);
     expect(totalUsdForPaymentMethod(10_000, "bank_transfer")).toBe(93);
+  });
+});
+
+describe("basePriceFromPriorDirectUsd", () => {
+  it("suma 7 % al precio directo anterior para la nueva tarifa base", () => {
+    expect(basePriceFromPriorDirectUsd(500)).toBe(535);
+    expect(basePriceFromPriorDirectUsd(250)).toBe(268);
+    expect(basePriceFromPriorDirectUsd(260)).toBe(278);
+    expect(basePriceFromPriorDirectUsd(280)).toBe(300);
+    expect(basePriceFromPriorDirectUsd(300)).toBe(321);
   });
 });

@@ -13,7 +13,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:migrate:payment-proof": "tsx scripts/migrate-payment-proof.ts",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:update-beach-prices": "tsx scripts/update-beach-prices.ts"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
