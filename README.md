@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MS Vacations
 
-## Getting Started
+Sitio de alquiler vacacional directo en **San Clemente** (playa) y **Portoviejo** (ciudad), Manabí, Ecuador.
 
-First, run the development server:
+Producción: [ms-vacations.vercel.app](https://ms-vacations.vercel.app)
+
+## Stack
+
+- Next.js 16 (App Router)
+- PostgreSQL + Drizzle ORM
+- Sincronización iCal (`node-ical`)
+- Pagos: transferencia bancaria, PayPal, PayPhone
+- Deploy en Vercel
+
+## Requisitos
+
+- Node.js 20+
+- PostgreSQL (local o remoto)
+
+## Configuración local
 
 ```bash
+cp .env.example .env.local
+# Edita .env.local con DATABASE_URL, ADMIN_SECRET, etc.
+
+npm install
+npm run db:push    # crea tablas
+npm run db:seed    # datos iniciales de propiedades
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Variables de entorno
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Consulta `.env.example` para la lista completa. Las mínimas para desarrollo:
 
-## Learn More
+| Variable | Uso |
+|----------|-----|
+| `DATABASE_URL` | Conexión PostgreSQL |
+| `ADMIN_SECRET` | Acceso al panel `/admin` |
+| `NEXT_PUBLIC_SITE_URL` | URL base del sitio |
 
-To learn more about Next.js, take a look at the following resources:
+En producción (Vercel) configura también `CRON_SECRET`, credenciales de pago y Supabase si usas comprobantes de transferencia.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción |
+| `npm run lint` | ESLint |
+| `npm run test` | Tests (Vitest, watch) |
+| `npm run test:ci` | Tests una sola vez (CI) |
+| `npm run db:generate` | Generar migraciones Drizzle |
+| `npm run db:migrate` | Aplicar migraciones |
+| `npm run db:push` | Sincronizar esquema sin migración |
+| `npm run db:seed` | Seed de propiedades |
 
-## Deploy on Vercel
+## Estructura
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+app/           Páginas y API routes
+components/    UI reutilizable
+db/            Esquema y conexión Drizzle
+lib/           Lógica de negocio (reservas, precios, iCal, pagos)
+docs/          Documentación de dominio
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+El modelo de dominio está descrito en [`docs/DOMAIN.md`](docs/DOMAIN.md).
+
+## CI
+
+Cada push/PR a `main` ejecuta lint, tests y build (`.github/workflows/ci.yml`).
+
+## Admin
+
+1. Define `ADMIN_SECRET` en el entorno
+2. Visita `/admin` e inicia sesión
+3. Desde ahí: iCal, calendario, precios y pagos pendientes
+
+## Cron iCal
+
+Vercel ejecuta `/api/cron/sync-ical` diariamente (ver `vercel.json`). Requiere `CRON_SECRET` en el header `Authorization: Bearer <secret>`.
