@@ -71,7 +71,7 @@ export function HomeWhyBookDirect() {
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-wide text-ocean">Ventajas</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
             ¿Por qué reservar directo?
           </h2>
           <p className="mt-3 text-muted leading-relaxed">

@@ -34,7 +34,9 @@ export function PageHeader({ title, subtitle, breadcrumbs, children, className =
           ))}
         </nav>
       )}
-      <h1 className={`text-3xl font-semibold tracking-tight text-ink ${breadcrumbs ? "mt-3" : ""}`}>
+      <h1
+        className={`font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl ${breadcrumbs ? "mt-3" : ""}`}
+      >
         {title}
       </h1>
       {subtitle && (

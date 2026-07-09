@@ -22,7 +22,7 @@ export function DestinationPropertySection({
   return (
     <section id={id} className="scroll-mt-36">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight text-ink">{heading}</h2>
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{heading}</h2>
         <p className="mt-2 text-muted">
           {subtitle}
           {showDiscountNote && <> Precios en USD por noche (reserva directa).</>}
@@ -50,7 +50,7 @@ export function CatalogSectionHeader({ title, subtitle, catalogPath, seeAllLabel
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight text-ink">{title}</h2>
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{title}</h2>
         <p className="mt-2 text-muted">{subtitle}</p>
       </div>
       <Link href={catalogPath} className="text-sm font-medium text-ocean hover:underline">

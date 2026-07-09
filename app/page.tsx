@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { HomeHeroPanel } from "@/components/home-hero-panel";
 import { HomeWhyBookDirect } from "@/components/home-why-book-direct";
 import {
   HomeDestinationPicker,
@@ -74,7 +75,7 @@ export default async function Home() {
 
   return (
     <>
-      <section className="relative min-h-[70vh] overflow-hidden">
+      <section className="relative min-h-[58vh] overflow-hidden lg:min-h-[62vh]">
         <Image
           src={heroImage.src}
           alt={heroImage.alt}
@@ -83,29 +84,18 @@ export default async function Home() {
           className="object-cover"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/40 to-ink/20" />
-        <div className="relative mx-auto flex min-h-[70vh] max-w-6xl flex-col justify-end px-4 pb-12 pt-24 sm:px-6 sm:pb-16">
-          <p className="text-sm font-medium uppercase tracking-widest text-ocean-light">
+        <div className="absolute inset-0 bg-gradient-to-br from-ocean-dark/70 via-ink/45 to-ink/25" />
+        <div className="relative mx-auto flex min-h-[58vh] max-w-6xl flex-col justify-end px-4 pb-10 pt-28 sm:px-6 sm:pb-12 lg:min-h-[62vh]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             {siteConfig.copy.heroEyebrow}
           </p>
-          <span className="mt-4 inline-flex w-fit rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white backdrop-blur">
-            {siteConfig.copy.heroDestinationsBadge}
-          </span>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+          <h1 className="font-display mt-3 max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-[3.25rem] lg:leading-tight">
             {siteConfig.copy.heroTitle}
           </h1>
-          <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/90">
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg">
             {siteConfig.copy.heroSubtitle}
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button href={siteConfig.copy.catalogPath}>{siteConfig.copy.heroCta}</Button>
-            <Button href="#playa" variant="secondary">
-              {siteConfig.copy.heroCtaBeach}
-            </Button>
-            <Button href="#ciudad" variant="secondary">
-              {siteConfig.copy.heroCtaCity}
-            </Button>
-          </div>
+          <HomeHeroPanel />
         </div>
       </section>
 

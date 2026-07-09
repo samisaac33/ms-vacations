@@ -16,7 +16,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <p className="font-semibold text-ink">{siteConfig.name}</p>
+            <p className="font-display text-lg font-semibold text-ink">{siteConfig.name}</p>
             <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted">
               {siteConfig.tagline}
             </p>

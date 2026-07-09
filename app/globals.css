@@ -1,16 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --sand: #faf7f2;
-  --sand-dark: #f0e8dc;
-  --ocean: #0c6e7a;
-  --ocean-dark: #0a5a64;
-  --ocean-light: #e6f4f6;
+  --sand: #faf8f4;
+  --sand-dark: #efe6d8;
+  --ocean: #0d6e6e;
+  --ocean-dark: #0a5858;
+  --ocean-light: #e8f4f4;
   --coral: #d97757;
-  --ink: #1a2b2e;
-  --muted: #5c6b6e;
+  --accent: #e8a838;
+  --accent-light: #fdf6e8;
+  --ink: #1a2b2b;
+  --muted: #5c6b6b;
   --background: var(--sand);
   --foreground: var(--ink);
+  --header-height: 4.25rem;
+  --shadow-card: 0 10px 30px rgb(13 110 110 / 0.1);
+  --shadow-soft: 0 4px 18px rgb(26 43 43 / 0.08);
 }
 
 @theme inline {
@@ -20,23 +25,54 @@
   --color-ocean-dark: var(--ocean-dark);
   --color-ocean-light: var(--ocean-light);
   --color-coral: var(--coral);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-fraunces);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-fraunces), Georgia, serif;
 }
 
 @layer components {
   .card {
     @apply overflow-hidden rounded-2xl border border-sand-dark bg-white shadow-sm;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .hero-panel {
+    @apply rounded-2xl border border-white/20 bg-ink/35 p-5 backdrop-blur-md sm:p-6;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide;
+  }
+
+  .badge-ocean {
+    @apply bg-ocean-light text-ocean;
+  }
+
+  .badge-accent {
+    @apply bg-accent-light text-ink;
+  }
+
+  .badge-neutral {
+    @apply bg-sand-dark text-muted;
   }
 
   .section-alt {
