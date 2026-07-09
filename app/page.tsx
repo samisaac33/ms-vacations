@@ -2,14 +2,49 @@ import Image from "next/image";
 import Link from "next/link";
 import { HomeWhyBookDirect } from "@/components/home-why-book-direct";
 import {
+  HomeDestinationPicker,
+  type DestinationCard,
+} from "@/components/home-destination-picker";
+import { HomeDestinationNav } from "@/components/home-destination-nav";
+import {
   CatalogSectionHeader,
   DestinationPropertySection,
 } from "@/components/destination-property-section";
 import { Button } from "@/components/ui/button";
 import { toGoogleMapsEmbedUrl } from "@/lib/google-maps";
-import { getHomeCityMapLocation, getHomeFeaturedMapLocation } from "@/lib/properties";
+import { getHomeCityMapLocation, getHomeFeaturedMapLocation, type Property } from "@/lib/properties";
 import { getCatalogGroupedWithDbPrices } from "@/lib/property-db";
 import { siteConfig } from "@/lib/site";
+
+function minPriceUsd(properties: Property[]): number {
+  if (properties.length === 0) return 0;
+  return Math.min(...properties.map((p) => p.basePricePerNightUsd));
+}
+
+function buildDestinationCard(
+  id: "beach" | "city",
+  properties: Property[],
+  name: string,
+  tagline: string,
+  href: string,
+): DestinationCard | null {
+  if (properties.length === 0) return null;
+  const lead = properties[0]!;
+  const image = lead.images[0] ?? {
+    src: "/properties/placeholder-1.svg",
+    alt: `Alojamientos en ${name}`,
+  };
+
+  return {
+    id,
+    name,
+    tagline,
+    href,
+    image,
+    propertyCount: properties.length,
+    priceFromUsd: minPriceUsd(properties),
+  };
+}
 
 export default async function Home() {
   const { beach, city } = await getCatalogGroupedWithDbPrices();
@@ -20,6 +55,22 @@ export default async function Home() {
   const cityMap = getHomeCityMapLocation();
   const beachMapEmbedUrl = toGoogleMapsEmbedUrl(beachMap.coordinates.lat, beachMap.coordinates.lng);
   const cityMapEmbedUrl = toGoogleMapsEmbedUrl(cityMap.coordinates.lat, cityMap.coordinates.lng);
+  const destinationCards = [
+    buildDestinationCard(
+      "beach",
+      beach,
+      siteConfig.destinations.beach.area,
+      siteConfig.destinations.beach.subtitle,
+      "#playa",
+    ),
+    buildDestinationCard(
+      "city",
+      city,
+      siteConfig.destinations.city.area,
+      siteConfig.destinations.city.subtitle,
+      "#ciudad",
+    ),
+  ].filter((card): card is DestinationCard => card !== null);
 
   return (
     <>
@@ -58,7 +109,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl space-y-16 px-4 py-16 sm:px-6">
+      <section className="mx-auto max-w-6xl space-y-10 px-4 py-16 sm:px-6">
         <CatalogSectionHeader
           title={siteConfig.copy.catalogTitle}
           subtitle={siteConfig.copy.catalogSubtitle}
@@ -66,21 +117,27 @@ export default async function Home() {
           seeAllLabel={siteConfig.copy.seeAll}
         />
 
-        <DestinationPropertySection
-          id="playa"
-          heading={siteConfig.copy.featuredBeachHeading}
-          subtitle={siteConfig.destinations.beach.subtitle}
-          properties={beach}
-          showDiscountNote={false}
-        />
+        <HomeDestinationPicker destinations={destinationCards} />
 
-        <DestinationPropertySection
-          id="ciudad"
-          heading={siteConfig.copy.featuredCityHeading}
-          subtitle={siteConfig.destinations.city.subtitle}
-          properties={city}
-          showDiscountNote={false}
-        />
+        <HomeDestinationNav />
+
+        <div className="space-y-16">
+          <DestinationPropertySection
+            id="playa"
+            heading={siteConfig.copy.featuredBeachHeading}
+            subtitle={siteConfig.destinations.beach.subtitle}
+            properties={beach}
+            showDiscountNote={false}
+          />
+
+          <DestinationPropertySection
+            id="ciudad"
+            heading={siteConfig.copy.featuredCityHeading}
+            subtitle={siteConfig.destinations.city.subtitle}
+            properties={city}
+            showDiscountNote={false}
+          />
+        </div>
       </section>
 
       <HomeWhyBookDirect />

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
+import { HomeDestinationNav } from "@/components/home-destination-nav";
 import { DestinationPropertySection } from "@/components/destination-property-section";
 import { getCatalogGroupedWithDbPrices } from "@/lib/property-db";
 import { siteConfig } from "@/lib/site";
@@ -19,20 +20,24 @@ export default async function PropiedadesPage() {
         subtitle={`${siteConfig.copy.catalogSubtitle} Precios de reserva directa en USD.`}
       />
 
-      <div className="mt-10 space-y-16">
-        <DestinationPropertySection
-          id="playa"
-          heading={`${siteConfig.copy.featuredBeachHeading} — ${siteConfig.destinations.beach.area}`}
-          subtitle={siteConfig.destinations.beach.subtitle}
-          properties={beach}
-        />
+      <div className="mt-10 space-y-10">
+        <HomeDestinationNav />
 
-        <DestinationPropertySection
-          id="ciudad"
-          heading={`${siteConfig.copy.featuredCityHeading} — ${siteConfig.destinations.city.area}`}
-          subtitle={siteConfig.destinations.city.subtitle}
-          properties={city}
-        />
+        <div className="space-y-16">
+          <DestinationPropertySection
+            id="playa"
+            heading={`${siteConfig.copy.featuredBeachHeading} — ${siteConfig.destinations.beach.area}`}
+            subtitle={siteConfig.destinations.beach.subtitle}
+            properties={beach}
+          />
+
+          <DestinationPropertySection
+            id="ciudad"
+            heading={`${siteConfig.copy.featuredCityHeading} — ${siteConfig.destinations.city.area}`}
+            subtitle={siteConfig.destinations.city.subtitle}
+            properties={city}
+          />
+        </div>
       </div>
     </div>
   );
