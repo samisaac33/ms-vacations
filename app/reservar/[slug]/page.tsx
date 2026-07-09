@@ -4,10 +4,14 @@ import { PageHeader } from "@/components/page-header";
 import { hasDatabase } from "@/db/index";
 import { getAllPropertySlugs, getPropertyBySlugWithDbPrice } from "@/lib/property-db";
 import { directPricePerNightUsd } from "@/lib/pricing";
+import { parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
 import { siteConfig } from "@/lib/site";
 import { BookingReserveLayout } from "./booking-reserve-layout";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export function generateStaticParams() {
   return getAllPropertySlugs().map((slug) => ({ slug }));
@@ -22,8 +26,15 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function ReservarPage(props: Props) {
   const { slug } = await props.params;
+  const queryParams = await props.searchParams;
   const p = await getPropertyBySlugWithDbPrice(slug);
   if (!p) notFound();
+
+  const parsed = parseStaySearchFromParams(queryParams);
+  const datesValid =
+    parsed?.checkIn &&
+    parsed.checkOut &&
+    !validateStaySearch(parsed.checkIn, parsed.checkOut);
 
   const dbReady = hasDatabase();
   const image = p.images[0];
@@ -52,6 +63,9 @@ export default async function ReservarPage(props: Props) {
       <BookingReserveLayout
         slug={p.slug}
         maxGuests={p.capacity.guests}
+        initialCheckIn={datesValid ? parsed!.checkIn : undefined}
+        initialCheckOut={datesValid ? parsed!.checkOut : undefined}
+        initialGuests={parsed?.huespedes}
         property={{
           slug: p.slug,
           name: p.name,

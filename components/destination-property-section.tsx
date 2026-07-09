@@ -8,6 +8,7 @@ type Props = {
   subtitle: string;
   properties: Property[];
   showDiscountNote?: boolean;
+  stayQuery?: string;
 };
 
 export function DestinationPropertySection({
@@ -16,6 +17,7 @@ export function DestinationPropertySection({
   subtitle,
   properties,
   showDiscountNote = true,
+  stayQuery = "",
 }: Props) {
   if (properties.length === 0) return null;
 
@@ -31,7 +33,7 @@ export function DestinationPropertySection({
       <ul className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {properties.map((p) => (
           <li key={p.id}>
-            <PropertyCard property={p} />
+            <PropertyCard property={p} stayQuery={stayQuery} />
           </li>
         ))}
       </ul>
