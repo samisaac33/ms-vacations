@@ -6,9 +6,13 @@ import { PropertyLocationMap } from "@/components/property-location-map";
 import { Button } from "@/components/ui/button";
 import { getPropertyBySlugWithDbPrice, getAllPropertySlugs } from "@/lib/property-db";
 import { formatUsd } from "@/lib/pricing";
+import { buildStaySearchQuery, parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
 import { siteConfig } from "@/lib/site";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export function generateStaticParams() {
   return getAllPropertySlugs().map((slug) => ({ slug }));
@@ -31,8 +35,21 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function PropertyDetailPage(props: Props) {
   const { slug } = await props.params;
+  const queryParams = await props.searchParams;
   const p = await getPropertyBySlugWithDbPrice(slug);
   if (!p) notFound();
+
+  const parsed = parseStaySearchFromParams(queryParams);
+  const stayQuery =
+    parsed?.checkIn &&
+    parsed.checkOut &&
+    !validateStaySearch(parsed.checkIn, parsed.checkOut)
+      ? buildStaySearchQuery({
+          checkIn: parsed.checkIn,
+          checkOut: parsed.checkOut,
+          huespedes: parsed.huespedes,
+        })
+      : "";
 
   const mainImage = p.images[0];
   const extraImages = p.images.slice(1);
@@ -142,7 +159,7 @@ export default async function PropertyDetailPage(props: Props) {
                 baños
               </li>
             </ul>
-            <Button href={`/reservar/${p.slug}`} className="mt-6 w-full">
+            <Button href={`/reservar/${p.slug}${stayQuery}`} className="mt-6 w-full">
               Reservar
             </Button>
             <Button href={siteConfig.copy.catalogPath} variant="secondary" className="mt-3 w-full">

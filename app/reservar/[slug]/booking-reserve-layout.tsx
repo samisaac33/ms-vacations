@@ -25,6 +25,9 @@ type Props = {
   slug: string;
   maxGuests: number;
   property: PropertySummary;
+  initialCheckIn?: string;
+  initialCheckOut?: string;
+  initialGuests?: number;
 };
 
 function perNightLabel(pricing: BookingPricingState, baseDirectUsd: number): string {
@@ -39,7 +42,14 @@ function perNightLabel(pricing: BookingPricingState, baseDirectUsd: number): str
   return "Variable";
 }
 
-export function BookingReserveLayout({ slug, maxGuests, property }: Props) {
+export function BookingReserveLayout({
+  slug,
+  maxGuests,
+  property,
+  initialCheckIn,
+  initialCheckOut,
+  initialGuests,
+}: Props) {
   const [pricing, setPricing] = useState<BookingPricingState>({
     quote: null,
     quoteLoading: false,
@@ -53,7 +63,14 @@ export function BookingReserveLayout({ slug, maxGuests, property }: Props) {
 
   return (
     <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_300px] lg:items-start">
-      <BookingForm slug={slug} maxGuests={maxGuests} onPricingChange={setPricing} />
+      <BookingForm
+        slug={slug}
+        maxGuests={maxGuests}
+        onPricingChange={setPricing}
+        initialCheckIn={initialCheckIn}
+        initialCheckOut={initialCheckOut}
+        initialGuests={initialGuests}
+      />
 
       <aside className="lg:sticky lg:top-24">
         <div className="card overflow-hidden">

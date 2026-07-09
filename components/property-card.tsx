@@ -7,16 +7,17 @@ import { directPricePerNightUsd, formatUsd } from "@/lib/pricing";
 
 type Props = {
   property: Property;
+  stayQuery?: string;
 };
 
-export function PropertyCard({ property: p }: Props) {
+export function PropertyCard({ property: p, stayQuery = "" }: Props) {
   const image = p.images[0];
   const directUsd = directPricePerNightUsd(p.basePricePerNightUsd);
   const badges = getPropertyBadges(p);
 
   return (
     <article className="card card-hover group">
-      <Link href={`/propiedades/${p.slug}`} className="block">
+      <Link href={`/propiedades/${p.slug}${stayQuery}`} className="block">
         <div className="relative aspect-[16/10] overflow-hidden bg-sand-dark">
           <Image
             src={image?.src ?? "/properties/placeholder-1.svg"}

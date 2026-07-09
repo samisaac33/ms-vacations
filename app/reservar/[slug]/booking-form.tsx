@@ -30,6 +30,9 @@ type Props = {
   slug: string;
   maxGuests: number;
   onPricingChange?: (state: BookingPricingState) => void;
+  initialCheckIn?: string;
+  initialCheckOut?: string;
+  initialGuests?: number;
 };
 
 const PAYMENT_OPTIONS: {
@@ -128,10 +131,19 @@ function formatNightlySummary(quote: StayQuote): string {
   return "precio variable por noche";
 }
 
-export function BookingForm({ slug, maxGuests, onPricingChange }: Props) {
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [guests, setGuests] = useState(Math.min(2, maxGuests));
+export function BookingForm({
+  slug,
+  maxGuests,
+  onPricingChange,
+  initialCheckIn = "",
+  initialCheckOut = "",
+  initialGuests,
+}: Props) {
+  const [checkIn, setCheckIn] = useState(initialCheckIn);
+  const [checkOut, setCheckOut] = useState(initialCheckOut);
+  const [guests, setGuests] = useState(
+    initialGuests ? Math.min(initialGuests, maxGuests) : Math.min(2, maxGuests),
+  );
   const [guestEmail, setGuestEmail] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
   const [loading, setLoading] = useState(false);
