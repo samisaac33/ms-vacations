@@ -9,6 +9,7 @@ type Props = {
   properties: Property[];
   showDiscountNote?: boolean;
   stayQuery?: string;
+  emptyMessage?: string;
 };
 
 export function DestinationPropertySection({
@@ -18,8 +19,24 @@ export function DestinationPropertySection({
   properties,
   showDiscountNote = true,
   stayQuery = "",
+  emptyMessage,
 }: Props) {
-  if (properties.length === 0) return null;
+  if (properties.length === 0) {
+    if (!emptyMessage) return null;
+    return (
+      <section id={id} className="scroll-mt-36">
+        <div>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+            {heading}
+          </h2>
+          <p className="mt-2 text-muted">{subtitle}</p>
+        </div>
+        <p className="mt-8 rounded-2xl border border-sand-dark bg-sand-dark/50 px-5 py-4 text-sm text-muted">
+          {emptyMessage}
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section id={id} className="scroll-mt-36">
