@@ -20,7 +20,7 @@ export function DestinationPropertySection({
   if (properties.length === 0) return null;
 
   return (
-    <section id={id} className="scroll-mt-24">
+    <section id={id} className="scroll-mt-36">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-ink">{heading}</h2>
         <p className="mt-2 text-muted">
