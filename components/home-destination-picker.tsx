@@ -25,7 +25,7 @@ export function HomeDestinationPicker({ destinations }: Props) {
         <Link
           key={destination.id}
           href={destination.href}
-          className="card group relative overflow-hidden transition-shadow hover:shadow-md"
+          className="card card-hover group relative overflow-hidden"
         >
           <div className="relative aspect-[16/10]">
             <Image
@@ -42,7 +42,7 @@ export function HomeDestinationPicker({ destinations }: Props) {
             <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
               {destination.id === "beach" ? "Costa · Manabí" : "Ciudad · Manabí"}
             </p>
-            <h3 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h3 className="font-display mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
               {destination.name}
             </h3>
             <p className="mt-1 text-sm text-white/90">{destination.tagline}</p>

@@ -50,7 +50,7 @@ export function HomeDestinationNav() {
 
   return (
     <div
-      className="sticky top-[57px] z-40 -mx-4 border-y border-sand-dark/80 bg-sand/95 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6"
+      className="sticky top-[var(--header-height)] z-40 -mx-4 border-y border-sand-dark/80 bg-sand/95 px-4 py-2.5 backdrop-blur-md sm:-mx-6 sm:px-6"
       role="tablist"
       aria-label="Destinos"
     >
@@ -63,9 +63,9 @@ export function HomeDestinationNav() {
               href={tab.href}
               role="tab"
               aria-selected={selected}
-              className={`flex-1 rounded-xl px-4 py-2.5 text-center text-sm font-semibold transition-colors sm:flex-none sm:px-6 ${
+              className={`flex-1 rounded-xl px-4 py-2.5 text-center text-sm font-semibold transition-all sm:flex-none sm:px-6 ${
                 selected
-                  ? "bg-ocean text-white shadow-sm"
+                  ? "bg-ocean text-white shadow-md ring-2 ring-accent/60"
                   : "bg-white text-muted ring-1 ring-sand-dark hover:text-ink"
               }`}
             >
