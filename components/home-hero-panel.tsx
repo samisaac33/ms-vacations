@@ -155,25 +155,28 @@ export function HomeHeroPanel() {
           </p>
         )}
 
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={handleSearch}
-            disabled={Boolean(validationError)}
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-xl bg-accent px-6 text-sm font-semibold text-ink shadow-lg shadow-black/15 transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
+        <button
+          type="button"
+          onClick={handleSearch}
+          disabled={Boolean(validationError)}
+          className="mt-4 inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-full bg-ocean px-6 text-base font-semibold text-white shadow-lg shadow-black/25 ring-1 ring-white/20 transition-all hover:bg-ocean-dark hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <svg
+            aria-hidden
+            className="h-5 w-5 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
           >
-            Buscar en {selected.label}
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              router.push(`${siteConfig.copy.catalogPath}${destinationHash(destination)}`)
-            }
-            className="inline-flex h-12 items-center justify-center rounded-xl bg-white/10 px-6 text-sm font-semibold text-white ring-1 ring-white/25 backdrop-blur transition-colors hover:bg-white/20"
-          >
-            Ver catálogo
-          </button>
-        </div>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"
+            />
+          </svg>
+          Buscar en {selected.label}
+        </button>
       </div>
     </div>
   );
