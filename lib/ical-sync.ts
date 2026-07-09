@@ -65,7 +65,23 @@ function extractRange(ev: Record<string, unknown>): { uid: string; start: string
   return { uid, start: startStr, end: endStr };
 }
 
-export async function syncPropertyIcal(propertyId: string): Promise<void> {
+export type IcalSyncPropertyResult = {
+  slug: string;
+  ok: boolean;
+  blocksImported?: number;
+  error?: string;
+};
+
+export type IcalSyncBatchResult = {
+  synced: number;
+  failed: number;
+  finishedAt: string;
+  properties: IcalSyncPropertyResult[];
+};
+
+export async function syncPropertyIcal(
+  propertyId: string,
+): Promise<{ blocksImported: number }> {
   const db = getDb();
   const [prop] = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
   if (!prop) {
@@ -123,20 +139,38 @@ export async function syncPropertyIcal(propertyId: string): Promise<void> {
     level: "info",
     message: `Sync iCal: ${uniqueRanges.length} bloques importados.`,
   });
+
+  return { blocksImported: uniqueRanges.length };
 }
 
-export async function syncAllPropertiesIcal(): Promise<{ synced: number; failed: number }> {
+export async function syncAllPropertiesIcal(): Promise<IcalSyncBatchResult> {
   const db = getDb();
-  const all = await db.select({ id: properties.id }).from(properties);
+  const all = await db
+    .select({ id: properties.id, slug: properties.slug })
+    .from(properties);
+  const results: IcalSyncPropertyResult[] = [];
   let synced = 0;
   let failed = 0;
+
   for (const row of all) {
     try {
-      await syncPropertyIcal(row.id);
+      const { blocksImported } = await syncPropertyIcal(row.id);
       synced += 1;
-    } catch {
+      results.push({ slug: row.slug, ok: true, blocksImported });
+    } catch (e) {
       failed += 1;
+      const message = e instanceof Error ? e.message : String(e);
+      results.push({ slug: row.slug, ok: false, error: message });
     }
   }
-  return { synced, failed };
+
+  const finishedAt = new Date().toISOString();
+  const summary = `Sync iCal batch: ${synced} ok, ${failed} fallidas.`;
+  await db.insert(syncLogs).values({
+    propertyId: null,
+    level: failed > 0 ? "error" : "info",
+    message: summary,
+  });
+
+  return { synced, failed, finishedAt, properties: results };
 }
