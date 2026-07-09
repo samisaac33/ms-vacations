@@ -23,6 +23,15 @@ export function formatUsd(amount: number): string {
   return amount % 1 === 0 ? String(amount) : amount.toFixed(2);
 }
 
+/**
+ * Ajuste de tarifa base: el precio directo actual pasa a ser el precio con 7 % de
+ * descuento por transferencia; el nuevo precio sin descuento suma ese 7 %.
+ * Ej.: $500 → base $535 (transferencia ≈ $497.55 con tasa 0.93).
+ */
+export function basePriceFromPriorDirectUsd(priorDirectUsd: number): number {
+  return Math.round(priorDirectUsd * (1 + BANK_TRANSFER_DISCOUNT_PERCENT / 100));
+}
+
 export function totalCentsForPaymentMethod(
   baseDirectTotalCents: number,
   method: PaymentMethod,

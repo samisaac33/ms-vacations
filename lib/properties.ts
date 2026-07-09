@@ -97,7 +97,7 @@ export const PROPERTIES: Property[] = [
       googleMapsUrl: "https://maps.app.goo.gl/pb7RNYVtzTSdk1Wm9",
       coordinates: { lat: -0.7684796, lng: -80.5118034 },
     },
-    basePricePerNightUsd: 200,
+    basePricePerNightUsd: 268,
     icalUrl:
       "https://www.airbnb.com.ec/calendar/ical/847175742779477105.ics?t=405b7afe008240abbc34a797a4a4a5f0",
     images: [
@@ -133,7 +133,7 @@ export const PROPERTIES: Property[] = [
       googleMapsUrl: mapsHomeOneTwo,
       coordinates: coordsHomeOneTwo,
     },
-    basePricePerNightUsd: 185,
+    basePricePerNightUsd: 278,
     icalUrl:
       "https://www.airbnb.com.ec/calendar/ical/43089929.ics?t=310e4fb4cc2b45d8a3dae8e961cc4c21",
     images: [
@@ -172,7 +172,7 @@ export const PROPERTIES: Property[] = [
       googleMapsUrl: mapsHomeOneTwo,
       coordinates: coordsHomeOneTwo,
     },
-    basePricePerNightUsd: 220,
+    basePricePerNightUsd: 300,
     icalUrl:
       "https://www.airbnb.com.ec/calendar/ical/43093803.ics?t=160b4a632c5a48f2bcb610e8c2c892d9",
     images: [
@@ -206,7 +206,7 @@ export const PROPERTIES: Property[] = [
       googleMapsUrl: "https://maps.app.goo.gl/qg4NrzUQuzQUhGhn9",
       coordinates: { lat: -0.7682655, lng: -80.513127 },
     },
-    basePricePerNightUsd: 170,
+    basePricePerNightUsd: 321,
     icalUrl:
       "https://www.airbnb.com.ec/calendar/ical/50403775.ics?t=88621880882d456c9e21b1072b23ec7d",
     images: [
@@ -246,7 +246,7 @@ export const PROPERTIES: Property[] = [
       googleMapsUrl: "https://maps.app.goo.gl/AcMXwczwft2fmtrZA",
       coordinates: { lat: -0.7451309, lng: -80.5076173 },
     },
-    basePricePerNightUsd: 195,
+    basePricePerNightUsd: 535,
     icalUrl:
       "https://www.airbnb.com.ec/calendar/ical/664011177607035357.ics?t=5f48c51138dc48c7859e683a4f3f6e37",
     images: [
