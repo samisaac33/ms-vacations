@@ -22,8 +22,7 @@ import {
   upsertNightlyRates,
 } from "@/lib/pricing-query";
 import { syncAllPropertiesIcal } from "@/lib/ical-sync";
-import { beachBasePriceUpdates } from "@/lib/beach-price-migration";
-import { bankTransferTotalCents } from "@/lib/pricing";
+import { applyBeachPricesToDatabase } from "@/lib/apply-beach-prices-db";
 import { eachDayIsoInclusive } from "@/lib/dates";
 import {
   confirmBankTransferBooking,
@@ -311,22 +310,12 @@ export async function applyBeachBasePrices(
   }
 
   try {
-    const db = getDb();
-    const updates = beachBasePriceUpdates();
-
-    for (const { slug, newUsd } of updates) {
-      await db
-        .update(properties)
-        .set({ basePricePerNightCents: newUsd * 100 })
-        .where(eq(properties.slug, slug));
-    }
-
+    const results = await applyBeachPricesToDatabase();
     revalidatePricingPaths();
-    const summary = updates
-      .map(({ slug, priorUsd, newUsd }) => {
-        const transfer = bankTransferTotalCents(newUsd * 100) / 100;
-        return `${slug}: $${priorUsd}→base $${newUsd} (transfer. $${transfer})`;
-      })
+    const summary = results
+      .map(({ slug, priorUsd, newUsd, transferUsd }) =>
+        `${slug}: $${priorUsd}→base $${newUsd} (transfer. $${transferUsd})`,
+      )
       .join(" · ");
 
     return { success: `Tarifas de playa actualizadas. ${summary}` };

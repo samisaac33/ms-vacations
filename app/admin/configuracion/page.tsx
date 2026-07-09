@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { AdminApplyBeachPricesPanel } from "@/app/admin/admin-apply-beach-prices";
 import { AdminCalendarShell } from "@/app/admin/admin-calendar-shell";
 import { AdminIcalPanel } from "@/app/admin/admin-ical-panel";
 import { AdminLoginForm } from "@/app/admin/admin-login-form";
@@ -43,22 +44,25 @@ export default async function AdminConfiguracionPage() {
           Tarifas, calendarios iCal, sincronización y transferencias pendientes.
         </p>
 
-        {!dashboard ? (
+        {dashboard ? (
+          <>
+            <AdminApplyBeachPricesPanel />
+            <AdminIcalPanel
+              properties={dashboard.properties.map((p) => ({
+                ...p,
+                lastIcalSyncAt: p.lastIcalSyncAt?.toISOString() ?? null,
+              }))}
+              logs={dashboard.logs.map((l) => ({
+                ...l,
+                createdAt: l.createdAt.toISOString(),
+              }))}
+            />
+          </>
+        ) : (
           <p className="mt-8 text-sm text-amber-800">
             <code className="rounded bg-amber-100 px-1">DATABASE_URL</code> no configurada. Defínala para
             gestionar calendarios.
           </p>
-        ) : (
-          <AdminIcalPanel
-            properties={dashboard.properties.map((p) => ({
-              ...p,
-              lastIcalSyncAt: p.lastIcalSyncAt?.toISOString() ?? null,
-            }))}
-            logs={dashboard.logs.map((l) => ({
-              ...l,
-              createdAt: l.createdAt.toISOString(),
-            }))}
-          />
         )}
 
         {paymentsLoadError ? (
