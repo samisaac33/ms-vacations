@@ -6,7 +6,9 @@
 2. Aplicar esquema: `npm run db:push` (desarrollo) o migraciones generadas con `npm run db:generate` + `npm run db:migrate`.
 3. Poblar las 5 propiedades con precios e URLs iCal desde el catálogo en código: `npm run db:seed`.
 
-Para aplicar solo el ajuste de tarifas de playa (+7 % sobre el precio directo anterior): `npm run db:update-beach-prices` (requiere `DATABASE_URL`).
+Para aplicar solo el ajuste de tarifas de playa (+7 % sobre el precio directo anterior): `npm run db:update-beach-prices` (requiere `DATABASE_URL`), o pulse **Aplicar tarifas de playa** en `/admin/configuracion`.
+
+La transferencia bancaria revierte el +7 % (`base ÷ 1.07`), no multiplica por 0.93. Ej.: base $535 → transferencia $500.
 
 ## Sincronización iCal (Airbnb → web)
 

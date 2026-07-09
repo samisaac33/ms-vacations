@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { triggerIcalSync, updateIcalUrl, type IcalActionState } from "./actions";
+import { triggerIcalSync, updateIcalUrl, applyBeachBasePrices, type IcalActionState } from "./actions";
 import { formatUsd } from "@/lib/pricing";
 
 type PropertyRow = {
@@ -71,6 +71,41 @@ function PropertyIcalForm({ property }: { property: PropertyRow }) {
   );
 }
 
+function ApplyBeachPricesButton() {
+  const [state, formAction, pending] = useActionState(applyBeachBasePrices, {} as IcalActionState);
+
+  return (
+    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/40">
+      <p className="text-sm font-medium text-amber-950 dark:text-amber-100">
+        Tarifas San Clemente (+7 % base)
+      </p>
+      <p className="mt-1 text-xs text-amber-900/80 dark:text-amber-200/80">
+        Aplica en la base de datos el nuevo precio base (PayPal/PayPhone) y mantiene el precio
+        anterior en transferencia bancaria. Ejecutar una vez tras el deploy.
+      </p>
+      <form action={formAction} className="mt-3">
+        <button
+          type="submit"
+          disabled={pending}
+          className="rounded-lg bg-amber-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+        >
+          {pending ? "Actualizando…" : "Aplicar tarifas de playa"}
+        </button>
+      </form>
+      {state?.error && (
+        <p className="mt-2 text-xs text-red-700 dark:text-red-400" role="alert">
+          {state.error}
+        </p>
+      )}
+      {state?.success && (
+        <p className="mt-2 text-xs text-green-800 dark:text-green-400" role="status">
+          {state.success}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function SyncButton() {
   const [state, formAction, pending] = useActionState(triggerIcalSync, {} as IcalActionState);
 
@@ -113,6 +148,7 @@ export function AdminIcalPanel({
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
           Precio por noche, calendarios iCal y sincronización con Airbnb.
         </p>
+        <ApplyBeachPricesButton />
         <SyncButton />
         <ul className="mt-6 space-y-4">
           {properties.map((p) => (

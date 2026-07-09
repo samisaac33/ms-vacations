@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  BANK_TRANSFER_DISCOUNT_RATE,
+  BANK_TRANSFER_MARKUP_RATE,
+  bankTransferTotalCents,
   basePriceFromPriorDirectUsd,
   formatUsd,
   totalCentsForPaymentMethod,
@@ -18,12 +19,13 @@ describe("formatUsd", () => {
 });
 
 describe("totalCentsForPaymentMethod", () => {
-  const base = 10_000; // $100.00
+  const base = 10_000;
 
-  it("aplica descuento del 7 % en transferencia bancaria", () => {
+  it("revierte el markup del 7 % en transferencia bancaria", () => {
     expect(totalCentsForPaymentMethod(base, "bank_transfer")).toBe(
-      Math.round(base * BANK_TRANSFER_DISCOUNT_RATE),
+      bankTransferTotalCents(base),
     );
+    expect(totalCentsForPaymentMethod(53_500, "bank_transfer")).toBe(50_000);
   });
 
   it("no descuenta PayPal ni PayPhone", () => {
@@ -35,7 +37,7 @@ describe("totalCentsForPaymentMethod", () => {
 describe("totalUsdForPaymentMethod", () => {
   it("convierte centavos a USD", () => {
     expect(totalUsdForPaymentMethod(12_500, "paypal")).toBe(125);
-    expect(totalUsdForPaymentMethod(10_000, "bank_transfer")).toBe(93);
+    expect(totalUsdForPaymentMethod(53_500, "bank_transfer")).toBe(500);
   });
 });
 

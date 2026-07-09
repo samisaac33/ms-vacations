@@ -22,6 +22,8 @@ import {
   upsertNightlyRates,
 } from "@/lib/pricing-query";
 import { syncAllPropertiesIcal } from "@/lib/ical-sync";
+import { beachBasePriceUpdates } from "@/lib/beach-price-migration";
+import { bankTransferTotalCents } from "@/lib/pricing";
 import { eachDayIsoInclusive } from "@/lib/dates";
 import {
   confirmBankTransferBooking,
@@ -295,6 +297,43 @@ export async function clearNightlyRates(
   revalidatePricingPaths(prop.slug);
 
   return { success: `${dates.length} noche(s) restablecidas a la tarifa base.` };
+}
+
+export async function applyBeachBasePrices(
+  _prev: IcalActionState | undefined,
+  _formData: FormData,
+): Promise<IcalActionState> {
+  if (!(await isAdminSession())) {
+    return { error: "No autorizado." };
+  }
+  if (!hasDatabase()) {
+    return { error: "DATABASE_URL no configurada." };
+  }
+
+  try {
+    const db = getDb();
+    const updates = beachBasePriceUpdates();
+
+    for (const { slug, newUsd } of updates) {
+      await db
+        .update(properties)
+        .set({ basePricePerNightCents: newUsd * 100 })
+        .where(eq(properties.slug, slug));
+    }
+
+    revalidatePricingPaths();
+    const summary = updates
+      .map(({ slug, priorUsd, newUsd }) => {
+        const transfer = bankTransferTotalCents(newUsd * 100) / 100;
+        return `${slug}: $${priorUsd}→base $${newUsd} (transfer. $${transfer})`;
+      })
+      .join(" · ");
+
+    return { success: `Tarifas de playa actualizadas. ${summary}` };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { error: `No se pudieron actualizar tarifas: ${message}` };
+  }
 }
 
 export async function triggerIcalSync(
