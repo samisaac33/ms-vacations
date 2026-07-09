@@ -1,4 +1,5 @@
 import { hasDatabase } from "@/db/index";
+import { getHealthReport } from "@/lib/health-query";
 import { syncAllPropertiesIcal } from "@/lib/ical-sync";
 
 export const runtime = "nodejs";
@@ -21,7 +22,23 @@ async function handle(request: Request) {
   }
   try {
     const result = await syncAllPropertiesIcal();
-    return Response.json({ success: true, ...result });
+    const health = await getHealthReport();
+    const ok = result.failed === 0 && health.status !== "down";
+    return Response.json(
+      {
+        success: ok,
+        ...result,
+        health: {
+          status: health.status,
+          ical: {
+            staleCount: health.checks.ical.staleCount,
+            neverSyncedCount: health.checks.ical.neverSyncedCount,
+            recentErrorCount: health.checks.ical.recentErrorCount,
+          },
+        },
+      },
+      { status: ok ? 200 : 207 },
+    );
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return Response.json({ ok: false, error: message }, { status: 500 });

@@ -82,3 +82,19 @@ Cada push/PR a `main` ejecuta lint, tests y build (`.github/workflows/ci.yml`).
 ## Cron iCal
 
 Vercel ejecuta `/api/cron/sync-ical` diariamente (ver `vercel.json`). Requiere `CRON_SECRET` en el header `Authorization: Bearer <secret>`.
+
+La respuesta incluye resultado por propiedad y un resumen de salud iCal. Si alguna propiedad falla, el endpoint devuelve HTTP `207`.
+
+## Monitoreo
+
+`GET /api/health` devuelve el estado operativo del sitio:
+
+- **`ok`**: base de datos accesible, iCal al día, sin errores recientes
+- **`degraded`**: DB ok pero iCal desactualizado o errores en las últimas 24 h (HTTP 200)
+- **`down`**: base de datos no disponible (HTTP 503)
+
+Útil para UptimeRobot, Better Stack o revisión manual. Ejemplo:
+
+```bash
+curl -s https://ms-vacations.vercel.app/api/health | jq .
+```

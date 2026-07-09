@@ -45,7 +45,14 @@ Las URLs completas (con token `t=...`) viven en `properties.ical_url` (seed desd
 
 - Variables: `CRON_SECRET`, `DATABASE_URL`.
 - Job programado: `GET /api/cron/sync-ical` con cabecera `Authorization: Bearer <CRON_SECRET>` (ver `vercel.json`).
+- La respuesta lista cada propiedad (`ok` / `error`) y un resumen de salud. HTTP `207` si hubo fallos parciales.
 - Alternativa manual: misma URL y cabecera desde curl o Postman.
+
+**Monitoreo:**
+
+- `GET /api/health` — sin autenticación. Revisa conexión a Postgres, antigüedad de la última sync iCal por propiedad y errores recientes en `sync_logs`.
+- Estados: `ok` (todo bien), `degraded` (iCal atrasado o errores recientes), `down` (DB caída → HTTP 503).
+- Umbral de iCal obsoleto: **26 h** (cron diario a las 13:00 UTC + margen).
 
 **Límites:** el feed iCal no es tiempo real; hay latencia de Airbnb + intervalo del cron. En Vercel plan Hobby el cron solo puede ejecutarse **como mucho una vez al día** (13:00 UTC en `vercel.json`). Con plan Pro puedes usar intervalos más frecuentes.
 

@@ -66,6 +66,7 @@ Override de precio por noche (admin). Sin fila → tarifa base de la propiedad.
 | `/api/pricing` | Cotización de estancia |
 | `/api/bookings` | Crear reserva |
 | `/api/cron/sync-ical` | Sincronización programada |
+| `/api/health` | Estado de DB e iCal (monitoreo) |
 | `/api/admin/pricing` | API admin de precios |
 
 ## Para agentes de código
