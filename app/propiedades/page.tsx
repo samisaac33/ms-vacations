@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { HomeDestinationNav } from "@/components/home-destination-nav";
 import { DestinationPropertySection } from "@/components/destination-property-section";
 import { StaySearchBanner } from "@/components/stay-search-banner";
+import { filterPropertiesByStay } from "@/lib/catalog-filter";
 import { getCatalogGroupedWithDbPrices } from "@/lib/property-db";
 import { siteConfig } from "@/lib/site";
 import {
@@ -48,8 +49,16 @@ function resolveStaySearch(
 
 export default async function PropiedadesPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { beach, city } = await getCatalogGroupedWithDbPrices();
+  let { beach, city } = await getCatalogGroupedWithDbPrices();
   const { search, stayQuery } = resolveStaySearch(params);
+
+  if (search) {
+    beach = await filterPropertiesByStay(beach, search.checkIn, search.checkOut, search.huespedes);
+    city = await filterPropertiesByStay(city, search.checkIn, search.checkOut, search.huespedes);
+  }
+
+  const emptyStayMessage =
+    "No hay alojamientos disponibles para estas fechas y número de huéspedes. Prueba otro rango o contacta por WhatsApp.";
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
@@ -70,6 +79,7 @@ export default async function PropiedadesPage({ searchParams }: Props) {
             subtitle={siteConfig.destinations.beach.subtitle}
             properties={beach}
             stayQuery={stayQuery}
+            emptyMessage={search ? emptyStayMessage : undefined}
           />
 
           <DestinationPropertySection
@@ -78,6 +88,7 @@ export default async function PropiedadesPage({ searchParams }: Props) {
             subtitle={siteConfig.destinations.city.subtitle}
             properties={city}
             stayQuery={stayQuery}
+            emptyMessage={search ? emptyStayMessage : undefined}
           />
         </div>
       </div>
