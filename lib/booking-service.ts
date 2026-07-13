@@ -1,17 +1,25 @@
-import { eq, sql } from "drizzle-orm";
-import { addHours, addMinutes } from "date-fns";
+﻿import { eq, sql } from "drizzle-orm";
+import { addMinutes } from "date-fns";
 import { getDb } from "@/db/index";
 import { bookings, properties, syncLogs } from "@/db/schema";
 import { assertRangeAvailable, AvailabilityError, expireStalePendingBookings } from "@/lib/availability";
-import { nightsBetween } from "@/lib/dates";
-import { createPayPalOrder, isPayPalConfigured } from "@/lib/payments/paypal";
-import { createPayPhoneSale, isPayPhoneConfigured } from "@/lib/payments/payphone";
+import { notifyAdminPendingVerification } from "@/lib/notifications/admin";
+import {
+  calculateSplitSchedule,
+  isSplitPaymentEligible,
+  type PaymentTiming,
+} from "@/lib/payment-schedule";
+import { validateStayLength } from "@/lib/stay-rules";
+import { isPayPalConfigured } from "@/lib/payments/paypal";
+import { isPayPhoneConfigured } from "@/lib/payments/payphone";
 import type { InitiatePaymentResult, PaymentMethod } from "@/lib/payments/types";
 import { calculateStayDirectTotalCents } from "@/lib/pricing-query";
 import { totalCentsForPaymentMethod } from "@/lib/pricing";
 
 const ONLINE_PENDING_MINUTES = 30;
-const BANK_TRANSFER_PENDING_HOURS = 72;
+const BANK_TRANSFER_HOLD_MINUTES = 30;
+
+export type BankTransferInit = "whatsapp" | "standard";
 
 export type CreateBookingInput = {
   slug: string;
@@ -20,6 +28,11 @@ export type CreateBookingInput = {
   guests: number;
   guestEmail: string;
   paymentMethod: PaymentMethod;
+  paymentTiming: PaymentTiming;
+  termsAccepted: boolean;
+  termsVersion: string;
+  bankTransferInit?: BankTransferInit;
+  guestNotes?: string;
 };
 
 export type CreateBookingResult =
@@ -37,9 +50,40 @@ export type CreateBookingResult =
       message: string;
     };
 
+type BookingChargeRow = {
+  paymentTiming: string;
+  depositCents: number | null;
+  totalCents: number;
+};
+
+export function chargeCentsForBooking(row: BookingChargeRow): number {
+  if (row.paymentTiming === "split" && row.depositCents != null) {
+    return row.depositCents;
+  }
+  return row.totalCents;
+}
+
 export async function createPendingBookingAndCheckout(
   input: CreateBookingInput,
 ): Promise<CreateBookingResult> {
+  const stayLengthError = validateStayLength(input.checkIn, input.checkOut);
+  if (stayLengthError) {
+    return { ok: false, code: "unavailable", message: stayLengthError };
+  }
+
+  const effectiveTiming: PaymentTiming =
+    input.paymentTiming === "split" && isSplitPaymentEligible(input.checkIn)
+      ? "split"
+      : "full_now";
+
+  if (input.paymentTiming === "split" && effectiveTiming !== "split") {
+    return {
+      ok: false,
+      code: "unavailable",
+      message: "El pago fraccionado requiere al menos 14 días antes del check-in.",
+    };
+  }
+
   const db = getDb();
 
   try {
@@ -64,10 +108,17 @@ export async function createPendingBookingAndCheckout(
         tx,
       );
       const totalCents = totalCentsForPaymentMethod(baseDirectTotalCents, input.paymentMethod);
+      const split =
+        effectiveTiming === "split"
+          ? calculateSplitSchedule(totalCents, input.checkIn)
+          : null;
       const pendingExpiresAt =
         input.paymentMethod === "bank_transfer"
-          ? addHours(new Date(), BANK_TRANSFER_PENDING_HOURS)
+          ? addMinutes(new Date(), BANK_TRANSFER_HOLD_MINUTES)
           : addMinutes(new Date(), ONLINE_PENDING_MINUTES);
+
+      const bankTransferViaWhatsApp =
+        input.paymentMethod === "bank_transfer" && input.bankTransferInit === "whatsapp";
 
       const [booking] = await tx
         .insert(bookings)
@@ -76,12 +127,18 @@ export async function createPendingBookingAndCheckout(
           checkIn: input.checkIn,
           checkOut: input.checkOut,
           guests: input.guests,
-          status: "pending_payment",
+          status: bankTransferViaWhatsApp ? "pending_verification" : "pending_payment",
           paymentMethod: input.paymentMethod,
+          paymentTiming: effectiveTiming,
           totalCents,
+          depositCents: split?.depositCents ?? null,
+          balanceCents: split?.balanceCents ?? null,
+          balanceDueAt: split?.balanceDueDate ?? null,
           currency: "USD",
           pendingExpiresAt,
           guestEmail: input.guestEmail,
+          termsAcceptedAt: new Date(),
+          termsVersion: input.termsVersion,
         })
         .returning({ id: bookings.id });
       if (!booking) throw new Error("No se pudo crear la reserva");
@@ -97,11 +154,19 @@ export async function createPendingBookingAndCheckout(
     }
 
     const { bookingId, totalCents, prop } = created;
-    const cancelPath = `/reservar/${prop.slug}?cancelado=1`;
-    const nights = nightsBetween(input.checkIn, input.checkOut);
-    const description = `${input.checkIn} → ${input.checkOut} · ${nights} noches`;
+
+    if (input.guestNotes?.trim()) {
+      await db.insert(syncLogs).values({
+        propertyId: prop.id,
+        level: "info",
+        message: `Notas huésped (${bookingId}): ${input.guestNotes.trim()}`,
+      });
+    }
 
     if (input.paymentMethod === "bank_transfer") {
+      if (input.bankTransferInit === "whatsapp") {
+        await notifyAdminPendingVerification(bookingId);
+      }
       return {
         ok: true,
         bookingId,
@@ -120,33 +185,14 @@ export async function createPendingBookingAndCheckout(
           message: "PayPal no está configurado. Contacte al administrador.",
         };
       }
-      try {
-        const { approvalUrl, orderId } = await createPayPalOrder({
-          bookingId,
-          totalCents,
-          description,
-          cancelPath,
-        });
-        await db
-          .update(bookings)
-          .set({ paymentExternalId: orderId })
-          .where(eq(bookings.id, bookingId));
-        return {
-          ok: true,
-          bookingId,
-          totalCents,
-          paymentMethod: input.paymentMethod,
-          next: "redirect",
-          redirectUrl: approvalUrl,
-        };
-      } catch (e) {
-        await db.update(bookings).set({ status: "cancelled" }).where(eq(bookings.id, bookingId));
-        return {
-          ok: false,
-          code: "payment_error",
-          message: e instanceof Error ? e.message : "Error al iniciar pago con PayPal.",
-        };
-      }
+      return {
+        ok: true,
+        bookingId,
+        totalCents,
+        paymentMethod: input.paymentMethod,
+        next: "paypal_buttons",
+        redirectUrl: `/reservar/${prop.slug}?paypal=1&bookingId=${bookingId}`,
+      };
     }
 
     if (input.paymentMethod === "payphone") {
@@ -157,33 +203,14 @@ export async function createPendingBookingAndCheckout(
           message: "PayPhone no está configurado. Contacte al administrador.",
         };
       }
-      try {
-        const { redirectUrl, transactionId } = await createPayPhoneSale({
-          bookingId,
-          totalCents,
-          guestEmail: input.guestEmail,
-          cancelPath,
-        });
-        await db
-          .update(bookings)
-          .set({ paymentExternalId: transactionId })
-          .where(eq(bookings.id, bookingId));
-        return {
-          ok: true,
-          bookingId,
-          totalCents,
-          paymentMethod: input.paymentMethod,
-          next: "redirect",
-          redirectUrl,
-        };
-      } catch (e) {
-        await db.update(bookings).set({ status: "cancelled" }).where(eq(bookings.id, bookingId));
-        return {
-          ok: false,
-          code: "payment_error",
-          message: e instanceof Error ? e.message : "Error al iniciar pago con PayPhone.",
-        };
-      }
+      return {
+        ok: true,
+        bookingId,
+        totalCents,
+        paymentMethod: input.paymentMethod,
+        next: "payphone_box",
+        redirectUrl: `/reservar/${prop.slug}?payphone=1&bookingId=${bookingId}`,
+      };
     }
 
     return {
@@ -214,6 +241,7 @@ export async function confirmBookingAfterPayment(params: {
       .limit(1);
     if (!row) return { ok: false, reason: "Reserva no encontrada" };
     if (row.status === "confirmed") return { ok: true };
+    if (row.status === "pending_balance") return { ok: true };
     if (row.status !== "pending_payment") {
       return { ok: false, reason: "Estado de reserva no permite confirmación" };
     }
@@ -221,20 +249,26 @@ export async function confirmBookingAfterPayment(params: {
       await tx.update(bookings).set({ status: "expired" }).where(eq(bookings.id, params.bookingId));
       return { ok: false, reason: "La reserva expiró antes del pago" };
     }
-    if (params.amountCents !== null && params.amountCents !== row.totalCents) {
+
+    const expectedCents = chargeCentsForBooking(row);
+    if (params.amountCents !== null && params.amountCents !== expectedCents) {
       await tx.insert(syncLogs).values({
         propertyId: row.propertyId,
         level: "error",
-        message: `Monto distinto al total de reserva ${params.bookingId}`,
+        message: `Monto distinto al esperado en reserva ${params.bookingId}`,
       });
       return { ok: false, reason: "Monto del pago no coincide con la reserva" };
     }
+
+    const isSplitDeposit = row.paymentTiming === "split" && row.depositCents != null;
+
     await tx
       .update(bookings)
       .set({
-        status: "confirmed",
+        status: isSplitDeposit ? "pending_balance" : "confirmed",
         paymentExternalId: params.externalId ?? row.paymentExternalId,
         pendingExpiresAt: null,
+        depositPaidAt: isSplitDeposit ? new Date() : row.depositPaidAt,
       })
       .where(eq(bookings.id, params.bookingId));
     return { ok: true };
@@ -257,7 +291,18 @@ export async function submitBankTransferProof(params: {
     if (row.paymentMethod !== "bank_transfer") {
       return { ok: false, reason: "Esta reserva no es por transferencia bancaria" };
     }
-    if (row.status === "pending_verification") return { ok: true };
+    if (row.status === "pending_verification") {
+      if (row.paymentProofUrl) return { ok: true };
+      await tx
+        .update(bookings)
+        .set({
+          paymentProofUrl: params.proofUrl,
+          paymentProofUploadedAt: new Date(),
+        })
+        .where(eq(bookings.id, params.bookingId));
+      await notifyAdminPendingVerification(params.bookingId);
+      return { ok: true };
+    }
     if (row.status !== "pending_payment") {
       return { ok: false, reason: "La reserva ya no acepta comprobantes" };
     }
@@ -271,9 +316,9 @@ export async function submitBankTransferProof(params: {
         status: "pending_verification",
         paymentProofUrl: params.proofUrl,
         paymentProofUploadedAt: new Date(),
-        pendingExpiresAt: null,
       })
       .where(eq(bookings.id, params.bookingId));
+    await notifyAdminPendingVerification(params.bookingId);
     return { ok: true };
   });
 }
@@ -287,12 +332,20 @@ export async function confirmBankTransferBooking(
     const [row] = await tx.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
     if (!row) return { ok: false, reason: "Reserva no encontrada" };
     if (row.status === "confirmed") return { ok: true };
+    if (row.status === "pending_balance") return { ok: true };
     if (row.status !== "pending_verification" || row.paymentMethod !== "bank_transfer") {
       return { ok: false, reason: "La reserva no está pendiente de verificación" };
     }
+
+    const isSplitDeposit = row.paymentTiming === "split" && row.depositCents != null;
+
     await tx
       .update(bookings)
-      .set({ status: "confirmed", pendingExpiresAt: null })
+      .set({
+        status: isSplitDeposit ? "pending_balance" : "confirmed",
+        pendingExpiresAt: null,
+        depositPaidAt: isSplitDeposit ? new Date() : row.depositPaidAt,
+      })
       .where(eq(bookings.id, bookingId));
     return { ok: true };
   });
@@ -324,7 +377,11 @@ export async function getBookingForGuest(bookingId: string) {
       id: bookings.id,
       status: bookings.status,
       paymentMethod: bookings.paymentMethod,
+      paymentTiming: bookings.paymentTiming,
       totalCents: bookings.totalCents,
+      depositCents: bookings.depositCents,
+      balanceCents: bookings.balanceCents,
+      balanceDueAt: bookings.balanceDueAt,
       checkIn: bookings.checkIn,
       checkOut: bookings.checkOut,
       guests: bookings.guests,

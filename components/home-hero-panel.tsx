@@ -74,7 +74,7 @@ export function HomeHeroPanel() {
   }
 
   return (
-    <div className="hero-panel mt-8 w-full max-w-2xl">
+    <div className="hero-panel mt-4 w-full max-w-2xl sm:mt-8">
       <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
         ¿Dónde quieres hospedarte?
       </p>

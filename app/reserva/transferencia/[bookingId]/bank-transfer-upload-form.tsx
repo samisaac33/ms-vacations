@@ -9,7 +9,7 @@ type Props = {
   bookingId: string;
   reference: string;
   totalUsd: number;
-  bank: BankAccountDetails | null;
+  bank: BankAccountDetails;
   status: string;
   proofUrl: string | null;
 };
@@ -94,36 +94,30 @@ export function BankTransferUploadForm({
         </p>
       </div>
 
-      {bank ? (
-        <dl className="grid gap-3 rounded-xl border border-sand-dark bg-sand/40 p-5 text-sm">
+      <dl className="grid gap-3 rounded-xl border border-sand-dark bg-sand/40 p-5 text-sm">
+        <div>
+          <dt className="text-muted">Titular</dt>
+          <dd className="font-medium text-ink">{bank.holder}</dd>
+        </div>
+        <div>
+          <dt className="text-muted">Banco</dt>
+          <dd className="font-medium text-ink">{bank.bankName}</dd>
+        </div>
+        <div>
+          <dt className="text-muted">Cuenta ({bank.accountType})</dt>
+          <dd className="font-medium text-ink">{bank.accountNumber}</dd>
+        </div>
+        <div>
+          <dt className="text-muted">{bank.idType}</dt>
+          <dd className="font-medium text-ink">{bank.idNumber}</dd>
+        </div>
+        {bank.email && (
           <div>
-            <dt className="text-muted">Titular</dt>
-            <dd className="font-medium text-ink">{bank.holder}</dd>
+            <dt className="text-muted">Correo</dt>
+            <dd className="font-medium text-ink">{bank.email}</dd>
           </div>
-          <div>
-            <dt className="text-muted">Banco</dt>
-            <dd className="font-medium text-ink">{bank.bankName}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">Cuenta ({bank.accountType})</dt>
-            <dd className="font-medium text-ink">{bank.accountNumber}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">{bank.idType}</dt>
-            <dd className="font-medium text-ink">{bank.idNumber}</dd>
-          </div>
-          {bank.email && (
-            <div>
-              <dt className="text-muted">Correo</dt>
-              <dd className="font-medium text-ink">{bank.email}</dd>
-            </div>
-          )}
-        </dl>
-      ) : (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Datos bancarios no configurados en el servidor. Contacte a MS Vacations por WhatsApp.
-        </p>
-      )}
+        )}
+      </dl>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>

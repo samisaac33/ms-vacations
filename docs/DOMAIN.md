@@ -7,7 +7,7 @@ Plataforma de **alquiler vacacional directo** en Manabí, Ecuador. No es un sist
 | Destino | Ubicación | Tipo |
 |---------|-----------|------|
 | Playa | San Clemente | Casas vacacionales |
-| Ciudad | Portoviejo | Apartamentos |
+| Ciudad | Portoviejo | Casas y apartamentos |
 
 ## Entidades principales
 
@@ -28,9 +28,12 @@ Reserva del huésped con fechas, huéspedes, método de pago y estado.
 |--------|-------------|
 | `pending_payment` | Esperando pago del huésped |
 | `pending_verification` | Transferencia enviada, pendiente de revisión admin |
+| `pending_balance` | Anticipo pagado; saldo pendiente (pago fraccionado) |
 | `confirmed` | Reserva confirmada |
 | `cancelled` | Cancelada |
 | `expired` | Caducó el plazo de pago |
+
+**Pago fraccionado (`payment_timing: split`):** el huésped paga 50 % al reservar y el saldo antes del check-in (mínimo 14 días de anticipación). Tras el anticipo, el estado pasa a `pending_balance` hasta liquidar el saldo.
 
 ### NightlyRate
 
@@ -55,6 +58,7 @@ Override de precio por noche (admin). Sin fila → tarifa base de la propiedad.
 
 - Fechas en zona `America/Guayaquil` (sin horario de verano)
 - Estancia modelada como `[checkIn, checkOut)` — la noche del check-out no se cobra
+- Estancia mínima global: **1 noche** con entrada lunes–jueves o domingo; con entrada **viernes o sábado** se exigen **2 noches** mínimo (todas las propiedades)
 - Transferencia bancaria aplica **7 % de descuento** sobre el total (`BANK_TRANSFER_DISCOUNT_RATE = 0.93`)
 - Cron diario (`vercel.json`) sincroniza iCal con `CRON_SECRET`
 

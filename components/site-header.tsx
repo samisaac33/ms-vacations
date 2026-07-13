@@ -51,8 +51,12 @@ function NavLink({
 }
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const wa = whatsappHref();
+  const isPropertyDetail = /^\/propiedades\/[^/]+$/.test(pathname);
+  const isBookingFlow = /^\/reservar\/[^/]+$/.test(pathname);
+  const hideOnMobile = isPropertyDetail || isBookingFlow;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -64,7 +68,9 @@ export function SiteHeader() {
   }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-sand-dark/80 bg-sand/95 shadow-sm backdrop-blur-md">
+    <header
+      className={`sticky top-0 z-50 border-b border-sand-dark/80 bg-sand/95 shadow-sm backdrop-blur-md ${hideOnMobile ? "hidden lg:block" : ""}`}
+    >
       <div
         className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 sm:px-6"
         style={{ minHeight: "var(--header-height)" }}

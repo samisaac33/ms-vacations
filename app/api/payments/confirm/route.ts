@@ -1,6 +1,6 @@
 import { confirmBookingAfterPayment } from "@/lib/booking-service";
 import { capturePayPalOrder } from "@/lib/payments/paypal";
-import { getPayPhoneSaleStatus } from "@/lib/payments/payphone";
+import { confirmPayPhonePayment } from "@/lib/payments/payphone";
 import { hasDatabase } from "@/db/index";
 
 export const runtime = "nodejs";
@@ -11,7 +11,13 @@ export async function POST(request: Request) {
     return Response.json({ error: "Base de datos no configurada" }, { status: 503 });
   }
 
-  let body: { bookingId?: string; provider?: string; orderId?: string };
+  let body: {
+    bookingId?: string;
+    provider?: string;
+    orderId?: string;
+    payphoneId?: string | number;
+    clientTransactionId?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -43,7 +49,14 @@ export async function POST(request: Request) {
   }
 
   if (provider === "payphone") {
-    const status = await getPayPhoneSaleStatus(bookingId);
+    const payphoneId = body.payphoneId != null ? Number(body.payphoneId) : NaN;
+    if (!Number.isFinite(payphoneId) || payphoneId <= 0) {
+      return Response.json({ error: "Falta id de transacción PayPhone" }, { status: 400 });
+    }
+    const status = await confirmPayPhonePayment({
+      payphoneId,
+      clientTransactionId: body.clientTransactionId ?? bookingId,
+    });
     if (!status.approved) {
       return Response.json({ error: "Pago PayPhone no aprobado" }, { status: 402 });
     }

@@ -6,6 +6,7 @@ import { getAllPropertySlugs, getPropertyBySlugWithDbPrice } from "@/lib/propert
 import { directPricePerNightUsd } from "@/lib/pricing";
 import { parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
 import { siteConfig } from "@/lib/site";
+import { getBankAccountDetails } from "@/lib/payments/bank-transfer";
 import { BookingReserveLayout } from "./booking-reserve-layout";
 
 type Props = {
@@ -38,21 +39,24 @@ export default async function ReservarPage(props: Props) {
 
   const dbReady = hasDatabase();
   const image = p.images[0];
+  const bank = getBankAccountDetails();
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
-      <PageHeader
-        title="Completa tu reserva"
-        subtitle={p.name}
-        breadcrumbs={[
-          { label: siteConfig.copy.catalogNav, href: siteConfig.copy.catalogPath },
-          { label: p.name, href: `/propiedades/${p.slug}` },
-          { label: "Reservar" },
-        ]}
-      />
+    <div className="mx-auto w-full max-w-6xl lg:px-6 lg:py-10">
+      <div className="lg:hidden">
+        <PageHeader
+          title="Completa tu reserva"
+          subtitle={p.name}
+          breadcrumbs={[
+            { label: siteConfig.copy.catalogNav, href: siteConfig.copy.catalogPath },
+            { label: p.name, href: `/propiedades/${p.slug}` },
+            { label: "Reservar" },
+          ]}
+        />
+      </div>
 
       {!dbReady && (
-        <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 lg:mx-0 mx-4">
           Falta configurar{" "}
           <code className="rounded bg-amber-100/80 px-1">DATABASE_URL</code> y ejecutar{" "}
           <code className="rounded px-1">npm run db:push</code> y{" "}
@@ -63,6 +67,7 @@ export default async function ReservarPage(props: Props) {
       <BookingReserveLayout
         slug={p.slug}
         maxGuests={p.capacity.guests}
+        bank={bank}
         initialCheckIn={datesValid ? parsed!.checkIn : undefined}
         initialCheckOut={datesValid ? parsed!.checkOut : undefined}
         initialGuests={parsed?.huespedes}

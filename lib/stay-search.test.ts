@@ -28,6 +28,14 @@ describe("validateStaySearch", () => {
   it("acepta rango válido", () => {
     expect(validateStaySearch("2026-08-10", "2026-08-12", "2026-08-01")).toBeNull();
   });
+
+  it("rechaza 1 noche con entrada en fin de semana", () => {
+    expect(validateStaySearch("2026-08-14", "2026-08-15", "2026-08-01")).toMatch(/viernes o sábado/i);
+  });
+
+  it("acepta 1 noche con entrada domingo", () => {
+    expect(validateStaySearch("2026-08-16", "2026-08-17", "2026-08-01")).toBeNull();
+  });
 });
 
 describe("defaultCheckOut", () => {

@@ -1,4 +1,4 @@
-import {
+﻿import {
   date,
   integer,
   pgEnum,
@@ -12,6 +12,7 @@ import {
 export const bookingStatusEnum = pgEnum("booking_status", [
   "pending_payment",
   "pending_verification",
+  "pending_balance",
   "confirmed",
   "cancelled",
   "expired",
@@ -22,6 +23,8 @@ export const paymentMethodEnum = pgEnum("payment_method", [
   "paypal",
   "payphone",
 ]);
+
+export const paymentTimingEnum = pgEnum("payment_timing", ["full_now", "split"]);
 
 export const properties = pgTable("properties", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -59,13 +62,20 @@ export const bookings = pgTable("bookings", {
   guests: integer("guests").notNull(),
   status: bookingStatusEnum("status").notNull(),
   paymentMethod: paymentMethodEnum("payment_method").notNull(),
+  paymentTiming: paymentTimingEnum("payment_timing").notNull().default("full_now"),
   totalCents: integer("total_cents").notNull(),
+  depositCents: integer("deposit_cents"),
+  balanceCents: integer("balance_cents"),
+  balanceDueAt: date("balance_due_at"),
+  depositPaidAt: timestamp("deposit_paid_at", { withTimezone: true }),
   currency: text("currency").notNull().default("USD"),
   pendingExpiresAt: timestamp("pending_expires_at", { withTimezone: true }),
   paymentExternalId: text("payment_external_id"),
   paymentProofUrl: text("payment_proof_url"),
   paymentProofUploadedAt: timestamp("payment_proof_uploaded_at", { withTimezone: true }),
   guestEmail: text("guest_email"),
+  termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
+  termsVersion: text("terms_version"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

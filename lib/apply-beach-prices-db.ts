@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb, hasDatabase } from "@/db/index";
 import { properties } from "@/db/schema";
 import { beachBasePriceUpdates } from "@/lib/beach-price-migration";
+import { clearMismatchedNightlyRateOverrides } from "@/lib/pricing-query";
 import { bankTransferTotalCents } from "@/lib/pricing";
 
 export type BeachPriceApplyResult = {
@@ -25,6 +26,8 @@ export async function applyBeachPricesToDatabase(): Promise<BeachPriceApplyResul
       .update(properties)
       .set({ basePricePerNightCents: newUsd * 100 })
       .where(eq(properties.slug, slug));
+
+    await clearMismatchedNightlyRateOverrides({ slug }, db);
 
     results.push({
       slug,

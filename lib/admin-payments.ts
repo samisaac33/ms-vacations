@@ -34,7 +34,7 @@ export async function getPendingVerificationBookings(): Promise<PendingVerificat
     .from(bookings)
     .innerJoin(properties, eq(bookings.propertyId, properties.id))
     .where(eq(bookings.status, "pending_verification"))
-    .orderBy(desc(bookings.paymentProofUploadedAt));
+    .orderBy(desc(bookings.createdAt));
 
   return rows.map((row) => ({
     ...row,

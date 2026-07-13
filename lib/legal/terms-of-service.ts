@@ -1,6 +1,12 @@
 import type { LegalContactInfo, LegalSection } from "@/lib/legal/types";
+import { formatLegalEntityBlock } from "@/lib/legal/contact-info";
+import {
+  HOSPITALITY_VAT_PROMOTIONAL_RATE,
+  HOSPITALITY_VAT_STANDARD_RATE,
+  getPromotionalVatPeriodsSummary,
+} from "@/lib/legal/hospitality-vat";
 
-const LAST_UPDATED = "28 de junio de 2026";
+const LAST_UPDATED = "10 de julio de 2026";
 
 function contactChannels({ contactEmail, contactWhatsapp }: LegalContactInfo): string {
   const parts: string[] = [];
@@ -22,6 +28,13 @@ export function getTermsOfServiceSections(info: LegalContactInfo): LegalSection[
   const contact = contactChannels(info);
 
   return [
+    {
+      title: "Identificación del prestador",
+      paragraphs: [
+        formatLegalEntityBlock(info),
+        `${info.siteName} opera alojamiento vacacional en Manabí (San Clemente y Portoviejo) a través del sitio web ${siteHost}.`,
+      ],
+    },
     {
       title: "Aceptación de los términos",
       paragraphs: [
@@ -47,11 +60,23 @@ export function getTermsOfServiceSections(info: LegalContactInfo): LegalSection[
       ],
     },
     {
+      title: "Precios, IVA e impuestos",
+      paragraphs: [
+        "Los precios publicados y el total de tu reserva se expresan en dólares estadounidenses (USD). Salvo indicación contraria en la confirmación, los importes incluyen el Impuesto al Valor Agregado (IVA) aplicable al servicio de alojamiento turístico.",
+        `La tarifa general del IVA para hospedaje turístico en Ecuador es del ${HOSPITALITY_VAT_STANDARD_RATE * 100} %. Durante feriados nacionales o locales —y los fines de semana colindantes cuando así lo disponga un Decreto Ejecutivo— la tarifa puede reducirse al ${HOSPITALITY_VAT_PROMOTIONAL_RATE * 100} % para servicios turísticos registrados conforme a la Ley de Turismo.`,
+        "La reducción al 8 % no es automática: requiere decreto presidencial vigente, registro de turismo y emisión del comprobante de venta con la tarifa correspondiente. Períodos decretados publicados en este sitio (referencia): " +
+          getPromotionalVatPeriodsSummary() +
+          ". Consulta la versión vigente al reservar; MS Vacations actualizará los períodos cuando se publiquen nuevos decretos.",
+        "Si tu estancia abarca noches con tarifas de IVA distintas, el desglose se reflejará en la factura o comprobante emitido al confirmar el pago.",
+      ],
+    },
+    {
       title: "Precios y pagos",
       paragraphs: [
         "Los precios se muestran en dólares estadounidenses (USD) salvo indicación contraria. El importe total de la estancia se calcula según el número de noches entre check-in y check-out y la tarifa vigente de la propiedad al momento de reservar.",
         "Aceptamos transferencia bancaria (con 7% de descuento adicional sobre el total de reserva directa), PayPal y PayPhone. MS Vacations no almacena números completos de tarjeta.",
         "En transferencia bancaria debes subir el comprobante; la reserva se confirma tras verificación manual. El precio confirmado al reservar es el importe contractual, salvo error manifiesto que MS Vacations se reserve corregir antes de aceptar el pago.",
+        "Tras confirmar el pago, emitiremos el comprobante de venta (factura electrónica u otro documento autorizado por el SRI) con el desglose de IVA que corresponda según la normativa vigente y la fecha de prestación del servicio.",
       ],
     },
     {
@@ -83,6 +108,13 @@ export function getTermsOfServiceSections(info: LegalContactInfo): LegalSection[
       title: "Privacidad",
       paragraphs: [
         "El tratamiento de tus datos personales se describe en nuestra Política de privacidad, disponible en este sitio web y conforme a la LOPDP de Ecuador.",
+      ],
+    },
+    {
+      title: "Defensa del consumidor",
+      paragraphs: [
+        "Como consumidor en Ecuador puedes presentar reclamos relacionados con la prestación del servicio de alojamiento. Te atenderemos por los canales de contacto indicados en estos términos.",
+        "Si no recibes respuesta satisfactoria, puedes acudir a las autoridades de defensa del consumidor competentes conforme a la Ley Orgánica de Defensa del Consumidor.",
       ],
     },
     {

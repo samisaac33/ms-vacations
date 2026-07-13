@@ -1,6 +1,7 @@
 import type { LegalContactInfo, LegalSection } from "@/lib/legal/types";
+import { formatLegalEntityBlock } from "@/lib/legal/contact-info";
 
-const LAST_UPDATED = "28 de junio de 2026";
+const LAST_UPDATED = "10 de julio de 2026";
 
 function contactChannels({ contactEmail, contactWhatsapp }: LegalContactInfo): string {
   const parts: string[] = [];
@@ -24,6 +25,7 @@ export function getPrivacyPolicySections(info: LegalContactInfo): LegalSection[]
     {
       title: "Responsable del tratamiento",
       paragraphs: [
+        formatLegalEntityBlock(info),
         `${info.siteName} es responsable del tratamiento de los datos personales recopilados a través de este sitio web para reservas directas.`,
         `Para ejercer tus derechos o consultas sobre privacidad, contáctanos por ${contact}.`,
       ],

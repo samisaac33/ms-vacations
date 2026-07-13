@@ -1,6 +1,7 @@
-import { and, eq, gte, inArray, lte, or, sql } from "drizzle-orm";
+﻿import { and, eq, gte, inArray, lte } from "drizzle-orm";
 import { getDb, hasDatabase } from "@/db/index";
 import { bookings, externalBlocks, properties, propertyNightlyRates } from "@/db/schema";
+import { activeBookingStatus } from "@/lib/availability";
 import type { AvailabilityBlock } from "@/lib/availability-query";
 import { eachDayIsoInclusive } from "@/lib/dates";
 import { directPricePerNightCents } from "@/lib/pricing";
@@ -32,13 +33,13 @@ export type AdminCalendarProperty = {
 
 const BOOKING_STATUS_LABEL: Record<string, string> = {
   confirmed: "Confirmado",
-  pending_verification: "Pendiente verificación",
+  pending_verification: "Pendiente verificaciÃ³n",
   pending_payment: "Pendiente pago",
 };
 
 function guestLabelFromEmail(email: string | null | undefined): string {
-  if (!email) return "Huésped";
-  const local = email.split("@")[0] ?? "Huésped";
+  if (!email) return "HuÃ©sped";
+  const local = email.split("@")[0] ?? "HuÃ©sped";
   const parts = local.replace(/[._-]+/g, " ").trim().split(/\s+/);
   return parts
     .slice(0, 2)
@@ -84,7 +85,7 @@ function buildBarsForProperty(
       start: b.checkIn,
       end: b.checkOut,
       source: "booking",
-      label: `${guestLabelFromEmail(b.guestEmail)} · ${statusLabel}`,
+      label: `${guestLabelFromEmail(b.guestEmail)} Â· ${statusLabel}`,
       status: b.status,
       totalCents: b.totalCents,
     });
@@ -188,11 +189,7 @@ async function loadCalendarBatch(from: string, to: string, propertyIds?: string[
         inArray(bookings.propertyId, ids),
         lte(bookings.checkIn, to),
         gte(bookings.checkOut, from),
-        or(
-          eq(bookings.status, "confirmed"),
-          eq(bookings.status, "pending_verification"),
-          and(eq(bookings.status, "pending_payment"), sql`${bookings.pendingExpiresAt} > now()`),
-        ),
+        activeBookingStatus,
       ),
     );
 
@@ -267,3 +264,4 @@ export function listAdminCalendarProperties(): AdminCalendarPropertyMeta[] {
     imageSrc: p.images[0]?.src ?? "/properties/placeholder-1.svg",
   })).sort((a, b) => a.name.localeCompare(b.name, "es"));
 }
+

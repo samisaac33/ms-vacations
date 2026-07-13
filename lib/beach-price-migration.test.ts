@@ -3,8 +3,14 @@ import { beachBasePriceUpdates } from "@/lib/beach-price-migration";
 import { bankTransferTotalCents, basePriceFromPriorDirectUsd } from "@/lib/pricing";
 
 describe("beachBasePriceUpdates", () => {
-  it("define cinco propiedades de playa", () => {
-    expect(beachBasePriceUpdates()).toHaveLength(5);
+  it("define seis propiedades de playa", () => {
+    expect(beachBasePriceUpdates()).toHaveLength(6);
+  });
+
+  it("Villa Palmera: base $428 y transferencia $400", () => {
+    const villa = beachBasePriceUpdates().find((row) => row.slug === "villa-palmera");
+    expect(villa?.newUsd).toBe(428);
+    expect(bankTransferTotalCents(villa!.newUsd * 100) / 100).toBe(400);
   });
 });
 

@@ -1,9 +1,11 @@
-import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { PropertyBookingPanel } from "@/components/property-booking-panel";
+import { PropertyDetailMobile } from "@/components/property-detail-mobile";
 import { PropertyLocationMap } from "@/components/property-location-map";
+import { PropertyPhotoGallery } from "@/components/property-photo-gallery";
+import { PropertySummaryStats } from "@/components/property-summary-stats";
 import { getPropertyBySlugWithDbPrice, getAllPropertySlugs } from "@/lib/property-db";
 import { getStayQuoteBySlug } from "@/lib/pricing-query";
 import { buildStaySearchQuery, parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
@@ -74,104 +76,75 @@ export default async function PropertyDetailPage(props: Props) {
       }
     : null;
 
-  const mainImage = p.images[0];
-  const extraImages = p.images.slice(1);
+  const shareLink = `${siteConfig.url}/propiedades/${slug}${stayQuery}`;
 
   return (
-    <article className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
-      <PageHeader
-        title={p.name}
-        subtitle={`${p.location.area}, ${p.location.province}`}
-        breadcrumbs={[
-          { label: siteConfig.copy.catalogNav, href: siteConfig.copy.catalogPath },
-          { label: p.name },
-        ]}
+    <article className="mx-auto w-full max-w-7xl lg:px-6 lg:py-8">
+      <PropertyDetailMobile
+        property={p}
+        shareLink={shareLink}
+        catalogHref={siteConfig.copy.catalogPath}
+        stayQuery={stayQuery}
+        hasStay={datesValid}
+        quote={quote}
       />
 
-      <div className="mt-8 max-w-3xl">
-        <div className="grid gap-3">
-          {mainImage && (
-            <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-sand-dark">
-              <Image
-                src={mainImage.src}
-                alt={mainImage.alt}
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 768px"
-              />
-            </div>
-          )}
-          {extraImages.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {extraImages.map((img, i) => (
-                <div
-                  key={`${img.src}-${i}`}
-                  className="relative aspect-[4/3] overflow-hidden rounded-xl bg-sand-dark"
-                >
-                  <Image
-                    src={img.src}
-                    alt={img.alt}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <PropertyBookingPanel
-          slug={p.slug}
-          pricePerNightUsd={p.basePricePerNightUsd}
-          stay={stay}
-          stayQuery={stayQuery}
-          quote={quote}
+      <div className="hidden lg:block lg:px-0">
+        <PageHeader
+          title={p.name}
+          subtitle={`${p.location.area}, ${p.location.province}`}
+          breadcrumbs={[
+            { label: siteConfig.copy.catalogNav, href: siteConfig.copy.catalogPath },
+            { label: p.name },
+          ]}
         />
+        <PropertySummaryStats capacity={p.capacity} />
 
-        <section className="mt-10 space-y-8 border-t border-sand-dark pt-10">
-          <div>
-            <h2 className="text-xl font-semibold text-ink">Descripción</h2>
-            <p className="mt-3 leading-relaxed text-muted">{p.description}</p>
-          </div>
+        <PropertyPhotoGallery images={p.images} propertyName={p.name} shareLink={shareLink} />
 
-          <div>
-            <h3 className="text-lg font-semibold text-ink">Capacidad</h3>
-            <ul className="mt-3 space-y-1 text-muted">
-              <li>{p.capacity.guests} huéspedes</li>
-              <li>
-                {p.capacity.bedrooms} dormitorios · {p.capacity.beds} camas ·{" "}
-                {p.capacity.bathrooms} baños
-              </li>
-            </ul>
-          </div>
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-start">
+          <section className="space-y-8">
+            <div>
+              <h2 className="text-xl font-semibold text-ink">Descripción</h2>
+              <p className="mt-3 leading-relaxed text-muted">{p.description}</p>
+            </div>
 
-          <div>
-            <h3 className="text-lg font-semibold text-ink">Amenidades</h3>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {p.amenities.map((a) => (
-                <li
-                  key={a}
-                  className="rounded-full bg-ocean-light px-3 py-1 text-sm text-ink"
-                >
-                  {a}
-                </li>
-              ))}
-            </ul>
-          </div>
+            <div>
+              <h3 className="text-lg font-semibold text-ink">Amenidades</h3>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {p.amenities.map((a) => (
+                  <li
+                    key={a}
+                    className="rounded-full bg-ocean-light px-3 py-1 text-sm text-ink"
+                  >
+                    {a}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div>
-            <h3 className="text-lg font-semibold text-ink">Reglas</h3>
-            <ul className="mt-3 list-inside list-disc space-y-1 text-muted">
-              {p.rules.map((r) => (
-                <li key={r}>{r}</li>
-              ))}
-            </ul>
-          </div>
+            <div>
+              <h3 className="text-lg font-semibold text-ink">Reglas</h3>
+              <ul className="mt-3 list-inside list-disc space-y-1 text-muted">
+                {p.rules.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            </div>
 
-          <PropertyLocationMap property={p} />
-        </section>
+            <PropertyLocationMap property={p} />
+          </section>
+
+          <aside className="lg:sticky lg:top-24">
+            <PropertyBookingPanel
+              slug={p.slug}
+              pricePerNightUsd={p.basePricePerNightUsd}
+              stay={stay}
+              stayQuery={stayQuery}
+              quote={quote}
+            />
+          </aside>
+        </div>
       </div>
     </article>
   );

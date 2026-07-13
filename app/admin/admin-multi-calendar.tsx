@@ -143,7 +143,7 @@ export function AdminMultiCalendar({ initialMonth }: { initialMonth?: string }) 
                   href={`/admin/propiedades/${p.slug}/precios?month=${monthParam}`}
                   title={p.name}
                   aria-label={`Precios de ${p.name}`}
-                  className="flex h-[4.75rem] items-center justify-center border-b border-zinc-100 px-1 hover:bg-zinc-50 md:justify-start md:gap-2 md:px-2"
+                  className="admin-timeline-row flex items-center justify-center border-b border-zinc-100 px-1 hover:bg-zinc-50 md:justify-start md:gap-2 md:px-2"
                 >
                   <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-zinc-200">
                     <Image src={p.imageSrc} alt="" fill className="object-cover" sizes="36px" />
@@ -174,7 +174,7 @@ export function AdminMultiCalendar({ initialMonth }: { initialMonth?: string }) 
                   const segments = barsForDayRange(p.bars, from, to);
 
                   return (
-                    <div key={p.id} className="relative border-b border-zinc-100">
+                    <div key={p.id} className="admin-timeline-row relative border-b border-zinc-100">
                       <div className="flex">
                         {dayList.map((iso) => {
                           const info = daysByDate.get(iso);
@@ -195,7 +195,7 @@ export function AdminMultiCalendar({ initialMonth }: { initialMonth?: string }) 
                         })}
                       </div>
 
-                      <div className="pointer-events-none absolute inset-x-0 top-8 h-7">
+                      <div className="pointer-events-none absolute inset-x-0 bottom-2 h-7">
                         {segments.map((seg) => (
                           <CalendarStayBar
                             key={`${p.id}-${seg.bar.id}-${seg.clippedStart}`}

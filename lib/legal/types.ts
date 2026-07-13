@@ -9,4 +9,10 @@ export type LegalContactInfo = {
   siteUrl: string;
   contactEmail?: string;
   contactWhatsapp: string;
+  legalName: string;
+  ruc: string;
+  address: string;
+  province: string;
+  country: string;
+  tourismRegistry?: string;
 };

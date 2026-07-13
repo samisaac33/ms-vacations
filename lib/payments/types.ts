@@ -6,8 +6,10 @@ export function isPaymentMethod(value: string): value is PaymentMethod {
   return (PAYMENT_METHODS as readonly string[]).includes(value);
 }
 
-export type PaymentNextStep = "bank_instructions" | "redirect";
+export type PaymentNextStep = "bank_instructions" | "redirect" | "payphone_box" | "paypal_buttons";
 
 export type InitiatePaymentResult =
   | { next: "bank_instructions"; redirectUrl: string }
-  | { next: "redirect"; redirectUrl: string };
+  | { next: "redirect"; redirectUrl: string }
+  | { next: "payphone_box"; redirectUrl: string }
+  | { next: "paypal_buttons"; redirectUrl: string };

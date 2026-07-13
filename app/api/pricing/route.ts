@@ -1,5 +1,6 @@
 import { hasDatabase } from "@/db/index";
 import { isValidDateOrder } from "@/lib/dates";
+import { validateStayLength } from "@/lib/stay-rules";
 import { getStayQuoteBySlug } from "@/lib/pricing-query";
 
 export const runtime = "nodejs";
@@ -23,6 +24,10 @@ export async function GET(r: Request) {
   }
   if (!isValidDateOrder(checkIn, checkOut)) {
     return Response.json({ error: "Rango de fechas inválido" }, { status: 400 });
+  }
+  const stayLengthError = validateStayLength(checkIn, checkOut);
+  if (stayLengthError) {
+    return Response.json({ error: stayLengthError }, { status: 400 });
   }
 
   const quote = await getStayQuoteBySlug(slug, checkIn, checkOut);

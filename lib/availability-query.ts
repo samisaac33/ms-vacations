@@ -1,6 +1,7 @@
-import { and, eq, inArray, or, sql } from "drizzle-orm";
+﻿import { and, eq, inArray } from "drizzle-orm";
 import { getDb, hasDatabase } from "@/db/index";
 import { bookings, externalBlocks, properties } from "@/db/schema";
+import { activeBookingStatus } from "@/lib/availability";
 import type { DateRange } from "@/lib/availability-utils";
 
 export type AvailabilityBlock = DateRange & {
@@ -28,6 +29,10 @@ export async function getAvailabilityBySlug(slug: string): Promise<PropertyAvail
     .from(externalBlocks)
     .where(eq(externalBlocks.propertyId, prop.id));
 
+  // #region agent log
+  fetch('http://127.0.0.1:7301/ingest/b7c4f0e2-1c6e-4803-8834-979f15ef881f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'729085'},body:JSON.stringify({sessionId:'729085',location:'availability-query.ts:beforeBookings',message:'external blocks loaded, querying active bookings',data:{slug,propertyId:prop.id,externalCount:external.length},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+  // #endregion
+
   const activeBookings = await db
     .select({
       start: bookings.checkIn,
@@ -37,11 +42,7 @@ export async function getAvailabilityBySlug(slug: string): Promise<PropertyAvail
     .where(
       and(
         eq(bookings.propertyId, prop.id),
-        or(
-          eq(bookings.status, "confirmed"),
-          eq(bookings.status, "pending_verification"),
-          and(eq(bookings.status, "pending_payment"), sql`${bookings.pendingExpiresAt} > now()`),
-        ),
+        activeBookingStatus,
       ),
     );
 
@@ -112,11 +113,7 @@ export async function getBlocksByPropertySlugs(
     .where(
       and(
         inArray(bookings.propertyId, propertyIds),
-        or(
-          eq(bookings.status, "confirmed"),
-          eq(bookings.status, "pending_verification"),
-          and(eq(bookings.status, "pending_payment"), sql`${bookings.pendingExpiresAt} > now()`),
-        ),
+        activeBookingStatus,
       ),
     );
 
@@ -128,3 +125,4 @@ export async function getBlocksByPropertySlugs(
 
   return result;
 }
+

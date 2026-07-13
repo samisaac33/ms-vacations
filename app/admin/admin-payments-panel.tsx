@@ -34,7 +34,7 @@ export function AdminPaymentsPanel({ bookings }: Props) {
     <section className="mt-10">
       <h2 className="text-lg font-semibold">Transferencias pendientes</h2>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        Confirma o rechaza reservas con comprobante subido.
+        Confirma o rechaza reservas pendientes de verificación.
       </p>
 
       {(confirmState.error || confirmState.success || rejectState.error || rejectState.success) && (
@@ -56,6 +56,11 @@ export function AdminPaymentsPanel({ bookings }: Props) {
                   {b.checkIn} → {b.checkOut} · {b.guests} huéspedes · {formatMoney(b.totalCents)}
                 </p>
                 <p className="mt-1 text-sm">{b.guestEmail ?? "—"}</p>
+                {!b.paymentProofUrl && (
+                  <span className="mt-2 inline-flex rounded-full bg-[#25D366]/15 px-2.5 py-0.5 text-xs font-medium text-[#128C7E]">
+                    Comprobante vía WhatsApp
+                  </span>
+                )}
                 {b.paymentProofUrl && (
                   <a
                     href={b.paymentProofUrl}

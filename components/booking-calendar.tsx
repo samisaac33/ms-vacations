@@ -2,7 +2,6 @@
 
 import {
   addMonths,
-  differenceInCalendarDays,
   format,
   parseISO,
   startOfMonth,
@@ -10,17 +9,13 @@ import {
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { useEffect, useMemo, useState } from "react";
+import { useBookingAvailability } from "@/hooks/use-booking-availability";
+import { selectBookingDateRange } from "@/lib/booking-date-selection";
 import {
   isNightBlocked,
-  rangeOverlapsAny,
   todayInGuayaquil,
   type DateRange,
 } from "@/lib/availability-utils";
-
-type AvailabilityResponse = {
-  blocks: DateRange[];
-  lastIcalSyncAt: string | null;
-};
 
 type Props = {
   slug: string;
@@ -65,10 +60,7 @@ export function BookingCalendar({
   onRangeError,
 }: Props) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
-  const [blocks, setBlocks] = useState<DateRange[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
+  const { blocks, loading, fetchError, lastSyncAt } = useBookingAvailability(slug, onBlocksLoaded);
 
   const today = todayInGuayaquil();
   const awaitingCheckOut = Boolean(checkIn && !checkOut);
@@ -80,71 +72,17 @@ export function BookingCalendar({
     }
   }, [checkIn]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setFetchError(null);
-    fetch(`/api/availability?slug=${encodeURIComponent(slug)}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          const data = (await res.json()) as { error?: string };
-          throw new Error(data.error ?? "No se pudo cargar disponibilidad");
-        }
-        return res.json() as Promise<AvailabilityResponse>;
-      })
-      .then((data) => {
-        if (cancelled) return;
-        setBlocks(data.blocks);
-        setLastSyncAt(data.lastIcalSyncAt);
-        onBlocksLoaded?.(data.blocks);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setFetchError(e instanceof Error ? e.message : "Error al cargar calendario");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [slug, onBlocksLoaded]);
-
   const grid = useMemo(() => buildMonthGrid(month), [month]);
   const monthLabel = format(month, "LLLL yyyy", { locale: es });
 
   function handleDayClick(iso: string) {
     onRangeError?.(null);
-    if (iso < today) return;
-
-    if (checkIn && checkOut) {
-      if (isNightBlocked(iso, blocks)) return;
-      onRangeChange(iso, "");
+    const result = selectBookingDateRange(iso, { checkIn, checkOut }, blocks, today);
+    if (!result.ok) {
+      onRangeError?.(result.error);
       return;
     }
-
-    if (!checkIn) {
-      if (isNightBlocked(iso, blocks)) return;
-      onRangeChange(iso, "");
-      return;
-    }
-
-    if (iso === checkIn) {
-      onRangeChange("", "");
-      return;
-    }
-
-    const start = iso < checkIn ? iso : checkIn;
-    const end = iso < checkIn ? checkIn : iso;
-    if (differenceInCalendarDays(parseISO(end), parseISO(start)) < 1) {
-      onRangeChange(iso, "");
-      return;
-    }
-    if (rangeOverlapsAny(start, end, blocks)) {
-      onRangeError?.("Ese rango incluye noches ocupadas. Prueba con menos días o otras fechas.");
-      return;
-    }
-    onRangeChange(start, end);
+    onRangeChange(result.range.checkIn, result.range.checkOut);
   }
 
   function dayClasses(iso: string): string {
@@ -279,9 +217,7 @@ export function BookingCalendar({
           <span className="inline-block h-4 w-4 rounded-md bg-ocean-light ring-1 ring-ocean/20" aria-hidden />
           Tu estancia
         </span>
-        {syncLabel && (
-          <span className="text-muted/80">Sincronizado: {syncLabel}</span>
-        )}
+        {syncLabel && <span className="text-muted/80">Sincronizado: {syncLabel}</span>}
       </div>
     </div>
   );

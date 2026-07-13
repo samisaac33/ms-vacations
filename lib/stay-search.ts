@@ -1,5 +1,6 @@
 import { todayInGuayaquil } from "@/lib/availability-utils";
 import { isValidDateOrder } from "@/lib/dates";
+import { validateStayLength } from "@/lib/stay-rules";
 
 export type StayDestination = "beach" | "city";
 
@@ -31,7 +32,7 @@ export function validateStaySearch(
   if (!checkIn || !checkOut) return "Selecciona entrada y salida.";
   if (checkIn < minCheckIn) return "La entrada no puede ser en el pasado.";
   if (!isValidDateOrder(checkIn, checkOut)) return "La salida debe ser después de la entrada.";
-  return null;
+  return validateStayLength(checkIn, checkOut);
 }
 
 export function buildStaySearchQuery(search: Partial<StaySearch>): string {

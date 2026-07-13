@@ -1,4 +1,4 @@
-import { and, eq, gt, lt, or, sql } from "drizzle-orm";
+﻿import { and, eq, gt, isNull, lt, or, sql } from "drizzle-orm";
 import type { ExtractTablesWithRelations } from "drizzle-orm";
 import type { PgTransaction } from "drizzle-orm/pg-core";
 import type { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
@@ -11,9 +11,13 @@ type Tx = PgTransaction<
   ExtractTablesWithRelations<typeof schema>
 >;
 
-const activeBookingStatus = or(
+export const activeBookingStatus = or(
   eq(bookings.status, "confirmed"),
-  eq(bookings.status, "pending_verification"),
+  eq(bookings.status, "pending_balance"),
+  and(
+    eq(bookings.status, "pending_verification"),
+    or(isNull(bookings.pendingExpiresAt), sql`${bookings.pendingExpiresAt} > now()`),
+  ),
   and(eq(bookings.status, "pending_payment"), sql`${bookings.pendingExpiresAt} > now()`),
 );
 
@@ -22,7 +26,10 @@ export async function expireStalePendingBookings(tx: Tx): Promise<void> {
     .update(bookings)
     .set({ status: "expired" })
     .where(
-      and(eq(bookings.status, "pending_payment"), sql`${bookings.pendingExpiresAt} < now()`),
+      or(
+        and(eq(bookings.status, "pending_payment"), sql`${bookings.pendingExpiresAt} < now()`),
+        and(eq(bookings.status, "pending_verification"), sql`${bookings.pendingExpiresAt} < now()`),
+      ),
     );
 }
 
@@ -87,3 +94,4 @@ export class AvailabilityError extends Error {
     this.name = "AvailabilityError";
   }
 }
+

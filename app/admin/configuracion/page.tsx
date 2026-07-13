@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
 import { AdminApplyBeachPricesPanel } from "@/app/admin/admin-apply-beach-prices";
+import { AdminMigrateSplitPaymentPanel } from "@/app/admin/admin-migrate-split-payment";
 import { AdminCalendarShell } from "@/app/admin/admin-calendar-shell";
 import { AdminIcalPanel } from "@/app/admin/admin-ical-panel";
 import { AdminLoginForm } from "@/app/admin/admin-login-form";
 import { AdminPaymentsPanel } from "@/app/admin/admin-payments-panel";
+import { splitPaymentMigrationNeeded } from "@/app/admin/actions";
 import { getAdminIcalDashboard } from "@/lib/admin-dashboard";
 import { getPendingVerificationBookings } from "@/lib/admin-payments";
 
@@ -29,6 +31,7 @@ export default async function AdminConfiguracionPage() {
   }
 
   const dashboard = await getAdminIcalDashboard();
+  const needsSplitPaymentMigration = await splitPaymentMigrationNeeded();
   let pendingPayments: Awaited<ReturnType<typeof getPendingVerificationBookings>> = [];
   let paymentsLoadError: string | null = null;
   try {
@@ -46,6 +49,7 @@ export default async function AdminConfiguracionPage() {
 
         {dashboard ? (
           <>
+            {needsSplitPaymentMigration && <AdminMigrateSplitPaymentPanel />}
             <AdminApplyBeachPricesPanel />
             <AdminIcalPanel
               properties={dashboard.properties.map((p) => ({

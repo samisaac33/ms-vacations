@@ -33,6 +33,7 @@ export const siteConfig = {
     catalogPath: "/propiedades",
     heroEyebrow: "MS Vacations · Manabí",
     heroTitle: "Alojamientos vacacionales en playa y ciudad",
+    heroTitleMobile: "Playa y ciudad en Manabí",
     heroSubtitle:
       "Propiedades seleccionadas en San Clemente y Portoviejo. Consulta disponibilidad y reserva en línea.",
     heroDestinationsBadge: "Playa · Ciudad",

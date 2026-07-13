@@ -45,7 +45,7 @@ export function PropertyBookingPanel({
   const totalUsd = quote?.totalUsd;
 
   return (
-    <div className="card mt-6 p-5 sm:p-6">
+    <div className="card p-5 shadow-[var(--shadow-card)] sm:p-6">
       {hasStay && stay && (
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-widest text-ocean">

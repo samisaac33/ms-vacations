@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { siteConfig } from "@/lib/site";
+import { getLegalPoliciesMeta } from "@/lib/legal/policies";
+import { formatBusinessIdentification, getBusinessInfo } from "@/lib/legal/business";
+
+const policiesMeta = getLegalPoliciesMeta();
 
 const legalLinks = [
+  { href: policiesMeta.path, label: "Políticas y condiciones" },
   { href: "/terminos", label: "Términos" },
   { href: "/privacidad", label: "Privacidad" },
   { href: "/cancelaciones", label: "Cancelaciones" },
@@ -10,6 +15,8 @@ const legalLinks = [
 export function SiteFooter() {
   const { email, whatsapp } = siteConfig.contact;
   const hasContact = Boolean(email || whatsapp);
+  const business = getBusinessInfo();
+  const businessId = formatBusinessIdentification(business);
 
   return (
     <footer className="mt-auto border-t border-sand-dark bg-sand-dark">
@@ -24,6 +31,9 @@ export function SiteFooter() {
               {siteConfig.location.area}, {siteConfig.location.province},{" "}
               {siteConfig.location.country}
             </p>
+            {businessId ? (
+              <p className="mt-2 text-xs leading-relaxed text-muted">{businessId}</p>
+            ) : null}
           </div>
 
           <div>

@@ -23,6 +23,10 @@ import {
 } from "@/lib/pricing-query";
 import { syncAllPropertiesIcal } from "@/lib/ical-sync";
 import { applyBeachPricesToDatabase } from "@/lib/apply-beach-prices-db";
+import {
+  applySplitPaymentMigration,
+  bookingStatusHasValue,
+} from "@/lib/apply-split-payment-migration";
 import { eachDayIsoInclusive } from "@/lib/dates";
 import {
   confirmBankTransferBooking,
@@ -322,6 +326,38 @@ export async function applyBeachBasePrices(
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return { error: `No se pudieron actualizar tarifas: ${message}` };
+  }
+}
+
+export async function applySplitPaymentSchema(
+  _prev: IcalActionState | undefined,
+  _formData: FormData,
+): Promise<IcalActionState> {
+  if (!(await isAdminSession())) {
+    return { error: "No autorizado." };
+  }
+  if (!hasDatabase()) {
+    return { error: "DATABASE_URL no configurada." };
+  }
+
+  try {
+    const result = await applySplitPaymentMigration();
+    revalidatePricingPaths();
+    return {
+      success: `Migración aplicada. pending_balance: ${result.pendingBalanceAdded ? "añadido" : "ya existía"}.`,
+    };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { error: `No se pudo aplicar la migración: ${message}` };
+  }
+}
+
+export async function splitPaymentMigrationNeeded(): Promise<boolean> {
+  if (!hasDatabase()) return false;
+  try {
+    return !(await bookingStatusHasValue("pending_balance"));
+  } catch {
+    return true;
   }
 }
 

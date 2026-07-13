@@ -104,7 +104,7 @@ export function getTourismGuideFaqs(): TourismFaq[] {
     {
       question: "¿Puedo reservar solo fin de semana?",
       answer:
-        "Sí, según disponibilidad en el calendario de cada propiedad. Consulta fechas en nuestra web o escríbenos por WhatsApp.",
+        "Sí, con entrada viernes o sábado la estancia mínima es de 2 noches. Con entrada de lunes a jueves o domingo puedes reservar una sola noche, según disponibilidad en el calendario.",
     },
   ];
 }

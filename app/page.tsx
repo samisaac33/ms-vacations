@@ -13,7 +13,12 @@ import {
 } from "@/components/destination-property-section";
 import { Button } from "@/components/ui/button";
 import { toGoogleMapsEmbedUrl } from "@/lib/google-maps";
-import { getHomeCityMapLocation, getHomeFeaturedMapLocation, type Property } from "@/lib/properties";
+import {
+  getHomeCityMapLocation,
+  getHomeFeaturedMapLocation,
+  HOME_HERO_IMAGE,
+  type Property,
+} from "@/lib/properties";
 import { getCatalogGroupedWithDbPrices } from "@/lib/property-db";
 import { siteConfig } from "@/lib/site";
 
@@ -49,9 +54,6 @@ function buildDestinationCard(
 
 export default async function Home() {
   const { beach, city } = await getCatalogGroupedWithDbPrices();
-  const heroProperty = beach[0] ?? city[0];
-  if (!heroProperty) throw new Error("No hay propiedades en el catálogo");
-  const heroImage = heroProperty.images[0]!;
   const beachMap = getHomeFeaturedMapLocation();
   const cityMap = getHomeCityMapLocation();
   const beachMapEmbedUrl = toGoogleMapsEmbedUrl(beachMap.coordinates.lat, beachMap.coordinates.lng);
@@ -77,22 +79,23 @@ export default async function Home() {
     <>
       <section className="relative min-h-[58vh] overflow-hidden lg:min-h-[62vh]">
         <Image
-          src={heroImage.src}
-          alt={heroImage.alt}
+          src={HOME_HERO_IMAGE.src}
+          alt={HOME_HERO_IMAGE.alt}
           fill
           priority
           className="object-cover"
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-ocean-dark/70 via-ink/45 to-ink/25" />
-        <div className="relative mx-auto flex min-h-[58vh] max-w-6xl flex-col justify-end px-4 pb-10 pt-28 sm:px-6 sm:pb-12 lg:min-h-[62vh]">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+        <div className="relative mx-auto flex min-h-[58vh] max-w-6xl flex-col justify-end px-4 pb-6 pt-28 sm:px-6 sm:pb-12 lg:min-h-[62vh]">
+          <p className="hidden text-xs font-semibold uppercase tracking-[0.2em] text-accent sm:block">
             {siteConfig.copy.heroEyebrow}
           </p>
-          <h1 className="font-display mt-3 max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-[3.25rem] lg:leading-tight">
-            {siteConfig.copy.heroTitle}
+          <h1 className="font-display mt-0 max-w-3xl text-3xl font-semibold leading-tight tracking-tight text-white sm:mt-3 sm:text-5xl lg:text-[3.25rem] lg:leading-tight">
+            <span className="sm:hidden">{siteConfig.copy.heroTitleMobile}</span>
+            <span className="hidden sm:inline">{siteConfig.copy.heroTitle}</span>
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-white/90 sm:text-lg">
+          <p className="mt-4 hidden max-w-xl text-base leading-relaxed text-white/90 sm:block sm:text-lg">
             {siteConfig.copy.heroSubtitle}
           </p>
           <HomeHeroPanel />

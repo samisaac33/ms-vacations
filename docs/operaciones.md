@@ -8,6 +8,8 @@
 
 Para aplicar solo el ajuste de tarifas de playa (+7 % sobre el precio directo anterior): `npm run db:update-beach-prices` (requiere `DATABASE_URL`), o pulse **Aplicar tarifas de playa** en `/admin/configuracion`.
 
+Para el esquema de pago fraccionado (`pending_balance`, columnas split): `npm run db:migrate:split-payment` (requiere `DATABASE_URL`), o pulse **Aplicar migración de pago fraccionado** en `/admin/configuracion` si el panel aparece.
+
 La transferencia bancaria revierte el +7 % (`base ÷ 1.07`), no multiplica por 0.93. Ej.: base $535 → transferencia $500.
 
 ## Sincronización iCal (Airbnb → web)
@@ -33,6 +35,8 @@ Importa reservas y bloqueos **desde Airbnb hacia la web** para evitar doble rese
 | `casa-vacacional-home-two-21-personas` | Home Two | `43093803` |
 | `casa-rustica-18-personas-max` | Casa rústica | `50403775` |
 | `home-luxury-la-punta-18-personas-max` | Home Luxury La Punta | `664011177607035357` |
+| `las-hamacas-portoviejo` | Las Hamacas | `1397408558028225842` |
+| `los-pinos-portoviejo` | Los Pinos | `1542938339737311039` |
 
 Las URLs completas (con token `t=...`) viven en `properties.ical_url` (seed desde `lib/properties.ts` o edición en `/admin`).
 
@@ -74,17 +78,21 @@ Las URLs completas (con token `t=...`) viven en `properties.ical_url` (seed desd
 ### PayPal
 
 - `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_MODE=sandbox|live`.
-- Retorno: `/reserva/exito?provider=paypal&bookingId=…&token={ORDER_ID}` → captura vía `POST /api/payments/confirm`.
+- **Smart Buttons (wizard móvil y desktop):** botones embebidos vía SDK de PayPal; la orden se crea en `POST /api/payments/paypal/create-order` al pulsar pagar.
+- Tras aprobar en el popup de PayPal, retorno a `/reserva/exito?provider=paypal&bookingId=…&token={ORDER_ID}` → captura vía `POST /api/payments/confirm`.
 
 ### PayPhone
 
+- App en Payphone Developer de tipo **WEB** con dominio `NEXT_PUBLIC_SITE_URL` (p. ej. `https://ms-vacations.com`).
 - `PAYPHONE_TOKEN`, `PAYPHONE_STORE_ID`.
-- Opcionales: `PAYPHONE_DEFAULT_PHONE`, `PAYPHONE_DEFAULT_DOCUMENT`.
-- Retorno: `/reserva/exito?provider=payphone&bookingId=…` → consulta estado vía API Sale.
+- **Cajita de pagos (wizard móvil y desktop):** el formulario se carga embebido vía SDK (`PPaymentButtonBox`). Tras el pago, Payphone redirige a la URL de respuesta configurada en Developer.
+- Configura la **URL de respuesta** en Payphone Developer como: `{NEXT_PUBLIC_SITE_URL}/reserva/exito?provider=payphone` (Payphone añade `id` y `clientTransactionId`; este último es el `bookingId`).
+- Confirmación en servidor: `POST /api/payments/confirm` → `paymentbox.payphonetodoesposible.com/api/confirm` (con fallback al endpoint legacy del botón por redirección).
 
 ### General
 
 - `NEXT_PUBLIC_SITE_URL` — URLs de retorno y cancelación.
+- **Hold temporal (PayPal/PayPhone):** el bloqueo de fechas (hold 30 min) se crea al pulsar el botón de pago en el paso 4 — PayPal al iniciar la orden (`create-order`); PayPhone al pulsar «Pagar» — no al avanzar desde el desglose de precio.
 - Reservas en línea (PayPal/PayPhone) expiran a los **30 min** si no se completa el pago.
 
 ## Precios (calendario admin)

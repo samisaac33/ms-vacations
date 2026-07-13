@@ -1,6 +1,7 @@
 import type { LegalContactInfo, LegalSection } from "@/lib/legal/types";
+import { formatLegalEntityBlock } from "@/lib/legal/contact-info";
 
-const LAST_UPDATED = "28 de junio de 2026";
+const LAST_UPDATED = "10 de julio de 2026";
 
 function contactChannels({ contactEmail, contactWhatsapp }: LegalContactInfo): string {
   const parts: string[] = [];
@@ -13,7 +14,7 @@ export function getCancellationPolicyMeta() {
   return {
     lastUpdated: LAST_UPDATED,
     description:
-      "Política de cancelaciones Moderate para reservas directas en MS Vacations — reembolsos según plazos alineados a Airbnb.",
+      "Política de cancelaciones, cambios y devoluciones para reservas directas en MS Vacations — reembolsos según plazos Moderate.",
   };
 }
 
@@ -22,6 +23,10 @@ export function getCancellationPolicySections(info: LegalContactInfo): LegalSect
   const contact = contactChannels(info);
 
   return [
+    {
+      title: "Identificación del prestador",
+      paragraphs: [formatLegalEntityBlock(info)],
+    },
     {
       title: "Alcance",
       paragraphs: [
@@ -53,6 +58,17 @@ export function getCancellationPolicySections(info: LegalContactInfo): LegalSect
         "Si cancelas con menos de 5 días de antelación al check-in, recibirás un reembolso parcial equivalente al 50% del importe correspondiente a las noches no disfrutadas (las noches comprendidas entre la fecha de cancelación y el check-out previsto en tu reserva).",
         "Las noches ya transcurridas, si hubieras iniciado la estancia, no son reembolsables.",
         "Cualquier impuesto, tasa o cargo incluido en el precio total se ajustará de forma proporcional al reembolso aplicable.",
+      ],
+    },
+    {
+      title: "Cambios de reserva (modificación de fechas)",
+      paragraphs: [
+        "Si deseas modificar las fechas de check-in o check-out de una reserva confirmada, contáctanos por " +
+          contact +
+          " con la mayor antelación posible.",
+        "Los cambios están sujetos a disponibilidad de la propiedad y a la tarifa vigente para las nuevas fechas. Si el nuevo total es mayor, deberás abonar la diferencia antes de confirmar el cambio; si es menor, aplicaremos la política de reembolso parcial según las secciones siguientes cuando corresponda.",
+        "Un cambio de fechas no garantiza la misma tarifa por noche ni la misma condición de IVA (15 % o 8 % en feriados decretados) que la reserva original.",
+        "MS Vacations evaluará cada solicitud de cambio de forma individual y confirmará por escrito si el cambio procede y el importe resultante.",
       ],
     },
     {

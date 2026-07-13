@@ -13,6 +13,12 @@ export function isPayPalConfigured(): boolean {
   return Boolean(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET);
 }
 
+export function getPayPalPublicConfig(): { clientId: string; mode: "sandbox" | "live" } | null {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  if (!clientId) return null;
+  return { clientId, mode: getMode() };
+}
+
 async function getAccessToken(): Promise<string> {
   const clientId = process.env.PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;

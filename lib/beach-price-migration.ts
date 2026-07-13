@@ -7,6 +7,7 @@ export const PRIOR_BEACH_DIRECT_USD: Record<string, number> = {
   "casa-vacacional-home-two-21-personas": 280,
   "casa-rustica-18-personas-max": 300,
   "home-luxury-la-punta-18-personas-max": 500,
+  "villa-palmera": 400,
 };
 
 export function beachBasePriceUpdates(): { slug: string; priorUsd: number; newUsd: number }[] {

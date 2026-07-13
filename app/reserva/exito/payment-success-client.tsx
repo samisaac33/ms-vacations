@@ -7,9 +7,17 @@ type Props = {
   provider: string | null;
   bookingId: string | null;
   paypalOrderId: string | null;
+  payphoneTransactionId: string | null;
+  payphoneClientTransactionId: string | null;
 };
 
-export function PaymentSuccessClient({ provider, bookingId, paypalOrderId }: Props) {
+export function PaymentSuccessClient({
+  provider,
+  bookingId,
+  paypalOrderId,
+  payphoneTransactionId,
+  payphoneClientTransactionId,
+}: Props) {
   const [status, setStatus] = useState<"loading" | "ok" | "error">(
     provider && bookingId ? "loading" : "ok",
   );
@@ -17,6 +25,11 @@ export function PaymentSuccessClient({ provider, bookingId, paypalOrderId }: Pro
 
   useEffect(() => {
     if (!provider || !bookingId) return;
+    if (provider === "payphone" && !payphoneTransactionId) {
+      setStatus("error");
+      setMessage("No se recibió confirmación de PayPhone. Si ya pagaste, contacta a MS Vacations.");
+      return;
+    }
 
     let cancelled = false;
     (async () => {
@@ -28,6 +41,8 @@ export function PaymentSuccessClient({ provider, bookingId, paypalOrderId }: Pro
             provider,
             bookingId,
             orderId: paypalOrderId,
+            payphoneId: payphoneTransactionId,
+            clientTransactionId: payphoneClientTransactionId ?? bookingId,
           }),
         });
         const data = (await res.json()) as { error?: string };
@@ -49,7 +64,7 @@ export function PaymentSuccessClient({ provider, bookingId, paypalOrderId }: Pro
     return () => {
       cancelled = true;
     };
-  }, [provider, bookingId, paypalOrderId]);
+  }, [provider, bookingId, paypalOrderId, payphoneTransactionId, payphoneClientTransactionId]);
 
   const providerLabel =
     provider === "paypal" ? "PayPal" : provider === "payphone" ? "PayPhone" : "MS Vacations";

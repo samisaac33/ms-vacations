@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, ne } from "drizzle-orm";
 import { getDb, hasDatabase } from "@/db/index";
 import { properties, propertyNightlyRates } from "@/db/schema";
 import type { AvailabilityBlock } from "@/lib/availability-query";
@@ -185,6 +185,77 @@ export async function clearNightlyRatesForDates(propertyId: string, dates: strin
     .where(
       and(eq(propertyNightlyRates.propertyId, propertyId), inArray(propertyNightlyRates.date, dates)),
     );
+}
+
+export type MismatchedNightlyRateOverride = {
+  propertyId: string;
+  propertySlug: string;
+  date: string;
+  overrideUsd: number;
+  baseUsd: number;
+};
+
+export function isMismatchedNightlyRateOverride(
+  referencePriceCents: number,
+  basePricePerNightCents: number,
+): boolean {
+  return referencePriceCents !== basePricePerNightCents;
+}
+
+export async function findMismatchedNightlyRateOverrides(
+  slug?: string,
+  db: Db = getDb(),
+): Promise<MismatchedNightlyRateOverride[]> {
+  const conditions = [
+    ne(propertyNightlyRates.referencePriceCents, properties.basePricePerNightCents),
+  ];
+  if (slug) {
+    conditions.push(eq(properties.slug, slug));
+  }
+
+  const rows = await db
+    .select({
+      propertyId: properties.id,
+      propertySlug: properties.slug,
+      date: propertyNightlyRates.date,
+      referencePriceCents: propertyNightlyRates.referencePriceCents,
+      basePricePerNightCents: properties.basePricePerNightCents,
+    })
+    .from(propertyNightlyRates)
+    .innerJoin(properties, eq(propertyNightlyRates.propertyId, properties.id))
+    .where(and(...conditions))
+    .orderBy(properties.slug, propertyNightlyRates.date);
+
+  return rows.map((row) => ({
+    propertyId: row.propertyId,
+    propertySlug: row.propertySlug,
+    date: row.date,
+    overrideUsd: row.referencePriceCents / 100,
+    baseUsd: row.basePricePerNightCents / 100,
+  }));
+}
+
+export async function clearMismatchedNightlyRateOverrides(
+  options?: { slug?: string; dryRun?: boolean },
+  db: Db = getDb(),
+): Promise<MismatchedNightlyRateOverride[]> {
+  const mismatched = await findMismatchedNightlyRateOverrides(options?.slug, db);
+  if (mismatched.length === 0 || options?.dryRun) {
+    return mismatched;
+  }
+
+  for (const row of mismatched) {
+    await db
+      .delete(propertyNightlyRates)
+      .where(
+        and(
+          eq(propertyNightlyRates.propertyId, row.propertyId),
+          eq(propertyNightlyRates.date, row.date),
+        ),
+      );
+  }
+
+  return mismatched;
 }
 
 export function blockedNightsInRange(
