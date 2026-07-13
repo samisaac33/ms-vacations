@@ -1,6 +1,12 @@
 const MAX_DIMENSION = 1600;
 const JPEG_QUALITY = 0.82;
-const MAX_BYTES = 5 * 1024 * 1024;
+
+export const PROOF_MAX_BYTES = 5 * 1024 * 1024;
+export const PROOF_MAX_MB = 5;
+export const PROOF_IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
+export const PROOF_IMAGE_HELPER = `JPG, PNG o WEBP. Máximo ${PROOF_MAX_MB} MB. Solo un archivo.`;
+
+const MAX_BYTES = PROOF_MAX_BYTES;
 
 export type CompressedProof = {
   file: File;
@@ -66,15 +72,16 @@ async function compressImageFile(file: File): Promise<CompressedProof> {
 }
 
 export async function prepareProofFile(file: File): Promise<CompressedProof> {
+  if (file.size > MAX_BYTES) {
+    throw new Error(`El archivo supera el límite de ${PROOF_MAX_MB} MB.`);
+  }
+
   if (file.type === "application/pdf") {
-    if (file.size > MAX_BYTES) {
-      throw new Error("El PDF supera el límite de 5 MB.");
-    }
     return { file, previewUrl: "" };
   }
 
   if (!file.type.startsWith("image/")) {
-    throw new Error("Formato no permitido. Use JPG, PNG, WEBP o PDF.");
+    throw new Error("Formato no permitido. Use JPG, PNG o WEBP.");
   }
 
   if (file.size <= MAX_BYTES && file.type !== "image/png") {
