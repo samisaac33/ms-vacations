@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --sand: #faf8f4;
   --sand-dark: #efe6d8;
+  --surface: #ffffff;
   --ocean: #0d6e6e;
   --ocean-dark: #0a5858;
   --ocean-light: #e8f4f4;
@@ -18,9 +21,27 @@
   --shadow-soft: 0 4px 18px rgb(26 43 43 / 0.08);
 }
 
+.dark {
+  --sand: #0a1212;
+  --sand-dark: #1a2424;
+  --surface: #141c1c;
+  --ocean: #18a3a3;
+  --ocean-dark: #0d6e6e;
+  --ocean-light: #0d3d3d;
+  --accent: #e8a838;
+  --accent-light: #2a2418;
+  --ink: #e4f0f0;
+  --muted: #8aa8a8;
+  --background: var(--sand);
+  --foreground: var(--ink);
+  --shadow-card: 0 10px 30px rgb(0 0 0 / 0.35);
+  --shadow-soft: 0 4px 18px rgb(0 0 0 / 0.25);
+}
+
 @theme inline {
   --color-sand: var(--sand);
   --color-sand-dark: var(--sand-dark);
+  --color-surface: var(--surface);
   --color-ocean: var(--ocean);
   --color-ocean-dark: var(--ocean-dark);
   --color-ocean-light: var(--ocean-light);
@@ -47,7 +68,7 @@ body {
 
 @layer components {
   .card {
-    @apply overflow-hidden rounded-2xl border border-sand-dark bg-white shadow-sm;
+    @apply overflow-hidden rounded-2xl border border-sand-dark bg-surface shadow-sm;
   }
 
   .card-hover {

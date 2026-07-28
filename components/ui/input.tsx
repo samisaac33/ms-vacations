@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from "react";
 
 const inputClass =
-  "mt-1 w-full rounded-lg border border-sand-dark bg-white px-3 py-2 text-ink placeholder:text-muted/70 focus:border-ocean focus:outline-none focus:ring-2 focus:ring-ocean/20 disabled:opacity-60";
+  "mt-1 w-full rounded-lg border border-sand-dark bg-surface px-3 py-2 text-ink placeholder:text-muted/70 focus:border-ocean focus:outline-none focus:ring-2 focus:ring-ocean/20 disabled:opacity-60";
 
 export function Label({
   className = "",

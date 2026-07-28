@@ -41,7 +41,7 @@ export function BookingDesktopModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="booking-desktop-modal-title"
-        className={`relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-3xl bg-white shadow-xl ${maxWidthClass}`}
+        className={`relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-3xl bg-surface shadow-xl ${maxWidthClass}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-sand-dark px-6 py-5">
           <h2 id="booking-desktop-modal-title" className="text-xl font-semibold text-ink">

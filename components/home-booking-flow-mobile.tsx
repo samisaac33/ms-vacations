@@ -29,7 +29,7 @@ const STEPS = [
 
 export function HomeBookingFlowMobile() {
   return (
-    <section className="border-y border-sand-dark/60 bg-white">
+    <section className="border-y border-sand-dark/60 bg-surface">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-wide text-ocean">Reserva en móvil</p>
@@ -46,7 +46,7 @@ export function HomeBookingFlowMobile() {
           {STEPS.map(({ image, alt, step, title, description }) => (
             <li key={step} className="flex flex-col">
               <div className="mx-auto w-full max-w-[260px] overflow-hidden rounded-[2rem] border border-sand-dark bg-sand/30 p-2 shadow-lg ring-1 ring-black/5">
-                <div className="overflow-hidden rounded-[1.6rem] bg-white">
+                <div className="overflow-hidden rounded-[1.6rem] bg-surface">
                   <Image
                     src={image}
                     alt={alt}

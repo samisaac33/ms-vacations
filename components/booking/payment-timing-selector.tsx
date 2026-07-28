@@ -32,7 +32,7 @@ export function PaymentTimingSelector({
   return (
     <div className="space-y-3">
       <p className="text-base font-semibold text-ink">Elige cuándo quieres pagar</p>
-      <div className="overflow-hidden rounded-2xl border border-sand-dark bg-white">
+      <div className="overflow-hidden rounded-2xl border border-sand-dark bg-surface">
         <label className="flex cursor-pointer items-center justify-between gap-3 border-b border-sand-dark p-4">
           <span className="text-sm font-medium text-ink">Paga ${formatUsd(totalUsd)} ahora</span>
           <input
@@ -83,7 +83,7 @@ export function PaymentTimingSelector({
               aria-label="Cerrar"
               onClick={() => setInfoOpen(false)}
             />
-            <div className="rounded-t-3xl bg-white px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
+            <div className="rounded-t-3xl bg-surface px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-ink">Pago fraccionado</h3>
                 <button

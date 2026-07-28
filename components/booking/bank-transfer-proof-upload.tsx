@@ -96,7 +96,7 @@ export function BankTransferProofUpload({ disabled = false, onReady }: Props) {
               }
             : undefined
         }
-        className={`flex min-h-[140px] items-center justify-center overflow-hidden rounded-xl border border-dashed border-sand-dark bg-white ${
+        className={`flex min-h-[140px] items-center justify-center overflow-hidden rounded-xl border border-dashed border-sand-dark bg-surface ${
           !hasFile && !loading ? "cursor-pointer hover:bg-sand/20" : ""
         }`}
       >

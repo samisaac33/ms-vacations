@@ -3,7 +3,9 @@ import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { ThemeProvider } from "@/components/theme-provider";
 import { WhatsAppFloatingButton } from "@/components/whatsapp-floating-button";
+import { themeInitScript } from "@/lib/theme";
 import { siteConfig } from "@/lib/site";
 import { PROPERTIES } from "@/lib/properties";
 
@@ -44,12 +46,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}>
+    <html
+      lang="es"
+      className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-full flex flex-col bg-sand text-ink font-sans">
-        <SiteHeader />
-        <div className="flex-1">{children}</div>
-        <SiteFooter />
-        <WhatsAppFloatingButton />
+        <ThemeProvider>
+          <SiteHeader />
+          <div className="flex-1">{children}</div>
+          <SiteFooter />
+          <WhatsAppFloatingButton />
+        </ThemeProvider>
       </body>
     </html>
   );

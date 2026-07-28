@@ -36,7 +36,7 @@ export function PriceBreakdownContent({
         <h2 className="font-display text-2xl font-semibold text-ink">Desglose del precio</h2>
       )}
 
-      <div className="rounded-2xl border border-sand-dark bg-white p-4">
+      <div className="rounded-2xl border border-sand-dark bg-surface p-4">
         {!compact && (
           <div className="mb-4 space-y-2 border-b border-sand-dark pb-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">Por noche</p>

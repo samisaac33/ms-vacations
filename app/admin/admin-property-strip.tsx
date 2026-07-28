@@ -32,7 +32,7 @@ export function AdminPropertyStrip({ properties, activeSlug, compact }: Props) {
             placeholder="Buscar anuncios"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="mt-2 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+            className="mt-2 w-full rounded-lg border border-zinc-300 bg-surface px-3 py-2 text-sm"
           />
         </div>
       )}

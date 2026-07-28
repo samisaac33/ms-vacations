@@ -55,7 +55,7 @@ export function PropertyDetailMobile({
           onOpenTour={(index) => setTour({ index })}
         />
 
-        <div className="relative -mt-6 rounded-t-3xl bg-white px-4 pb-24 pt-6">
+        <div className="relative -mt-6 rounded-t-3xl bg-surface px-4 pb-24 pt-6">
           <div className="text-center">
             <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
               {property.name}

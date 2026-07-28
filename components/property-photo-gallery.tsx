@@ -106,14 +106,14 @@ function PhotoLightbox({
           <button
             type="button"
             onClick={() => setGridView((v) => !v)}
-            className="rounded-lg border border-white/30 px-3 py-1.5 text-sm hover:bg-white/10"
+            className="rounded-lg border border-white/30 px-3 py-1.5 text-sm hover:bg-surface/10"
           >
             {gridView ? "Vista ampliada" : "Ver todas"}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface/10"
             aria-label="Cerrar galería"
           >
             ✕
@@ -144,7 +144,7 @@ function PhotoLightbox({
           <button
             type="button"
             onClick={goPrev}
-            className="absolute left-2 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-xl text-white hover:bg-white/25 sm:inline-flex"
+            className="absolute left-2 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface/15 text-xl text-white hover:bg-surface/25 sm:inline-flex"
             aria-label="Foto anterior"
           >
             ‹
@@ -162,7 +162,7 @@ function PhotoLightbox({
           <button
             type="button"
             onClick={goNext}
-            className="absolute right-2 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-xl text-white hover:bg-white/25 sm:inline-flex"
+            className="absolute right-2 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface/15 text-xl text-white hover:bg-surface/25 sm:inline-flex"
             aria-label="Foto siguiente"
           >
             ›
@@ -178,7 +178,7 @@ function ShowAllButton({ count, onClick }: { count: number; onClick: () => void 
     <button
       type="button"
       onClick={onClick}
-      className="absolute bottom-4 right-4 z-10 rounded-lg border border-ink/10 bg-white px-4 py-2 text-sm font-semibold text-ink shadow-md transition hover:bg-sand"
+      className="absolute bottom-4 right-4 z-10 rounded-lg border border-ink/10 bg-surface px-4 py-2 text-sm font-semibold text-ink shadow-md transition hover:bg-sand"
     >
       Mostrar todas las fotos ({count})
     </button>
@@ -204,7 +204,7 @@ function MobileShareButton({ propertyName }: { propertyName: string }) {
     <button
       type="button"
       onClick={handleShare}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-sm"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface/90 text-ink shadow-md backdrop-blur-sm"
       aria-label="Compartir"
     >
       {feedback ? (
@@ -259,7 +259,7 @@ function MobilePhotoCarousel({
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 pt-4">
         <Link
           href={catalogHref}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-md backdrop-blur-sm"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface/90 text-ink shadow-md backdrop-blur-sm"
           aria-label="Volver al catálogo"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>

@@ -11,7 +11,7 @@ type Props = {
 export function AdminCalendarShell({ children, activeTab, title }: Props) {
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-zinc-50 text-zinc-900">
-      <header className="border-b border-zinc-200 bg-white">
+      <header className="border-b border-zinc-200 bg-surface">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-6">
             <Link href="/admin" className="text-sm font-semibold tracking-tight text-zinc-900">

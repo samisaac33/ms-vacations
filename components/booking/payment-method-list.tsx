@@ -41,7 +41,7 @@ export function PaymentMethodList({
   name = "paymentMethod",
 }: Props) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-sand-dark bg-white">
+    <div className="overflow-hidden rounded-2xl border border-sand-dark bg-surface">
       {PAYMENT_OPTIONS.map((opt, index) => (
         <label
           key={opt.id}

@@ -29,7 +29,7 @@ export default function PoliticasPage() {
           <li key={policy.href}>
             <Link
               href={policy.href}
-              className="block rounded-2xl border border-sand-dark bg-white p-5 transition-colors hover:border-ocean/40 hover:bg-ocean-light/20"
+              className="block rounded-2xl border border-sand-dark bg-surface p-5 transition-colors hover:border-ocean/40 hover:bg-ocean-light/20"
             >
               <h2 className="font-display text-lg font-semibold text-ink">{policy.title}</h2>
               <p className="mt-2 text-sm leading-relaxed text-muted">{policy.description}</p>

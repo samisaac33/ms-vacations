@@ -81,7 +81,7 @@ function ExpandedView({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-surface/10"
           aria-label="Volver al recorrido"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -103,7 +103,7 @@ function ExpandedView({
         <button
           type="button"
           onClick={onPrev}
-          className="absolute left-2 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-xl text-white hover:bg-white/25"
+          className="absolute left-2 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface/15 text-xl text-white hover:bg-surface/25"
           aria-label="Foto anterior"
         >
           ‹
@@ -121,7 +121,7 @@ function ExpandedView({
         <button
           type="button"
           onClick={onNext}
-          className="absolute right-2 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-xl text-white hover:bg-white/25"
+          className="absolute right-2 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface/15 text-xl text-white hover:bg-surface/25"
           aria-label="Foto siguiente"
         >
           ›
@@ -219,12 +219,12 @@ export function PropertyPhotoTour({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex flex-col bg-white"
+        className="fixed inset-0 z-50 flex flex-col bg-surface"
         role="dialog"
         aria-modal="true"
         aria-label="Recorrido fotográfico"
       >
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-sand-dark bg-white px-4 py-3">
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-sand-dark bg-surface px-4 py-3">
           <button
             type="button"
             onClick={onClose}

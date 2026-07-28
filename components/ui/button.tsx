@@ -5,7 +5,7 @@ const variants = {
   primary:
     "bg-ocean text-white hover:bg-ocean-dark focus-visible:ring-ocean/40",
   secondary:
-    "border border-sand-dark bg-white text-ink hover:bg-sand-dark focus-visible:ring-ocean/30",
+    "border border-sand-dark bg-surface text-ink hover:bg-sand-dark focus-visible:ring-ocean/30",
   ghost: "text-muted hover:bg-sand-dark hover:text-ink focus-visible:ring-ocean/30",
 } as const;
 

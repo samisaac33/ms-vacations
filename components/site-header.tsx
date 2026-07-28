@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SiteLogoMark } from "@/components/site-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { siteConfig } from "@/lib/site";
 
 const navLinks = [
@@ -108,9 +109,11 @@ export function SiteHeader() {
             </a>
           )}
 
+          <ThemeToggle />
+
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-white text-ink md:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink md:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}

@@ -66,7 +66,7 @@ export function BookingSummarySidebar({
 
   return (
     <aside className="space-y-4 lg:sticky lg:top-24">
-      <div className="overflow-hidden rounded-2xl border border-sand-dark bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-sand-dark bg-surface shadow-sm">
         <div className="flex gap-3 border-b border-sand-dark p-4">
           {property.image && (
             <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-sand-dark">

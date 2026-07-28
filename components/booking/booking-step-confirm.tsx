@@ -101,7 +101,7 @@ export function BookingStepConfirm({
                 type="button"
                 disabled={bankTransfer.disabled}
                 onClick={() => setBankModalOpen(true)}
-                className="flex h-12 w-full items-center justify-center rounded-xl border border-sand-dark bg-white text-base font-semibold text-ink transition-colors hover:bg-sand/50 disabled:opacity-50"
+                className="flex h-12 w-full items-center justify-center rounded-xl border border-sand-dark bg-surface text-base font-semibold text-ink transition-colors hover:bg-sand/50 disabled:opacity-50"
               >
                 Ver datos
               </button>

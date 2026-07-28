@@ -16,7 +16,7 @@ export function GuestStepper({
         aria-label="Menos huéspedes"
         disabled={value <= min}
         onClick={() => onChange(Math.max(min, value - 1))}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-sand-dark bg-white text-lg text-ink transition-colors hover:bg-sand-dark disabled:opacity-40"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-sand-dark bg-surface text-lg text-ink transition-colors hover:bg-sand-dark disabled:opacity-40"
       >
         −
       </button>
@@ -26,7 +26,7 @@ export function GuestStepper({
         aria-label="Más huéspedes"
         disabled={value >= max}
         onClick={() => onChange(Math.min(max, value + 1))}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-sand-dark bg-white text-lg text-ink transition-colors hover:bg-sand-dark disabled:opacity-40"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-sand-dark bg-surface text-lg text-ink transition-colors hover:bg-sand-dark disabled:opacity-40"
       >
         +
       </button>
