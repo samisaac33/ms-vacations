@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { BookingConfirmedResult } from "@/components/booking/booking-confirmed-result";
 import type { BookingResultSummary } from "@/components/booking/booking-result-summary-card";
 import { Button } from "@/components/ui/button";
+import {
+  BOOKING_SCREENSHOT_DEMO_ID,
+  bookingScreenshotDemoSummary,
+} from "@/lib/booking-screenshot-demo";
 
 type Props = {
   provider: string | null;
@@ -76,8 +80,12 @@ export function PaymentSuccessClient({
   const providerLabel =
     provider === "paypal" ? "PayPal" : provider === "payphone" ? "PayPhone" : "MS Vacations";
 
+  const isScreenshotDemo = bookingId === BOOKING_SCREENSHOT_DEMO_ID && !provider;
+
   const showConfirmed =
     status === "ok" && summary && (provider === "paypal" || provider === "payphone");
+
+  const showDemoConfirmed = status === "ok" && isScreenshotDemo;
 
   return (
     <div className="mx-auto max-w-lg px-4 py-12 sm:px-6 sm:py-20">
@@ -120,7 +128,14 @@ export function PaymentSuccessClient({
         <BookingConfirmedResult summary={summary} bookingId={bookingId ?? undefined} />
       )}
 
-      {status === "ok" && !showConfirmed && (
+      {showDemoConfirmed && (
+        <BookingConfirmedResult
+          summary={bookingScreenshotDemoSummary()}
+          subtitle="Recibirás la confirmación con los detalles en tu correo."
+        />
+      )}
+
+      {status === "ok" && !showConfirmed && !showDemoConfirmed && (
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-ink">¡Gracias!</h1>
           <p className="mt-3 leading-relaxed text-muted">
@@ -136,7 +151,7 @@ export function PaymentSuccessClient({
         </div>
       )}
 
-      {status !== "loading" && (
+      {status !== "loading" && !showDemoConfirmed && (
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button href="/" variant="secondary">
             Ir al inicio
