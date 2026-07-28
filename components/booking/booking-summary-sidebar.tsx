@@ -7,8 +7,10 @@ import {
   guestsLabel,
   SummaryRow,
 } from "@/components/booking/booking-summary-rows";
+import { BookingRangeErrorAlert } from "@/components/booking/booking-range-error-alert";
+import { GuaranteeIncludedNote } from "@/components/booking/guarantee-included-note";
 import { formatBreakdownUsd, buildStayPriceBreakdown } from "@/lib/pricing-breakdown";
-import { BANK_TRANSFER_DISCOUNT_PERCENT, formatUsd } from "@/lib/pricing";
+import { appliesRefundableGuarantee, formatUsd } from "@/lib/pricing";
 import type { PaymentMethod } from "@/lib/payments/types";
 import type { PaymentTiming, SplitSchedule } from "@/lib/payment-schedule";
 import type { StayQuote } from "@/lib/pricing-query";
@@ -30,6 +32,7 @@ type Props = {
   paymentTiming: PaymentTiming;
   splitSchedule: SplitSchedule | null;
   totalUsd: number;
+  dateRangeError?: string | null;
   onEdit: (mode: Exclude<DesktopEditModal, null>) => void;
 };
 
@@ -39,12 +42,12 @@ function compactNightlyLine(quote: StayQuote): { label: string; amountCents: num
     const perNight = directAmounts[0]!;
     return {
       label: `${quote.nights} ${quote.nights === 1 ? "noche" : "noches"} × ${formatBreakdownUsd(perNight)} USD`,
-      amountCents: quote.totalDirectCents,
+      amountCents: quote.nightlyTotalDirectCents,
     };
   }
   return {
     label: `${quote.nights} noches`,
-    amountCents: quote.totalDirectCents,
+    amountCents: quote.nightlyTotalDirectCents,
   };
 }
 
@@ -59,6 +62,7 @@ export function BookingSummarySidebar({
   paymentTiming,
   splitSchedule,
   totalUsd,
+  dateRangeError,
   onEdit,
 }: Props) {
   const breakdown = quote ? buildStayPriceBreakdown(quote, paymentMethod) : null;
@@ -83,9 +87,9 @@ export function BookingSummarySidebar({
         </div>
 
         <div className="border-b border-sand-dark px-4 py-3 text-sm text-muted">
-          <span className="font-semibold text-ink">Cancelación gratuita</span>
+          <span className="font-semibold text-ink">Reembolso 100 %</span>
           {" · "}
-          Consulta la{" "}
+          Cancelación sin penalización dentro de las primeras 24 h tras confirmar. Consulta la{" "}
           <Link href="/cancelaciones" className="font-medium text-ink underline underline-offset-2">
             política completa
           </Link>
@@ -99,6 +103,9 @@ export function BookingSummarySidebar({
             actionLabel="Cambiar"
             onAction={() => onEdit("dates")}
           />
+          {dateRangeError ? (
+            <BookingRangeErrorAlert message={dateRangeError} className="mb-3" />
+          ) : null}
           <SummaryRow
             label="Huéspedes"
             value={guestsLabel(guests)}
@@ -116,16 +123,25 @@ export function BookingSummarySidebar({
                 <span className="text-muted underline decoration-dotted underline-offset-2">{nightlyLine.label}</span>
                 <span className="text-ink">{formatBreakdownUsd(nightlyLine.amountCents)} USD</span>
               </div>
-              {breakdown.discountCents > 0 && (
+              {quote.cleaningFeeCents > 0 && (
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-muted">Descuento</span>
-                  <span className="text-emerald-700">−{formatBreakdownUsd(breakdown.discountCents)} USD</span>
+                  <span className="text-muted">Recargo de limpieza</span>
+                  <span className="text-ink">{formatBreakdownUsd(quote.cleaningFeeCents)} USD</span>
+                </div>
+              )}
+              {breakdown.markupCents > 0 && (
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted">Recargo tarjeta</span>
+                  <span className="text-ink">+{formatBreakdownUsd(breakdown.markupCents)} USD</span>
                 </div>
               )}
               <div className="flex items-center justify-between gap-2 border-t border-sand-dark pt-2 text-base font-semibold text-ink">
                 <span>Total USD</span>
                 <span>${formatUsd(totalUsd)}</span>
               </div>
+              {quote && appliesRefundableGuarantee(quote.slug) && (
+                <GuaranteeIncludedNote className="pt-1" />
+              )}
               {paymentTiming === "split" && splitSchedule && (
                 <div className="space-y-1 border-t border-sand-dark pt-2 text-xs text-muted">
                   <div className="flex justify-between">
@@ -147,24 +163,15 @@ export function BookingSummarySidebar({
               </button>
             </div>
           )}
-          {!quoteLoading && !quote && (
+          {!quoteLoading && !quote && dateRangeError && (
+            <BookingRangeErrorAlert message={dateRangeError} className="mt-2" />
+          )}
+          {!quoteLoading && !quote && !dateRangeError && (
             <p className="mt-2 text-sm text-muted">Selecciona fechas para ver el precio.</p>
           )}
         </div>
       </div>
 
-      {breakdown && breakdown.discountCents > 0 && paymentMethod === "bank_transfer" && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-          <span aria-hidden>🏷</span>
-          Descuento de {formatBreakdownUsd(breakdown.discountCents)} USD aplicado
-        </div>
-      )}
-
-      {paymentMethod === "bank_transfer" && quote && breakdown?.discountCents === 0 && (
-        <div className="rounded-xl border border-sand-dark bg-sand/50 px-4 py-3 text-sm text-muted">
-          Transferencia bancaria: −{BANK_TRANSFER_DISCOUNT_PERCENT}% de descuento aplicado al total.
-        </div>
-      )}
     </aside>
   );
 }

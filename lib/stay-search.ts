@@ -1,6 +1,6 @@
 import { todayInGuayaquil } from "@/lib/availability-utils";
 import { isValidDateOrder } from "@/lib/dates";
-import { validateStayLength } from "@/lib/stay-rules";
+import { validateStayLength, type HighSeasonPeriod } from "@/lib/stay-rules";
 
 export type StayDestination = "beach" | "city";
 
@@ -24,15 +24,46 @@ export function defaultCheckOut(checkIn: string): string {
   return d.toISOString().slice(0, 10);
 }
 
+export function minCheckOutDate(checkIn: string, minCheckIn: string): string {
+  return checkIn && checkIn > minCheckIn ? checkIn : minCheckIn;
+}
+
+export function clampCheckIn(value: string, minCheckIn: string): string {
+  if (!value || value < minCheckIn) return minCheckIn;
+  return value;
+}
+
+export function clampCheckOut(
+  value: string,
+  checkIn: string,
+  minCheckIn: string,
+): string {
+  const anchor = checkIn || minCheckIn;
+  const minOut = minCheckOutDate(anchor, minCheckIn);
+  if (!value || value <= minOut) return defaultCheckOut(anchor);
+  return value;
+}
+
+export function normalizeStayDates(
+  checkIn: string,
+  checkOut: string,
+  minCheckIn: string,
+): { checkIn: string; checkOut: string } {
+  const nextCheckIn = clampCheckIn(checkIn, minCheckIn);
+  const nextCheckOut = clampCheckOut(checkOut, nextCheckIn, minCheckIn);
+  return { checkIn: nextCheckIn, checkOut: nextCheckOut };
+}
+
 export function validateStaySearch(
   checkIn: string,
   checkOut: string,
   minCheckIn = todayInGuayaquil(),
+  highSeasonPeriods: HighSeasonPeriod[] = [],
 ): string | null {
   if (!checkIn || !checkOut) return "Selecciona entrada y salida.";
   if (checkIn < minCheckIn) return "La entrada no puede ser en el pasado.";
   if (!isValidDateOrder(checkIn, checkOut)) return "La salida debe ser después de la entrada.";
-  return validateStayLength(checkIn, checkOut);
+  return validateStayLength(checkIn, checkOut, highSeasonPeriods);
 }
 
 export function buildStaySearchQuery(search: Partial<StaySearch>): string {
@@ -71,4 +102,14 @@ export function parseStaySearchFromParams(
 
 export function destinationHash(destino: StayDestination): string {
   return destino === "beach" ? "#playa" : "#ciudad";
+}
+
+export function buildCatalogHref(
+  parsed: Partial<StaySearch>,
+  catalogPath = "/propiedades",
+): string {
+  if (!parsed.checkIn || !parsed.checkOut) return catalogPath;
+  const query = buildStaySearchQuery(parsed);
+  const hash = parsed.destino ? destinationHash(parsed.destino) : "";
+  return `${catalogPath}${query}${hash}`;
 }

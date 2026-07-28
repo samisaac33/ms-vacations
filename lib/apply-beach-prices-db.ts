@@ -3,7 +3,7 @@ import { getDb, hasDatabase } from "@/db/index";
 import { properties } from "@/db/schema";
 import { beachBasePriceUpdates } from "@/lib/beach-price-migration";
 import { clearMismatchedNightlyRateOverrides } from "@/lib/pricing-query";
-import { bankTransferTotalCents } from "@/lib/pricing";
+import { guestDirectPriceUsd } from "@/lib/property-pricing";
 
 export type BeachPriceApplyResult = {
   slug: string;
@@ -33,7 +33,7 @@ export async function applyBeachPricesToDatabase(): Promise<BeachPriceApplyResul
       slug,
       priorUsd,
       newUsd,
-      transferUsd: bankTransferTotalCents(newUsd * 100) / 100,
+      transferUsd: guestDirectPriceUsd(slug),
     });
   }
 

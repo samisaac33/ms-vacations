@@ -3,6 +3,7 @@ import { getDb, hasDatabase } from "@/db/index";
 import { bookings, properties } from "@/db/schema";
 import { chargeCentsForBooking, createPendingBookingAndCheckout } from "@/lib/booking-service";
 import { isValidDateOrder, nightsBetween } from "@/lib/dates";
+import { loadHighSeasonPeriodsForPropertySlug } from "@/lib/high-season-query";
 import { validateStayLength } from "@/lib/stay-rules";
 import { isPaymentTiming } from "@/lib/payment-schedule";
 import { createPayPalOrder, isPayPalConfigured } from "@/lib/payments/paypal";
@@ -67,7 +68,10 @@ async function createOrderForBooking(bookingId: string) {
     return Response.json({ orderId, bookingId });
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : "Error al crear orden PayPal" },
+      {
+        error: error instanceof Error ? error.message : "Error al crear orden PayPal",
+        bookingId,
+      },
       { status: 502 },
     );
   }
@@ -126,7 +130,8 @@ export async function POST(request: Request) {
   if (!isValidDateOrder(checkIn, checkOut)) {
     return Response.json({ error: "Rango de fechas inválido" }, { status: 400 });
   }
-  const stayLengthError = validateStayLength(checkIn, checkOut);
+  const highSeasonPeriods = await loadHighSeasonPeriodsForPropertySlug(slug);
+  const stayLengthError = validateStayLength(checkIn, checkOut, highSeasonPeriods);
   if (stayLengthError) {
     return Response.json({ error: stayLengthError }, { status: 400 });
   }

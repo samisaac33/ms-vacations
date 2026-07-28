@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import { BookingMobileDatePicker } from "@/components/booking/booking-mobile-date-picker";
 import { GuestStepper } from "@/components/booking/guest-stepper";
-import { isValidBookingRange } from "@/lib/booking-date-selection";
+import {
+  getBookingRangeValidationError,
+  isBookingRangeValidWithRules,
+  isValidBookingRange,
+} from "@/lib/booking-date-selection";
+import type { HighSeasonPeriod } from "@/lib/stay-rules";
 
 type SheetMode = "dates" | "guests" | "details" | null;
 
@@ -20,6 +25,7 @@ type Props = {
   onRangeError: (message: string | null) => void;
   onGuestsChange: (guests: number) => void;
   rangeError?: string | null;
+  highSeasonPeriods?: HighSeasonPeriod[];
   children?: React.ReactNode;
 };
 
@@ -36,6 +42,7 @@ export function BookingEditSheet({
   onRangeError,
   onGuestsChange,
   rangeError,
+  highSeasonPeriods = [],
   children,
 }: Props) {
   const [draftCheckIn, setDraftCheckIn] = useState(checkIn);
@@ -45,9 +52,20 @@ export function BookingEditSheet({
     if (mode === "dates") {
       setDraftCheckIn(checkIn);
       setDraftCheckOut(checkOut);
-      onRangeError(null);
     }
-  }, [mode, checkIn, checkOut, onRangeError]);
+  }, [mode, checkIn, checkOut]);
+
+  useEffect(() => {
+    if (mode !== "dates") return;
+    const rulesError = getBookingRangeValidationError(
+      draftCheckIn,
+      draftCheckOut,
+      highSeasonPeriods,
+    );
+    if (rulesError) {
+      onRangeError(rulesError);
+    }
+  }, [mode, draftCheckIn, draftCheckOut, highSeasonPeriods, onRangeError]);
 
   useEffect(() => {
     if (!mode) return;
@@ -74,13 +92,15 @@ export function BookingEditSheet({
   }
 
   function handleSaveDates() {
-    if (!isValidBookingRange(draftCheckIn, draftCheckOut)) return;
+    if (!canSaveDates) return;
     onRangeChange(draftCheckIn, draftCheckOut);
     onRangeError(null);
     onClose();
   }
 
-  const canSaveDates = isValidBookingRange(draftCheckIn, draftCheckOut);
+  const canSaveDates =
+    isValidBookingRange(draftCheckIn, draftCheckOut) &&
+    isBookingRangeValidWithRules(draftCheckIn, draftCheckOut, highSeasonPeriods);
 
   if (mode === "dates") {
     return (
@@ -107,12 +127,9 @@ export function BookingEditSheet({
               onDraftChange={handleDraftChange}
               onRangeError={onRangeError}
               onBlocksLoaded={onBlocksLoaded}
+              highSeasonPeriods={highSeasonPeriods}
+              rangeError={rangeError}
             />
-            {rangeError && (
-              <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-                {rangeError}
-              </p>
-            )}
           </div>
 
           <div className="flex shrink-0 items-center justify-between border-t border-sand-dark px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { hasDatabase } from "@/db/index";
 import { getAllPropertySlugs, getPropertyBySlugWithDbPrice } from "@/lib/property-db";
+import { loadHighSeasonPeriodsForPropertySlug } from "@/lib/high-season-query";
 import { directPricePerNightUsd } from "@/lib/pricing";
 import { parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
 import { siteConfig } from "@/lib/site";
@@ -31,11 +32,13 @@ export default async function ReservarPage(props: Props) {
   const p = await getPropertyBySlugWithDbPrice(slug);
   if (!p) notFound();
 
+  const highSeasonPeriods = await loadHighSeasonPeriodsForPropertySlug(slug);
+
   const parsed = parseStaySearchFromParams(queryParams);
   const datesValid =
     parsed?.checkIn &&
     parsed.checkOut &&
-    !validateStaySearch(parsed.checkIn, parsed.checkOut);
+    !validateStaySearch(parsed.checkIn, parsed.checkOut, undefined, highSeasonPeriods);
 
   const dbReady = hasDatabase();
   const image = p.images[0];
@@ -71,13 +74,14 @@ export default async function ReservarPage(props: Props) {
         initialCheckIn={datesValid ? parsed!.checkIn : undefined}
         initialCheckOut={datesValid ? parsed!.checkOut : undefined}
         initialGuests={parsed?.huespedes}
+        highSeasonPeriods={highSeasonPeriods}
         property={{
           slug: p.slug,
           name: p.name,
           area: p.location.area,
           guests: p.capacity.guests,
           bedrooms: p.capacity.bedrooms,
-          baseDirectUsd: directPricePerNightUsd(p.basePricePerNightUsd),
+          baseDirectUsd: directPricePerNightUsd(p.slug),
           image: image ? { src: image.src, alt: image.alt } : undefined,
         }}
       />

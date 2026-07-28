@@ -117,17 +117,12 @@ export function BankTransferProofUpload({ disabled = false, onReady }: Props) {
       )}
 
       {hasFile ? (
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <button type="button" disabled={disabled || loading} onClick={openFilePicker} className={buttonSecondary}>
-              Cambiar imagen
-            </button>
-            <button type="button" disabled={disabled || loading} onClick={handleClear} className={buttonSecondary}>
-              Quitar
-            </button>
-          </div>
-          <button type="button" disabled={disabled || loading} onClick={openFilePicker} className={buttonPrimary}>
-            Subir imagen
+        <div className="flex gap-2">
+          <button type="button" disabled={disabled || loading} onClick={openFilePicker} className={buttonSecondary}>
+            Cambiar imagen
+          </button>
+          <button type="button" disabled={disabled || loading} onClick={handleClear} className={buttonSecondary}>
+            Quitar
           </button>
         </div>
       ) : (

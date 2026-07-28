@@ -3,25 +3,25 @@
 import { useActionState } from "react";
 import { applyBeachBasePrices, type IcalActionState } from "@/app/admin/actions";
 
-export function AdminApplyBeachPricesPanel() {
+export function AdminApplyBeachPricesPanel({ embedded = false }: { embedded?: boolean }) {
   const [state, formAction, pending] = useActionState(applyBeachBasePrices, {} as IcalActionState);
 
-  return (
-    <section className="mt-6 rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 shadow-sm dark:border-amber-600 dark:bg-amber-950/50">
+  const content = (
+    <>
       <p className="text-xs font-bold uppercase tracking-widest text-amber-800 dark:text-amber-300">
         Acción requerida
       </p>
-      <h2 className="mt-1 text-lg font-semibold text-amber-950 dark:text-amber-50">
+      <h3 className="mt-1 text-lg font-semibold text-amber-950 dark:text-amber-50">
         Aplicar tarifas de playa (San Clemente)
-      </h2>
+      </h3>
       <p className="mt-2 text-sm leading-relaxed text-amber-900/90 dark:text-amber-100/90">
-        Sube el precio base un 7 % (PayPal/PayPhone) y mantiene el precio anterior en
-        transferencia bancaria. Ejecutar <strong>una vez</strong> si aún ves $250–$500 en las
-        fichas.
+        Restaura la tarifa base de referencia (sin descuento) en playa. El precio huésped por
+        transferencia no cambia. Ejecutar <strong>una vez</strong> si aún ves referencias antiguas
+        (p. ej. $535 en La Punta).
       </p>
       <ul className="mt-3 list-inside list-disc text-xs text-amber-900/80 dark:text-amber-200/90">
-        <li>La Punta: base $535 · transferencia $500</li>
-        <li>Arrecife: base $268 · transferencia ≈ $250</li>
+        <li>La Punta: referencia $581 · huésped $500</li>
+        <li>Arrecife: referencia $291 · huésped $250</li>
       </ul>
       <form action={formAction} className="mt-4">
         <button
@@ -42,6 +42,20 @@ export function AdminApplyBeachPricesPanel() {
           {state.success}
         </p>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 dark:border-amber-600 dark:bg-amber-950/50">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <section className="mt-6 rounded-2xl border-2 border-amber-400 bg-amber-50 p-5 shadow-sm dark:border-amber-600 dark:bg-amber-950/50">
+      {content}
     </section>
   );
 }

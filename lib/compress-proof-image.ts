@@ -1,5 +1,6 @@
 const MAX_DIMENSION = 1600;
-const JPEG_QUALITY = 0.82;
+const OUTPUT_TYPE = "image/jpeg";
+const QUALITY_STEPS = [0.82, 0.72, 0.62] as const;
 
 export const PROOF_MAX_BYTES = 5 * 1024 * 1024;
 export const PROOF_MAX_MB = 5;
@@ -58,16 +59,18 @@ async function compressImageFile(file: File): Promise<CompressedProof> {
   if (!ctx) throw new Error("No se pudo procesar la imagen.");
   ctx.drawImage(img, 0, 0, width, height);
 
-  const outputType = file.type === "image/png" ? "image/jpeg" : file.type;
-  const blob = await canvasToBlob(canvas, outputType, JPEG_QUALITY);
+  let blob: Blob | null = null;
+  for (const quality of QUALITY_STEPS) {
+    blob = await canvasToBlob(canvas, OUTPUT_TYPE, quality);
+    if (blob.size <= MAX_BYTES) break;
+  }
 
-  if (blob.size > MAX_BYTES) {
+  if (!blob || blob.size > MAX_BYTES) {
     throw new Error("La imagen sigue siendo muy grande. Prueba con otra foto.");
   }
 
   const baseName = file.name.replace(/\.[^.]+$/, "") || "comprobante";
-  const ext = outputType === "image/webp" ? "webp" : outputType === "image/png" ? "png" : "jpg";
-  const compressed = new File([blob], `${baseName}.${ext}`, { type: outputType });
+  const compressed = new File([blob], `${baseName}.jpg`, { type: OUTPUT_TYPE });
   return { file: compressed, previewUrl: URL.createObjectURL(compressed) };
 }
 
@@ -82,10 +85,6 @@ export async function prepareProofFile(file: File): Promise<CompressedProof> {
 
   if (!file.type.startsWith("image/")) {
     throw new Error("Formato no permitido. Use JPG, PNG o WEBP.");
-  }
-
-  if (file.size <= MAX_BYTES && file.type !== "image/png") {
-    return { file, previewUrl: URL.createObjectURL(file) };
   }
 
   return compressImageFile(file);

@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { BankAccountDetailsModal } from "@/components/booking/bank-account-details-modal";
 import { BankTransferProofUpload } from "@/components/booking/bank-transfer-proof-upload";
+import { BookingPendingResult } from "@/components/booking/booking-pending-result";
+import { BookingBillingForm } from "@/components/booking/booking-billing-form";
 import { BookingGuestConfirmationFields } from "@/components/booking/booking-guest-confirmation-fields";
 import { PaymentMethodConfirmCard } from "@/components/booking/payment-method-confirm-card";
-import { formatUsd } from "@/lib/pricing";
+import { GuaranteeIncludedNote } from "@/components/booking/guarantee-included-note";
+import { formatUsd, appliesRefundableGuarantee } from "@/lib/pricing";
 import { PAYMENT_OPTIONS } from "@/lib/payment-options";
 import type { BankAccountDetails } from "@/lib/payments/bank-transfer";
 import type { PaymentMethod } from "@/lib/payments/types";
@@ -13,6 +16,7 @@ import type { PaymentMethod } from "@/lib/payments/types";
 export type BankTransferSuccess = {
   reference: string;
   via: "upload" | "whatsapp";
+  bookingId: string;
 };
 
 type BankTransferProps = {
@@ -38,6 +42,7 @@ type Props = {
   paymentMethodLabel: string;
   paymentMethod: PaymentMethod;
   nights: number;
+  propertySlug: string;
   bank: BankAccountDetails;
   bankTransfer?: BankTransferProps;
 };
@@ -51,6 +56,7 @@ export function BookingStepConfirm({
   paymentMethodLabel,
   paymentMethod,
   nights,
+  propertySlug,
   bank,
   bankTransfer,
 }: Props) {
@@ -63,37 +69,44 @@ export function BookingStepConfirm({
     <div className="space-y-6">
       <h2 className="font-display text-2xl font-semibold text-ink">Confirma y reserva</h2>
 
-      <div className="rounded-2xl border border-sand-dark bg-sand/50 p-4 text-sm">
-        <p className="text-muted">
-          {nights} {nights === 1 ? "noche" : "noches"} · {paymentMethodLabel}
-        </p>
-        <p className="mt-1 font-display text-xl font-semibold text-ink">
-          ${formatUsd(totalUsd)} <span className="text-sm font-normal text-muted">USD</span>
-        </p>
-      </div>
+      {!completed && (
+        <div className="rounded-2xl border border-sand-dark bg-sand/50 p-4 text-sm">
+          <p className="text-muted">
+            {nights} {nights === 1 ? "noche" : "noches"} · {paymentMethodLabel}
+          </p>
+          <p className="mt-1 font-display text-xl font-semibold text-ink">
+            ${formatUsd(totalUsd)} <span className="text-sm font-normal text-muted">USD</span>
+          </p>
+          {appliesRefundableGuarantee(propertySlug) && (
+            <GuaranteeIncludedNote className="mt-2" />
+          )}
+        </div>
+      )}
 
-      {isOnlinePayment && <PaymentMethodConfirmCard paymentMethod={paymentMethod} />}
-
-      <BookingGuestConfirmationFields
-        guestEmail={guestEmail}
-        onEmailChange={onEmailChange}
-        termsAccepted={termsAccepted}
-        onTermsChange={onTermsChange}
-      />
+      {isOnlinePayment && (
+        <>
+          <PaymentMethodConfirmCard paymentMethod={paymentMethod} />
+          <BookingGuestConfirmationFields
+            guestEmail={guestEmail}
+            onEmailChange={onEmailChange}
+            termsAccepted={termsAccepted}
+            onTermsChange={onTermsChange}
+          />
+        </>
+      )}
 
       {isBankTransfer && bankTransfer && (
         <>
           {completed && bankTransfer.success ? (
-            <div className="rounded-2xl border border-ocean/20 bg-ocean-light/40 p-4 text-sm text-ink">
-              <p className="font-medium">Reserva registrada</p>
-              <p className="mt-1 text-muted">
-                Referencia: <strong className="text-ink">{bankTransfer.success.reference}</strong>
-              </p>
-              <p className="mt-2 text-muted">
-                {bankTransfer.success.via === "upload"
-                  ? "Recibimos tu comprobante. MS Vacations revisará la transferencia y confirmará tu reserva por correo."
-                  : "Abre WhatsApp y envía el comprobante cuando lo tengas. Tienes 30 minutos para completar el pago; luego las fechas se liberan."}
-              </p>
+            <div className="space-y-4">
+              <BookingPendingResult
+                reference={bankTransfer.success.reference}
+                via={bankTransfer.success.via}
+              />
+              <BookingBillingForm
+                bookingId={bankTransfer.success.bookingId}
+                guestEmail={guestEmail.trim()}
+              />
             </div>
           ) : (
             <>
@@ -113,12 +126,7 @@ export function BookingStepConfirm({
 
               <button
                 type="button"
-                disabled={
-                  bankTransfer.disabled ||
-                  bankTransfer.whatsAppLoading ||
-                  !guestEmail.trim() ||
-                  !termsAccepted
-                }
+                disabled={bankTransfer.whatsAppLoading}
                 onClick={bankTransfer.onWhatsApp}
                 className="flex h-12 w-full items-center justify-center rounded-xl border border-[#25D366] bg-[#25D366]/10 text-base font-semibold text-[#128C7E] transition-colors hover:bg-[#25D366]/20 disabled:opacity-50"
               >
@@ -126,6 +134,14 @@ export function BookingStepConfirm({
                   ? "Registrando reserva…"
                   : "Enviar comprobante vía WhatsApp"}
               </button>
+
+              <BookingGuestConfirmationFields
+                guestEmail={guestEmail}
+                onEmailChange={onEmailChange}
+                termsAccepted={termsAccepted}
+                onTermsChange={onTermsChange}
+                showEmailRequired
+              />
             </>
           )}
 

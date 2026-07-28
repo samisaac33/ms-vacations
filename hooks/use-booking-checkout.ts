@@ -3,22 +3,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { rangeOverlapsAny, type DateRange } from "@/lib/availability-utils";
 import { isValidDateOrder } from "@/lib/dates";
-import { validateStayLength } from "@/lib/stay-rules";
+import { validateStayLength, type HighSeasonPeriod } from "@/lib/stay-rules";
 import { LEGAL_TERMS_VERSION } from "@/lib/legal/constants";
 import {
   HOSPITALITY_VAT_PROMOTIONAL_RATE,
   HOSPITALITY_VAT_STANDARD_RATE,
-  stayTouchesPromotionalVat,
+  quoteHasPromotionalVatNights,
 } from "@/lib/legal/hospitality-vat";
 import type { PaymentMethod } from "@/lib/payments/types";
 import {
   amountDueNowCents,
+  calculateSplitSchedule,
   isSplitPaymentEligible,
-  splitScheduleForPaymentMethod,
   type PaymentTiming,
   type SplitSchedule,
 } from "@/lib/payment-schedule";
-import { formatUsd, totalCentsForPaymentMethod } from "@/lib/pricing";
+import { bookingTotalCentsForPaymentMethod, formatUsd } from "@/lib/pricing";
 import type { StayQuote } from "@/lib/pricing-query";
 
 export type BookingPricingState = {
@@ -36,6 +36,7 @@ type Options = {
   initialCheckIn?: string;
   initialCheckOut?: string;
   initialGuests?: number;
+  highSeasonPeriods?: HighSeasonPeriod[];
   onPricingChange?: (state: BookingPricingState) => void;
 };
 
@@ -45,6 +46,7 @@ export function useBookingCheckout({
   initialCheckIn = "",
   initialCheckOut = "",
   initialGuests,
+  highSeasonPeriods = [],
   onPricingChange,
 }: Options) {
   const [checkIn, setCheckIn] = useState(initialCheckIn);
@@ -65,12 +67,22 @@ export function useBookingCheckout({
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
   const datesComplete = isValidDateOrder(checkIn, checkOut);
-  const stayLengthError = datesComplete ? validateStayLength(checkIn, checkOut) : null;
+  const stayLengthError = datesComplete
+    ? validateStayLength(checkIn, checkOut, highSeasonPeriods)
+    : null;
+  const dateRangeError = stayLengthError ?? rangeHint ?? null;
   const datesValid = datesComplete && !stayLengthError;
   const step1Done = datesValid && Boolean(quote) && !quoteLoading;
 
   const totalCents =
-    quote !== null ? totalCentsForPaymentMethod(quote.totalDirectCents, paymentMethod) : 0;
+    quote !== null
+      ? bookingTotalCentsForPaymentMethod(
+          quote.nightlyTotalDirectCents,
+          quote.cleaningFeeCents,
+          paymentMethod,
+          slug,
+        )
+      : 0;
 
   const totalUsd = totalCents / 100;
 
@@ -78,8 +90,8 @@ export function useBookingCheckout({
 
   const splitSchedule: SplitSchedule | null = useMemo(() => {
     if (!quote || !splitEligible) return null;
-    return splitScheduleForPaymentMethod(quote.totalDirectCents, paymentMethod, checkIn);
-  }, [quote, splitEligible, paymentMethod, checkIn]);
+    return calculateSplitSchedule(totalCents, checkIn);
+  }, [quote, splitEligible, totalCents, checkIn]);
 
   const dueNowCents = quote
     ? amountDueNowCents(totalCents, paymentTiming, checkIn)
@@ -87,11 +99,24 @@ export function useBookingCheckout({
 
   const dueNowUsd = dueNowCents / 100;
 
-  const step1TotalUsd = quote ? quote.totalDirectCents / 100 : 0;
+  const step1TotalUsd = quote
+    ? bookingTotalCentsForPaymentMethod(
+        quote.nightlyTotalDirectCents,
+        quote.cleaningFeeCents,
+        "bank_transfer",
+        slug,
+      ) / 100
+    : 0;
 
   const step1SplitSchedule: SplitSchedule | null = useMemo(() => {
     if (!quote || !splitEligible) return null;
-    return splitScheduleForPaymentMethod(quote.totalDirectCents, "paypal", checkIn);
+    const paypalTotal = bookingTotalCentsForPaymentMethod(
+      quote.nightlyTotalDirectCents,
+      quote.cleaningFeeCents,
+      "paypal",
+      slug,
+    );
+    return calculateSplitSchedule(paypalTotal, checkIn);
   }, [quote, splitEligible, checkIn]);
 
   const handleBlocksLoaded = useCallback((loaded: DateRange[]) => {
@@ -167,12 +192,12 @@ export function useBookingCheckout({
 
   const vatNote = useMemo(() => {
     if (!datesValid) return null;
-    const promotional = stayTouchesPromotionalVat(checkIn, checkOut);
+    const promotional = quote ? quoteHasPromotionalVatNights(quote.nightly) : false;
     if (promotional) {
-      return `Precios con IVA incluido. Parte de tu estancia puede aplicar tarifa reducida del ${HOSPITALITY_VAT_PROMOTIONAL_RATE * 100} % (feriados decretados) en lugar del ${HOSPITALITY_VAT_STANDARD_RATE * 100} % general.`;
+      return `Precios con IVA incluido. Algunas noches aplican tarifa reducida del ${HOSPITALITY_VAT_PROMOTIONAL_RATE * 100} % (feriados decretados) con precio final más bajo que la tarifa general del ${HOSPITALITY_VAT_STANDARD_RATE * 100} %.`;
     }
     return `Precios con IVA incluido (${HOSPITALITY_VAT_STANDARD_RATE * 100} % tarifa general de alojamiento turístico).`;
-  }, [datesValid, checkIn, checkOut]);
+  }, [datesValid, quote]);
 
   const submitBooking = useCallback(async (options?: {
     skipRedirect?: boolean;
@@ -186,7 +211,7 @@ export function useBookingCheckout({
       return { ok: false as const };
     }
 
-    const lengthError = validateStayLength(checkIn, checkOut);
+    const lengthError = validateStayLength(checkIn, checkOut, highSeasonPeriods);
     if (lengthError) {
       setError(lengthError);
       return { ok: false as const };
@@ -330,6 +355,7 @@ export function useBookingCheckout({
     setError,
     rangeHint,
     setRangeHint,
+    dateRangeError,
     blocks,
     quote,
     quoteLoading,

@@ -12,7 +12,7 @@ export const PAYMENT_OPTIONS: PaymentOption[] = [
   {
     id: "bank_transfer",
     label: "Transferencia bancaria",
-    subtitle: "Produbanco · −7 %",
+    subtitle: "Produbanco · mejor precio",
     iconBg: "bg-emerald-50",
     iconColor: "text-emerald-700",
   },

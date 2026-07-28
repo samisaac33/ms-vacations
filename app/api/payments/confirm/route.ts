@@ -1,10 +1,20 @@
 import { confirmBookingAfterPayment } from "@/lib/booking-service";
+import { bookingContextToResultSummary } from "@/lib/booking-result-summary";
+import { loadBookingEmailContext } from "@/lib/email/booking-context";
 import { capturePayPalOrder } from "@/lib/payments/paypal";
 import { confirmPayPhonePayment } from "@/lib/payments/payphone";
 import { hasDatabase } from "@/db/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+async function paymentConfirmResponse(bookingId: string) {
+  const ctx = await loadBookingEmailContext(bookingId);
+  return Response.json({
+    ok: true,
+    summary: ctx ? bookingContextToResultSummary(ctx) : undefined,
+  });
+}
 
 export async function POST(request: Request) {
   if (!hasDatabase()) {
@@ -45,7 +55,7 @@ export async function POST(request: Request) {
     if (!result.ok) {
       return Response.json({ error: result.reason }, { status: 409 });
     }
-    return Response.json({ ok: true });
+    return paymentConfirmResponse(bookingId);
   }
 
   if (provider === "payphone") {
@@ -68,7 +78,7 @@ export async function POST(request: Request) {
     if (!result.ok) {
       return Response.json({ error: result.reason }, { status: 409 });
     }
-    return Response.json({ ok: true });
+    return paymentConfirmResponse(bookingId);
   }
 
   return Response.json({ error: "Proveedor desconocido" }, { status: 400 });

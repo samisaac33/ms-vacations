@@ -7,6 +7,7 @@ type Props = {
   termsAccepted: boolean;
   onTermsChange: (accepted: boolean) => void;
   emailInputId?: string;
+  showEmailRequired?: boolean;
 };
 
 export function BookingGuestConfirmationFields({
@@ -15,11 +16,14 @@ export function BookingGuestConfirmationFields({
   termsAccepted,
   onTermsChange,
   emailInputId = "wizard-email",
+  showEmailRequired = false,
 }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <Label htmlFor={emailInputId}>Correo electrónico</Label>
+        <Label htmlFor={emailInputId}>
+          Correo electrónico{showEmailRequired ? " (obligatorio)" : ""}
+        </Label>
         <Input
           id={emailInputId}
           type="email"
@@ -30,7 +34,11 @@ export function BookingGuestConfirmationFields({
           onChange={(e) => onEmailChange(e.target.value)}
           className="mt-2"
         />
-        <p className="mt-1.5 text-xs text-muted">Enviaremos la confirmación a este correo.</p>
+        <p className="mt-1.5 text-xs text-muted">
+          {showEmailRequired
+            ? "Campo obligatorio. Enviaremos la confirmación a este correo."
+            : "Enviaremos la confirmación a este correo."}
+        </p>
       </div>
 
       <label className="flex cursor-pointer items-start gap-3">
@@ -44,10 +52,14 @@ export function BookingGuestConfirmationFields({
           Acepto los{" "}
           <Link href="/terminos" className="text-ocean underline underline-offset-2">
             términos y condiciones
-          </Link>{" "}
-          y la{" "}
+          </Link>
+          , la{" "}
           <Link href="/cancelaciones" className="text-ocean underline underline-offset-2">
             política de cancelaciones
+          </Link>{" "}
+          y la{" "}
+          <Link href="/garantia" className="text-ocean underline underline-offset-2">
+            política de garantía reembolsable
           </Link>
           .
         </span>

@@ -17,15 +17,18 @@ import { toGoogleMapsEmbedUrl } from "@/lib/google-maps";
 import {
   getHomeCityMapLocation,
   getHomeFeaturedMapLocation,
+  HOME_BEACH_DESTINATION_IMAGE,
+  HOME_CITY_DESTINATION_IMAGE,
   HOME_HERO_IMAGE,
   type Property,
 } from "@/lib/properties";
 import { getCatalogGroupedWithDbPrices } from "@/lib/property-db";
+import { catalogDisplayPriceUsd } from "@/lib/pricing";
 import { siteConfig } from "@/lib/site";
 
 function minPriceUsd(properties: Property[]): number {
   if (properties.length === 0) return 0;
-  return Math.min(...properties.map((p) => p.basePricePerNightUsd));
+  return Math.min(...properties.map((p) => catalogDisplayPriceUsd(p.slug)));
 }
 
 function buildDestinationCard(
@@ -34,13 +37,9 @@ function buildDestinationCard(
   name: string,
   tagline: string,
   href: string,
+  image: { src: string; alt: string },
 ): DestinationCard | null {
   if (properties.length === 0) return null;
-  const lead = properties[0]!;
-  const image = lead.images[0] ?? {
-    src: "/properties/placeholder-1.svg",
-    alt: `Alojamientos en ${name}`,
-  };
 
   return {
     id,
@@ -66,6 +65,7 @@ export default async function Home() {
       siteConfig.destinations.beach.area,
       siteConfig.destinations.beach.subtitle,
       "#playa",
+      HOME_BEACH_DESTINATION_IMAGE,
     ),
     buildDestinationCard(
       "city",
@@ -73,6 +73,7 @@ export default async function Home() {
       siteConfig.destinations.city.area,
       siteConfig.destinations.city.subtitle,
       "#ciudad",
+      HOME_CITY_DESTINATION_IMAGE,
     ),
   ].filter((card): card is DestinationCard => card !== null);
 
@@ -85,10 +86,10 @@ export default async function Home() {
           fill
           priority
           className="object-cover"
-          sizes="100vw"
+          sizes="(max-width: 768px) 100vw, 1152px"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-ocean-dark/70 via-ink/45 to-ink/25" />
-        <div className="relative mx-auto flex min-h-[58vh] max-w-6xl flex-col justify-end px-4 pb-6 pt-28 sm:px-6 sm:pb-12 lg:min-h-[62vh]">
+        <div className="relative mx-auto flex min-h-[58vh] w-full max-w-6xl flex-col justify-end px-4 pb-6 pt-24 sm:px-6 sm:pb-12 sm:pt-28 lg:min-h-[62vh]">
           <p className="hidden text-xs font-semibold uppercase tracking-[0.2em] text-accent sm:block">
             {siteConfig.copy.heroEyebrow}
           </p>
@@ -103,13 +104,15 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl space-y-10 px-4 py-16 sm:px-6">
-        <CatalogSectionHeader
-          title={siteConfig.copy.catalogTitle}
-          subtitle={siteConfig.copy.catalogSubtitle}
-          catalogPath={siteConfig.copy.catalogPath}
-          seeAllLabel={siteConfig.copy.seeAll}
-        />
+      <section className="mx-auto w-full max-w-6xl space-y-10 px-4 py-16 sm:px-6">
+        <div className="hidden sm:block">
+          <CatalogSectionHeader
+            title={siteConfig.copy.catalogTitle}
+            subtitle={siteConfig.copy.catalogSubtitle}
+            catalogPath={siteConfig.copy.catalogPath}
+            seeAllLabel={siteConfig.copy.seeAll}
+          />
+        </div>
 
         <HomeDestinationPicker destinations={destinationCards} />
 
@@ -138,7 +141,7 @@ export default async function Home() {
 
       <HomeWhyBookDirect />
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
         <div className="max-w-2xl">
           <h2 className="text-xl font-semibold text-ink">{siteConfig.copy.locationsHeading}</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">{siteConfig.copy.locationsIntro}</p>

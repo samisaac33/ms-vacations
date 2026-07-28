@@ -1,9 +1,15 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { SiteLogoMark } from "@/components/site-logo";
+import { AdminIcalSyncToolbar } from "@/app/admin/admin-ical-sync-header";
+import { adminLogout } from "@/app/admin/actions";
+import { SiteLogo } from "@/components/site-logo";
+import {
+  setMobileScrollChromeMenuOpen,
+  useMobileScrollChrome,
+} from "@/hooks/use-mobile-scroll-chrome";
 import { siteConfig } from "@/lib/site";
 
 const navLinks = [
@@ -56,7 +62,18 @@ export function SiteHeader() {
   const wa = whatsappHref();
   const isPropertyDetail = /^\/propiedades\/[^/]+$/.test(pathname);
   const isBookingFlow = /^\/reservar\/[^/]+$/.test(pathname);
+  const isAdminRoute = pathname.startsWith("/admin");
   const hideOnMobile = isPropertyDetail || isBookingFlow;
+  const { headerHidden } = useMobileScrollChrome(!hideOnMobile);
+
+  useEffect(() => {
+    setMobileScrollChromeMenuOpen(menuOpen);
+    return () => setMobileScrollChromeMenuOpen(false);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (headerHidden && menuOpen) setMenuOpen(false);
+  }, [headerHidden, menuOpen]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -69,25 +86,19 @@ export function SiteHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b border-sand-dark/80 bg-sand/95 shadow-sm backdrop-blur-md ${hideOnMobile ? "hidden lg:block" : ""}`}
+      className={`sticky top-0 z-50 border-b border-sand-dark/80 bg-sand/95 shadow-sm backdrop-blur-md max-md:transition-transform max-md:duration-300 max-md:ease-out motion-reduce:max-md:transition-none ${hideOnMobile ? "hidden lg:block" : ""} ${headerHidden ? "max-md:pointer-events-none max-md:-translate-y-full" : ""}`}
+      aria-hidden={headerHidden || undefined}
     >
       <div
-        className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 sm:px-6"
+        className="mx-auto flex max-w-6xl flex-nowrap items-center justify-between gap-4 px-4 sm:px-6"
         style={{ minHeight: "var(--header-height)" }}
       >
         <Link
-          href="/"
-          className="group flex shrink-0 items-center gap-3 transition-opacity hover:opacity-90"
+          href={isAdminRoute ? "/admin" : "/"}
+          className="group flex max-h-[var(--header-height)] shrink-0 items-center gap-3 overflow-hidden transition-opacity hover:opacity-90"
+          aria-label={isAdminRoute ? "Calendario admin" : siteConfig.name}
         >
-          <SiteLogoMark size={40} />
-          <span className="leading-tight">
-            <span className="font-display block text-lg font-semibold tracking-tight text-ink">
-              {siteConfig.name}
-            </span>
-            <span className="hidden text-[11px] font-medium uppercase tracking-widest text-muted sm:block">
-              Playa · Ciudad
-            </span>
-          </span>
+          <SiteLogo height={40} showTagline />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
@@ -96,7 +107,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {wa && (
             <a
               href={wa}
@@ -106,6 +117,23 @@ export function SiteHeader() {
             >
               WhatsApp
             </a>
+          )}
+
+          {isAdminRoute && (
+            <form action={adminLogout} className="flex items-center md:hidden">
+              <button
+                type="submit"
+                className="inline-flex h-10 items-center whitespace-nowrap rounded-lg border border-sand-dark bg-white px-3 text-sm font-medium text-ink hover:bg-sand-dark/50"
+              >
+                Cerrar sesión
+              </button>
+            </form>
+          )}
+
+          {isAdminRoute && (
+            <div className="md:hidden">
+              <AdminIcalSyncToolbar />
+            </div>
           )}
 
           <button

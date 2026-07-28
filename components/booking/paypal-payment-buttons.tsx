@@ -48,6 +48,7 @@ export function PayPalPaymentButtons({ bookingId, checkout, chargeUsd, isSplitDe
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const renderedRef = useRef(false);
   const bookingIdRef = useRef(bookingId ?? "");
+  const lastCreateOrderErrorRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,9 +81,22 @@ export function PayPalPaymentButtons({ bookingId, checkout, chargeUsd, isSplitDe
               label: "paypal",
             },
             createOrder: async () => {
-              const payload = checkout
-                ? { ...checkout, termsAccepted: true }
-                : { bookingId: bookingIdRef.current };
+              lastCreateOrderErrorRef.current = null;
+              if (!cancelled) {
+                setErrorMessage(null);
+                setStatus("ready");
+              }
+
+              const payload = bookingIdRef.current
+                ? { bookingId: bookingIdRef.current }
+                : checkout
+                  ? { ...checkout, termsAccepted: true }
+                  : null;
+              if (!payload) {
+                const message = "No se pudo iniciar el pago con PayPal";
+                lastCreateOrderErrorRef.current = message;
+                throw new Error(message);
+              }
 
               const res = await fetch("/api/payments/paypal/create-order", {
                 method: "POST",
@@ -95,7 +109,19 @@ export function PayPalPaymentButtons({ bookingId, checkout, chargeUsd, isSplitDe
                 error?: string;
               };
               if (!res.ok || !data.orderId) {
-                throw new Error(data.error ?? "No se pudo iniciar el pago con PayPal");
+                const message = data.error ?? "No se pudo iniciar el pago con PayPal";
+                if (data.bookingId) {
+                  bookingIdRef.current = data.bookingId;
+                }
+                if (
+                  res.status === 409 &&
+                  (message === "La reserva expiró" ||
+                    message === "La reserva ya no está pendiente de pago")
+                ) {
+                  bookingIdRef.current = "";
+                }
+                lastCreateOrderErrorRef.current = message;
+                throw new Error(message);
               }
               if (data.bookingId) {
                 bookingIdRef.current = data.bookingId;
@@ -116,7 +142,10 @@ export function PayPalPaymentButtons({ bookingId, checkout, chargeUsd, isSplitDe
             onError: () => {
               if (!cancelled) {
                 setStatus("error");
-                setErrorMessage("Ocurrió un error con PayPal. Intenta de nuevo.");
+                setErrorMessage(
+                  lastCreateOrderErrorRef.current ??
+                    "Ocurrió un error con PayPal. Intenta de nuevo.",
+                );
               }
             },
           })

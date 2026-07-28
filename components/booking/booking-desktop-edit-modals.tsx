@@ -5,13 +5,17 @@ import { BookingDesktopDatePicker } from "@/components/booking/booking-desktop-d
 import { BookingDesktopModal } from "@/components/booking/booking-desktop-modal";
 import { PriceBreakdownContent } from "@/components/booking/booking-step-price-breakdown";
 import { GuestStepper } from "@/components/booking/guest-stepper";
-import { PaymentMethodList } from "@/components/booking/payment-method-list";
-import { isValidBookingRange } from "@/lib/booking-date-selection";
+import {
+  getBookingRangeValidationError,
+  isBookingRangeValidWithRules,
+  isValidBookingRange,
+} from "@/lib/booking-date-selection";
 import type { PaymentMethod } from "@/lib/payments/types";
 import type { PaymentTiming, SplitSchedule } from "@/lib/payment-schedule";
 import type { StayQuote } from "@/lib/pricing-query";
+import type { HighSeasonPeriod } from "@/lib/stay-rules";
 
-export type DesktopEditModal = "dates" | "guests" | "payment" | "details" | null;
+export type DesktopEditModal = "dates" | "guests" | "details" | null;
 
 type Props = {
   mode: DesktopEditModal;
@@ -29,8 +33,8 @@ type Props = {
   onBlocksLoaded: (blocks: { start: string; end: string }[]) => void;
   onRangeError: (message: string | null) => void;
   onGuestsChange: (guests: number) => void;
-  onPaymentMethodChange: (method: PaymentMethod) => void;
   rangeError?: string | null;
+  highSeasonPeriods?: HighSeasonPeriod[];
 };
 
 export function BookingDesktopEditModals({
@@ -49,34 +53,40 @@ export function BookingDesktopEditModals({
   onBlocksLoaded,
   onRangeError,
   onGuestsChange,
-  onPaymentMethodChange,
   rangeError,
+  highSeasonPeriods = [],
 }: Props) {
   const [draftCheckIn, setDraftCheckIn] = useState(checkIn);
   const [draftCheckOut, setDraftCheckOut] = useState(checkOut);
   const [draftGuests, setDraftGuests] = useState(guests);
-  const [draftPaymentMethod, setDraftPaymentMethod] = useState(paymentMethod);
 
   useEffect(() => {
     if (mode === "dates") {
       setDraftCheckIn(checkIn);
       setDraftCheckOut(checkOut);
-      onRangeError(null);
     }
     if (mode === "guests") {
       setDraftGuests(guests);
     }
-    if (mode === "payment") {
-      setDraftPaymentMethod(paymentMethod);
+  }, [mode, checkIn, checkOut, guests]);
+
+  useEffect(() => {
+    if (mode !== "dates") return;
+    const rulesError = getBookingRangeValidationError(
+      draftCheckIn,
+      draftCheckOut,
+      highSeasonPeriods,
+    );
+    if (rulesError) {
+      onRangeError(rulesError);
     }
-  }, [mode, checkIn, checkOut, guests, paymentMethod, onRangeError]);
+  }, [mode, draftCheckIn, draftCheckOut, highSeasonPeriods, onRangeError]);
 
   if (!mode) return null;
 
   const titles: Record<Exclude<DesktopEditModal, null>, string> = {
     dates: "Cambia las fechas",
     guests: "Cambiar huéspedes",
-    payment: "Método de pago",
     details: "Desglose del precio",
   };
 
@@ -92,7 +102,7 @@ export function BookingDesktopEditModals({
   }
 
   function handleSaveDates() {
-    if (!isValidBookingRange(draftCheckIn, draftCheckOut)) return;
+    if (!canSaveDates) return;
     onRangeChange(draftCheckIn, draftCheckOut);
     onRangeError(null);
     onClose();
@@ -103,12 +113,9 @@ export function BookingDesktopEditModals({
     onClose();
   }
 
-  function handleSavePayment() {
-    onPaymentMethodChange(draftPaymentMethod);
-    onClose();
-  }
-
-  const canSaveDates = isValidBookingRange(draftCheckIn, draftCheckOut);
+  const canSaveDates =
+    isValidBookingRange(draftCheckIn, draftCheckOut) &&
+    isBookingRangeValidWithRules(draftCheckIn, draftCheckOut, highSeasonPeriods);
 
   if (mode === "dates") {
     return (
@@ -143,12 +150,9 @@ export function BookingDesktopEditModals({
           onDraftChange={handleDraftChange}
           onRangeError={onRangeError}
           onBlocksLoaded={onBlocksLoaded}
+          highSeasonPeriods={highSeasonPeriods}
+          rangeError={rangeError}
         />
-        {rangeError && (
-          <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-            {rangeError}
-          </p>
-        )}
       </BookingDesktopModal>
     );
   }
@@ -180,35 +184,6 @@ export function BookingDesktopEditModals({
           </div>
           <GuestStepper value={draftGuests} min={1} max={maxGuests} onChange={setDraftGuests} />
         </div>
-      </BookingDesktopModal>
-    );
-  }
-
-  if (mode === "payment") {
-    return (
-      <BookingDesktopModal
-        open
-        title={titles.payment}
-        onClose={onClose}
-        maxWidthClass="max-w-md"
-        footer={
-          <>
-            <span />
-            <button
-              type="button"
-              onClick={handleSavePayment}
-              className="inline-flex h-11 items-center justify-center rounded-lg bg-ink px-6 text-sm font-semibold text-white transition-colors hover:bg-ink/90"
-            >
-              Guarda
-            </button>
-          </>
-        }
-      >
-        <PaymentMethodList
-          paymentMethod={draftPaymentMethod}
-          onChange={setDraftPaymentMethod}
-          name="desktop-paymentMethod"
-        />
       </BookingDesktopModal>
     );
   }

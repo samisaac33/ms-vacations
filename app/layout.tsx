@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
-import { SiteFooter } from "@/components/site-footer";
+import { SiteFooterGate } from "@/components/site-footer-gate";
 import { SiteHeader } from "@/components/site-header";
 import { WhatsAppFloatingButton } from "@/components/whatsapp-floating-button";
 import { siteConfig } from "@/lib/site";
@@ -19,6 +19,11 @@ const fraunces = Fraunces({
 
 const ogImage = PROPERTIES[0]?.images[0]?.src ?? "/properties/placeholder-1.svg";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: {
     default: `${siteConfig.name} | San Clemente y Portoviejo`,
@@ -28,6 +33,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   icons: {
     icon: "/favicon.svg",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: siteConfig.name,
@@ -47,10 +53,11 @@ export default function RootLayout({
     <html lang="es" className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-sand text-ink font-sans">
         <SiteHeader />
-        <div className="flex-1">{children}</div>
-        <SiteFooter />
+        <div className="min-w-0 flex-1">{children}</div>
+        <SiteFooterGate />
         <WhatsAppFloatingButton />
       </body>
     </html>
   );
 }
+

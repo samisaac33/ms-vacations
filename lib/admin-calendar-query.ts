@@ -4,9 +4,11 @@ import { bookings, externalBlocks, properties, propertyNightlyRates } from "@/db
 import { activeBookingStatus } from "@/lib/availability";
 import type { AvailabilityBlock } from "@/lib/availability-query";
 import { eachDayIsoInclusive } from "@/lib/dates";
-import { directPricePerNightCents } from "@/lib/pricing";
 import { getPropertyBySlug, PROPERTIES } from "@/lib/properties";
+import { guestDirectCentsFromReference } from "@/lib/property-pricing";
+import { applyNewYearsEveGuestDirectCents } from "@/lib/new-years-eve-pricing";
 import {
+  catalogReferenceCentsForSlug,
   referenceCentsForNight,
   type PricingDay,
 } from "@/lib/pricing-query";
@@ -97,12 +99,23 @@ function buildBarsForProperty(
 function buildPricingDays(
   from: string,
   to: string,
-  baseReferenceCents: number,
+  slug: string,
+  catalogReferenceCents: number,
   overrides: Map<string, number>,
   blocks: AvailabilityBlock[],
 ): PricingDay[] {
   return eachDayIsoInclusive(from, to).map((date) => {
-    const { referenceCents, isOverride } = referenceCentsForNight(date, baseReferenceCents, overrides);
+    const { referenceCents, isOverride } = referenceCentsForNight(
+      date,
+      catalogReferenceCents,
+      overrides,
+    );
+    const guestCents = guestDirectCentsFromReference(referenceCents, slug, catalogReferenceCents);
+    const { guestDirectCents } = applyNewYearsEveGuestDirectCents(
+      date,
+      guestCents,
+      isOverride,
+    );
     let blockSource: "external" | "booking" | undefined;
     for (const b of blocks) {
       if (b.start <= date && b.end > date) {
@@ -113,7 +126,7 @@ function buildPricingDays(
     return {
       date,
       referenceCents,
-      directCents: directPricePerNightCents(referenceCents),
+      directCents: guestDirectCents,
       isOverride,
       blocked: blockSource !== undefined,
       blockSource,
@@ -208,7 +221,8 @@ async function loadCalendarBatch(from: string, to: string, propertyIds?: string[
       ];
 
       const overrides = overridesByProperty.get(prop.id) ?? new Map();
-      const days = buildPricingDays(from, to, prop.basePricePerNightCents, overrides, blocks);
+      const catalogReferenceCents = catalogReferenceCentsForSlug(prop.slug);
+      const days = buildPricingDays(from, to, prop.slug, catalogReferenceCents, overrides, blocks);
 
       const bars = buildBarsForProperty(
         from,
@@ -222,7 +236,7 @@ async function loadCalendarBatch(from: string, to: string, propertyIds?: string[
         slug: prop.slug,
         name: nameBySlug.get(prop.slug) ?? prop.slug,
         imageSrc: imageBySlug.get(prop.slug) ?? "/properties/placeholder-1.svg",
-        baseReferenceCents: prop.basePricePerNightCents,
+        baseReferenceCents: catalogReferenceCents,
         days,
         bars,
       } satisfies AdminCalendarProperty;

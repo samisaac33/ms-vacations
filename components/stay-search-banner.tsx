@@ -24,9 +24,6 @@ export function StaySearchBanner({ search }: Props) {
         {destinoLabel} · {formatDate(search.checkIn)} → {formatDate(search.checkOut)} ·{" "}
         {search.huespedes} {search.huespedes === 1 ? "huésped" : "huéspedes"}
       </p>
-      <p className="mt-1 text-xs text-muted">
-        Solo se listan alojamientos libres en ese rango (calendario iCal y reservas web).
-      </p>
     </div>
   );
 }

@@ -1,8 +1,21 @@
+export type TourismSectionImage = {
+  src: string;
+  alt: string;
+  aspect?: "16/9" | "4/3";
+};
+
 export type TourismSection = {
   id: string;
   title: string;
   paragraphs?: string[];
   list?: string[];
+  image?: TourismSectionImage;
+};
+
+export const TOURISM_GUIDE_HERO: TourismSectionImage = {
+  src: "/guia/hero-san-clemente.webp",
+  alt: "Playa y costa de San Clemente, Manabí, al atardecer",
+  aspect: "16/9",
 };
 
 export type TourismFaq = {
@@ -25,6 +38,10 @@ export function getTourismGuideSections(): TourismSection[] {
     {
       id: "destino",
       title: "San Clemente, costa de Manabí",
+      image: {
+        src: "/guia/destino-costa-manabi.webp",
+        alt: "Vista costera de San Clemente con alojamientos vacacionales y el océano Pacífico",
+      },
       paragraphs: [
         "San Clemente es uno de los destinos playeros más visitados de Manabí para escapadas en familia o en grupo. Brisa constante, playas amplias y un entorno residencial ideal para alojamientos vacacionales.",
         "MS Vacations gestiona casas con piscina en San Clemente y alojamientos en Portoviejo. La zona combina tranquilidad costera con acceso rápido a Manta y Portoviejo en vehículo.",
@@ -33,6 +50,10 @@ export function getTourismGuideSections(): TourismSection[] {
     {
       id: "playas",
       title: "Playas y naturaleza",
+      image: {
+        src: "/guia/playas-naturaleza.webp",
+        alt: "Playa amplia y paisaje costero con atardecer en Manabí",
+      },
       paragraphs: ["En San Clemente y alrededores puedes disfrutar de:"],
       list: [
         "Playas amplias, aptas para caminar, tomar el sol y baño en el mar.",
@@ -44,6 +65,10 @@ export function getTourismGuideSections(): TourismSection[] {
     {
       id: "actividades",
       title: "Qué hacer durante tu estancia",
+      image: {
+        src: "/guia/actividades-estancia.webp",
+        alt: "Grupo disfrutando piscina y terraza en una casa vacacional en la costa",
+      },
       list: [
         "Días de playa en grupo: nuestras casas están pensadas para familias y reuniones de hasta 18–21 huéspedes.",
         "Piscina privada en la mayoría de alojamientos — adecuada para niños y tardes sin salir de casa.",
@@ -56,6 +81,10 @@ export function getTourismGuideSections(): TourismSection[] {
     {
       id: "como-llegar",
       title: "Cómo llegar",
+      image: {
+        src: "/guia/como-llegar-ruta.webp",
+        alt: "Ruta en vehículo hacia la costa de Manabí",
+      },
       paragraphs: [
         "La forma más cómoda es en vehículo propio o taxi desde Manta (aprox. 25–40 minutos según tráfico y punto de partida) o desde Portoviejo (aprox. 40–50 minutos).",
         "Si vienes en avión, el aeropuerto de Manta (Eloy Alfaro) es el más cercano. Desde Quito o Guayaquil hay vuelos regulares; también puedes llegar por carretera en bus o auto.",

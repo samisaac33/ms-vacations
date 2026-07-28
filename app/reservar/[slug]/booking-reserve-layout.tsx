@@ -6,6 +6,8 @@ import { BookingMobileWizard } from "@/components/booking/booking-mobile-wizard"
 import type { BookingPricingState } from "@/hooks/use-booking-checkout";
 import type { BankAccountDetails } from "@/lib/payments/bank-transfer";
 
+import type { HighSeasonPeriod } from "@/lib/stay-rules";
+
 type PropertySummary = {
   slug: string;
   name: string;
@@ -24,6 +26,7 @@ type Props = {
   initialCheckIn?: string;
   initialCheckOut?: string;
   initialGuests?: number;
+  highSeasonPeriods?: HighSeasonPeriod[];
 };
 
 export function BookingReserveLayout({
@@ -34,6 +37,7 @@ export function BookingReserveLayout({
   initialCheckIn,
   initialCheckOut,
   initialGuests,
+  highSeasonPeriods = [],
 }: Props) {
   const [, setPricing] = useState<BookingPricingState>({
     quote: null,
@@ -58,6 +62,7 @@ export function BookingReserveLayout({
         initialCheckIn={initialCheckIn}
         initialCheckOut={initialCheckOut}
         initialGuests={initialGuests}
+        highSeasonPeriods={highSeasonPeriods}
         onPricingChange={setPricing}
       />
 
@@ -73,6 +78,7 @@ export function BookingReserveLayout({
           initialCheckIn={initialCheckIn}
           initialCheckOut={initialCheckOut}
           initialGuests={initialGuests}
+          highSeasonPeriods={highSeasonPeriods}
           onPricingChange={setPricing}
         />
       </div>

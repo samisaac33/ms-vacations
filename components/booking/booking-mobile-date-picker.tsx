@@ -10,9 +10,11 @@ import {
   toIsoDate,
   WeekdayHeader,
 } from "@/components/booking/booking-date-picker-shared";
+import { BookingRangeErrorAlert } from "@/components/booking/booking-range-error-alert";
 import { useBookingAvailability } from "@/hooks/use-booking-availability";
 import { selectBookingDateRange } from "@/lib/booking-date-selection";
 import { isNightBlocked, todayInGuayaquil } from "@/lib/availability-utils";
+import type { HighSeasonPeriod } from "@/lib/stay-rules";
 
 const MONTHS_TO_SHOW = 18;
 
@@ -23,6 +25,8 @@ type Props = {
   onDraftChange: (checkIn: string, checkOut: string) => void;
   onRangeError?: (message: string | null) => void;
   onBlocksLoaded?: (blocks: { start: string; end: string }[]) => void;
+  highSeasonPeriods?: HighSeasonPeriod[];
+  rangeError?: string | null;
 };
 
 export function BookingMobileDatePicker({
@@ -32,6 +36,8 @@ export function BookingMobileDatePicker({
   onDraftChange,
   onRangeError,
   onBlocksLoaded,
+  highSeasonPeriods = [],
+  rangeError,
 }: Props) {
   const { blocks, loading, fetchError } = useBookingAvailability(slug, onBlocksLoaded);
   const today = todayInGuayaquil();
@@ -48,6 +54,7 @@ export function BookingMobileDatePicker({
       { checkIn: draftCheckIn, checkOut: draftCheckOut },
       blocks,
       today,
+      highSeasonPeriods,
     );
     if (!result.ok) {
       onRangeError?.(result.error);
@@ -76,6 +83,7 @@ export function BookingMobileDatePicker({
 
   return (
     <div>
+      {rangeError ? <BookingRangeErrorAlert message={rangeError} className="mb-4" /> : null}
       <WeekdayHeader className="sticky top-0 z-10 bg-white pb-2" />
 
       {months.map((month) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useMobileScrollChrome } from "@/hooks/use-mobile-scroll-chrome";
 import { siteConfig } from "@/lib/site";
 
 type Tab = "beach" | "city";
@@ -22,6 +23,8 @@ const tabs: { id: Tab; sectionId: string; label: string; href: string }[] = [
 
 export function HomeDestinationNav() {
   const [active, setActive] = useState<Tab>("beach");
+  const { navHidden, headerHidden, isMobile } = useMobileScrollChrome(true);
+  const shouldHideNav = navHidden && isMobile;
 
   useEffect(() => {
     const sections = tabs.map((tab) => ({
@@ -50,9 +53,10 @@ export function HomeDestinationNav() {
 
   return (
     <div
-      className="sticky top-[var(--header-height)] z-40 -mx-4 border-y border-sand-dark/80 bg-sand/95 px-4 py-2.5 backdrop-blur-md sm:-mx-6 sm:px-6"
+      className={`sticky z-40 border-y border-sand-dark/80 bg-sand/95 py-2.5 backdrop-blur-md md:top-[var(--header-height)] ${headerHidden ? "max-md:top-0" : "max-md:top-[var(--header-height)]"} ${shouldHideNav ? "max-md:hidden" : ""}`}
       role="tablist"
       aria-label="Destinos"
+      aria-hidden={shouldHideNav || undefined}
     >
       <div className="flex gap-2">
         {tabs.map((tab) => {

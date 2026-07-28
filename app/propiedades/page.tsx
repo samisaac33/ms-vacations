@@ -5,6 +5,7 @@ import { DestinationPropertySection } from "@/components/destination-property-se
 import { StaySearchBanner } from "@/components/stay-search-banner";
 import { filterPropertiesByStay } from "@/lib/catalog-filter";
 import { getCatalogGroupedWithDbPrices } from "@/lib/property-db";
+import { getCatalogCardQuotesBySlug } from "@/lib/pricing-query";
 import { siteConfig } from "@/lib/site";
 import {
   buildStaySearchQuery,
@@ -57,6 +58,14 @@ export default async function PropiedadesPage({ searchParams }: Props) {
     city = await filterPropertiesByStay(city, search.checkIn, search.checkOut, search.huespedes);
   }
 
+  const quotesBySlug = search
+    ? await getCatalogCardQuotesBySlug(
+        [...beach, ...city].map((p) => p.slug),
+        search.checkIn,
+        search.checkOut,
+      )
+    : undefined;
+
   const emptyStayMessage =
     "No hay alojamientos disponibles para estas fechas y número de huéspedes. Prueba otro rango o contacta por WhatsApp.";
 
@@ -79,6 +88,8 @@ export default async function PropiedadesPage({ searchParams }: Props) {
             subtitle={siteConfig.destinations.beach.subtitle}
             properties={beach}
             stayQuery={stayQuery}
+            hasStay={Boolean(search)}
+            quotesBySlug={quotesBySlug}
             emptyMessage={search ? emptyStayMessage : undefined}
           />
 
@@ -88,6 +99,8 @@ export default async function PropiedadesPage({ searchParams }: Props) {
             subtitle={siteConfig.destinations.city.subtitle}
             properties={city}
             stayQuery={stayQuery}
+            hasStay={Boolean(search)}
+            quotesBySlug={quotesBySlug}
             emptyMessage={search ? emptyStayMessage : undefined}
           />
         </div>

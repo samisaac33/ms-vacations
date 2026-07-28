@@ -75,7 +75,7 @@ export function DayCell({ iso, dayNum, checkIn, checkOut, today, blocked, onSele
           past
             ? "cursor-not-allowed text-muted/40"
             : blocked
-              ? "cursor-not-allowed text-muted/50 line-through"
+              ? "cursor-not-allowed bg-coral/25 text-coral line-through decoration-coral/60"
               : "cursor-pointer text-ink"
         } ${isEndpoint ? "bg-ink text-white" : ""}`}
         aria-label={

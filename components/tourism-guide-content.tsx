@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TourismGuideSectionImage } from "@/components/tourism-guide-section-image";
 import type { TourismFaq, TourismSection } from "@/lib/tourism-guide";
 
 type Props = {
@@ -12,6 +13,9 @@ export function TourismGuideContent({ sections, faqs }: Props) {
       {sections.map((section) => (
         <section key={section.id} id={section.id} className="scroll-mt-24">
           <h2 className="text-xl font-semibold text-ink">{section.title}</h2>
+          {section.image ? (
+            <TourismGuideSectionImage image={section.image} className="mt-4" />
+          ) : null}
           <div className="prose-legal mt-4">
             {section.paragraphs?.map((p) => (
               <p key={p.slice(0, 48)}>{p}</p>

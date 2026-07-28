@@ -27,11 +27,30 @@ import {
   applySplitPaymentMigration,
   bookingStatusHasValue,
 } from "@/lib/apply-split-payment-migration";
+import { applyBillingMigration, billingMigrationNeeded as checkBillingMigrationNeeded } from "@/lib/apply-billing-migration";
 import { eachDayIsoInclusive } from "@/lib/dates";
 import {
+  isVerificationMode,
+  parsePartialAmountUsd,
+} from "@/lib/bank-transfer-verification";
+import {
+  cancelBankTransferBookingAdmin,
   confirmBankTransferBooking,
   rejectBankTransferBooking,
 } from "@/lib/booking-service";
+import {
+  getAdminSettings,
+  getEnvNotificationEmailFallback,
+  updateNotificationEmail,
+} from "@/lib/admin-settings";
+import {
+  addPromotionalVatPeriod,
+  deletePromotionalVatPeriod,
+} from "@/lib/vat-periods-query";
+import {
+  addHighSeasonPeriod,
+  deleteHighSeasonPeriod,
+} from "@/lib/high-season-query";
 
 function revalidatePricingPaths(slug?: string) {
   revalidatePath("/admin");
@@ -352,6 +371,34 @@ export async function applySplitPaymentSchema(
   }
 }
 
+export async function applyBillingSchema(
+  _prev: IcalActionState | undefined,
+  _formData: FormData,
+): Promise<IcalActionState> {
+  if (!(await isAdminSession())) {
+    return { error: "No autorizado." };
+  }
+  if (!hasDatabase()) {
+    return { error: "DATABASE_URL no configurada." };
+  }
+
+  try {
+    const result = await applyBillingMigration();
+    revalidatePath("/admin/configuracion");
+    revalidatePath("/admin/dev");
+    return {
+      success: `Migración de facturación aplicada. Tipo billing_id_type: ${result.billingIdTypeCreated ? "creado" : "ya existía"}.`,
+    };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { error: `No se pudo aplicar la migración: ${message}` };
+  }
+}
+
+export async function billingMigrationNeeded(): Promise<boolean> {
+  return checkBillingMigrationNeeded();
+}
+
 export async function splitPaymentMigrationNeeded(): Promise<boolean> {
   if (!hasDatabase()) return false;
   try {
@@ -395,10 +442,40 @@ export async function confirmBankTransfer(
   if (!(await isAdminSession())) return { error: "No autorizado." };
   const bookingId = formData.get("bookingId");
   if (typeof bookingId !== "string" || !bookingId) return { error: "Reserva no indicada." };
-  const result = await confirmBankTransferBooking(bookingId);
+
+  const verificationModeRaw = formData.get("verificationMode");
+  if (typeof verificationModeRaw !== "string" || !verificationModeRaw) {
+    return { error: "Seleccione el tipo de pago verificado." };
+  }
+  if (!isVerificationMode(verificationModeRaw)) {
+    return { error: "Tipo de pago verificado inválido." };
+  }
+
+  let partialCents: number | undefined;
+  if (verificationModeRaw === "partial") {
+    const partialAmountUsd = formData.get("partialAmountUsd");
+    if (typeof partialAmountUsd !== "string") {
+      return { error: "Indique el monto parcial verificado." };
+    }
+    const parsed = parsePartialAmountUsd(partialAmountUsd);
+    if (parsed == null) {
+      return { error: "Monto parcial inválido." };
+    }
+    partialCents = parsed;
+  }
+
+  const result = await confirmBankTransferBooking(bookingId, {
+    mode: verificationModeRaw,
+    partialCents,
+  });
   if (!result.ok) return { error: result.reason };
   revalidatePath("/admin");
   revalidatePath("/admin/configuracion");
+
+  if (result.emailKind === "deposit" && result.balanceCents != null && result.balanceCents > 0) {
+    const balanceUsd = (result.balanceCents / 100).toFixed(2);
+    return { success: `Anticipo registrado. Saldo pendiente: $${balanceUsd}.` };
+  }
   return { success: "Reserva confirmada." };
 }
 
@@ -414,4 +491,149 @@ export async function rejectBankTransfer(
   revalidatePath("/admin");
   revalidatePath("/admin/configuracion");
   return { success: "Reserva rechazada y fechas liberadas." };
+}
+
+export async function cancelBankTransfer(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const bookingId = formData.get("bookingId");
+  if (typeof bookingId !== "string" || !bookingId) return { error: "Reserva no indicada." };
+  const result = await cancelBankTransferBookingAdmin(bookingId);
+  if (!result.ok) return { error: result.reason };
+  revalidatePath("/admin");
+  revalidatePath("/admin/configuracion");
+  return { success: "Reserva cancelada y fechas liberadas." };
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function updateAdminNotificationEmail(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const email = formData.get("notificationEmail");
+  if (typeof email !== "string" || !email.trim()) {
+    return { error: "Ingresa un correo válido." };
+  }
+  const trimmed = email.trim();
+  if (!EMAIL_RE.test(trimmed)) {
+    return { error: "Formato de correo inválido." };
+  }
+  try {
+    await updateNotificationEmail(trimmed);
+    revalidatePath("/admin/configuracion");
+    return { success: "Correo de notificaciones actualizado." };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { error: message };
+  }
+}
+
+export async function addPromotionalVatPeriodAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const startDate = formData.get("startDate");
+  const endDate = formData.get("endDate");
+  const label = formData.get("label");
+  if (typeof startDate !== "string" || typeof endDate !== "string") {
+    return { error: "Fechas requeridas." };
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+    return { error: "Formato de fecha inválido." };
+  }
+  const result = await addPromotionalVatPeriod({
+    startDate,
+    endDate,
+    label: typeof label === "string" ? label : undefined,
+  });
+  if (!result.ok) return { error: result.reason };
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/terminos");
+  revalidatePath("/propiedades");
+  revalidatePath("/reservar", "layout");
+  return { success: "Período IVA 8 % agregado." };
+}
+
+export async function deletePromotionalVatPeriodAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const id = formData.get("periodId");
+  if (typeof id !== "string" || !id) return { error: "Período no indicado." };
+  const result = await deletePromotionalVatPeriod(id);
+  if (!result.ok) return { error: result.reason };
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/terminos");
+  revalidatePath("/propiedades");
+  revalidatePath("/reservar", "layout");
+  return { success: "Período eliminado." };
+}
+
+function revalidateHighSeasonPaths() {
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/propiedades");
+  revalidatePath("/propiedades", "layout");
+  revalidatePath("/reservar", "layout");
+}
+
+export async function addHighSeasonPeriodAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const startDate = formData.get("startDate");
+  const endDate = formData.get("endDate");
+  const label = formData.get("label");
+  const minNightsRaw = formData.get("minNights");
+  const propertyIds = formData.getAll("propertyIds").filter((v): v is string => typeof v === "string");
+
+  if (typeof startDate !== "string" || typeof endDate !== "string") {
+    return { error: "Fechas requeridas." };
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+    return { error: "Formato de fecha inválido." };
+  }
+
+  const minNights = typeof minNightsRaw === "string" ? Number.parseInt(minNightsRaw, 10) : NaN;
+  if (!Number.isFinite(minNights)) {
+    return { error: "Indica el mínimo de noches." };
+  }
+
+  const result = await addHighSeasonPeriod({
+    startDate,
+    endDate,
+    minNights,
+    label: typeof label === "string" ? label : undefined,
+    propertyIds,
+  });
+  if (!result.ok) return { error: result.reason };
+  revalidateHighSeasonPaths();
+  return { success: "Temporada alta agregada." };
+}
+
+export async function deleteHighSeasonPeriodAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const id = formData.get("periodId");
+  if (typeof id !== "string" || !id) return { error: "Período no indicado." };
+  const result = await deleteHighSeasonPeriod(id);
+  if (!result.ok) return { error: result.reason };
+  revalidateHighSeasonPaths();
+  return { success: "Temporada alta eliminada." };
+}
+
+export async function getAdminNotificationSettingsForPanel() {
+  const settings = await getAdminSettings();
+  return {
+    notificationEmail: settings.notificationEmail,
+    envFallback: getEnvNotificationEmailFallback() ?? null,
+  };
 }

@@ -309,7 +309,7 @@ export function PropertyPhotoGallery({
   images,
   propertyName,
   shareLink,
-  catalogHref = "/propiedades",
+  catalogHref = "/",
   onOpenTour,
 }: Props) {
   const [lightbox, setLightbox] = useState<{ index: number; grid: boolean } | null>(null);

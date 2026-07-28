@@ -1,8 +1,11 @@
+import { eq } from "drizzle-orm";
 import { getDb, hasDatabase } from "@/db/index";
 import { bookings, properties, syncLogs } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { loadBookingEmailContext } from "@/lib/email/booking-context";
+import { logEmailEvent } from "@/lib/email/log";
+import { adminPendingVerificationEmail } from "@/lib/email/templates";
+import { getAdminNotificationEmail, sendEmail } from "@/lib/email/resend";
 
-/** Stub hasta integrar Resend: registra aviso en sync_logs. */
 export async function notifyAdminPendingVerification(bookingId: string): Promise<void> {
   if (!hasDatabase()) {
     console.info("[notifyAdminPendingVerification] bookingId=", bookingId);
@@ -33,6 +36,30 @@ export async function notifyAdminPendingVerification(bookingId: string): Promise
     message,
   });
 
-  // TODO: Resend — enviar correo al administrador
-  console.info("[notifyAdminPendingVerification]", message);
+  const adminEmail = await getAdminNotificationEmail();
+  if (!adminEmail) {
+    console.info("[notifyAdminPendingVerification] Sin ADMIN_NOTIFICATION_EMAIL:", message);
+    return;
+  }
+
+  const ctx = await loadBookingEmailContext(bookingId);
+  if (!ctx) {
+    console.info("[notifyAdminPendingVerification] Sin contexto de correo:", message);
+    return;
+  }
+
+  const { subject, text, html } = adminPendingVerificationEmail(ctx, channel);
+  try {
+    const result = await sendEmail({ to: adminEmail, subject, text, html });
+    if (!result.ok) {
+      await logEmailEvent(
+        row?.propertyId ?? null,
+        "error",
+        `Correo admin no enviado (${bookingId}): ${result.error}`,
+      );
+    }
+  } catch (e) {
+    const err = e instanceof Error ? e.message : String(e);
+    await logEmailEvent(row?.propertyId ?? null, "error", `Correo admin falló (${bookingId}): ${err}`);
+  }
 }

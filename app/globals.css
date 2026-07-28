@@ -3,9 +3,9 @@
 :root {
   --sand: #faf8f4;
   --sand-dark: #efe6d8;
-  --ocean: #0d6e6e;
-  --ocean-dark: #0a5858;
-  --ocean-light: #e8f4f4;
+  --ocean: #009dad;
+  --ocean-dark: #008a99;
+  --ocean-light: #e6f7f9;
   --coral: #d97757;
   --accent: #e8a838;
   --accent-light: #fdf6e8;
@@ -14,7 +14,7 @@
   --background: var(--sand);
   --foreground: var(--ink);
   --header-height: 4.25rem;
-  --shadow-card: 0 10px 30px rgb(13 110 110 / 0.1);
+  --shadow-card: 0 10px 30px rgb(0 157 173 / 0.12);
   --shadow-soft: 0 4px 18px rgb(26 43 43 / 0.08);
 }
 
@@ -33,6 +33,11 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-dm-sans);
   --font-display: var(--font-fraunces);
+}
+
+html,
+body {
+  overflow-x: clip;
 }
 
 body {
@@ -56,7 +61,7 @@ body {
   }
 
   .hero-panel {
-    @apply rounded-2xl border border-white/20 bg-ink/35 p-5 backdrop-blur-md sm:p-6;
+    @apply rounded-2xl border border-white/20 bg-ink/35 p-4 backdrop-blur-md sm:p-6;
   }
 
   @keyframes fadeIn {
@@ -84,6 +89,39 @@ body {
 
   .badge-neutral {
     @apply bg-sand-dark text-muted;
+  }
+
+  @keyframes badgeMarquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .badge-marquee-mask {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 0.5rem,
+      black calc(100% - 0.5rem),
+      transparent
+    );
+  }
+
+  .badge-marquee-track {
+    animation: badgeMarquee 25s linear infinite;
+  }
+
+  .badge-marquee-mask:hover .badge-marquee-track {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .badge-marquee-track {
+      animation: none;
+    }
   }
 
   .section-alt {

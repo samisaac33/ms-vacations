@@ -23,7 +23,12 @@ export const LEGAL_POLICIES: PolicyLink[] = [
     href: "/cancelaciones",
     title: "Política de cancelaciones, cambios y devoluciones",
     description:
-      "Plazos de cancelación, reembolsos, modificación de fechas y condiciones de devolución.",
+      "Reembolso 100 % en 24 h tras confirmar; penalización del 50 % del total después de ese plazo.",
+  },
+  {
+    href: "/garantia",
+    title: "Política de garantía reembolsable",
+    description: "Garantía de USD 300, inspección post check-out y condiciones de devolución.",
   },
 ];
 
@@ -31,7 +36,7 @@ export function getLegalPoliciesMeta() {
   return {
     title: "Políticas y condiciones",
     description:
-      "Documentos legales de MS Vacations: términos de compra, privacidad, cancelaciones, cambios, devoluciones e impuestos.",
+      "Documentos legales de MS Vacations: términos de compra, privacidad, cancelaciones, garantía reembolsable e impuestos.",
     path: LEGAL_POLICIES_PATH,
   };
 }

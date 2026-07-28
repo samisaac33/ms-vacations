@@ -1,5 +1,7 @@
 ﻿import Image from "next/image";
 import { PaymentTimingSelector } from "@/components/booking/payment-timing-selector";
+import { GuaranteeIncludedNote } from "@/components/booking/guarantee-included-note";
+import { appliesRefundableGuarantee } from "@/lib/pricing";
 import {
   formatDateRange,
   guestsLabel,
@@ -95,12 +97,17 @@ export function BookingStepReview({
       </div>
 
       {quote && !quoteLoading && (
-        <PaymentTimingSelector
-          totalUsd={step1TotalUsd}
-          splitSchedule={step1SplitSchedule}
-          paymentTiming={paymentTiming}
-          onChange={onPaymentTimingChange}
-        />
+        <>
+          {appliesRefundableGuarantee(quote.slug) && (
+            <GuaranteeIncludedNote className="px-1" />
+          )}
+          <PaymentTimingSelector
+            totalUsd={step1TotalUsd}
+            splitSchedule={step1SplitSchedule}
+            paymentTiming={paymentTiming}
+            onChange={onPaymentTimingChange}
+          />
+        </>
       )}
     </div>
   );

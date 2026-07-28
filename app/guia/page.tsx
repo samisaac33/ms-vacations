@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { DestinationPropertySection } from "@/components/destination-property-section";
 import { TourismGuideContent, TourismGuideNav } from "@/components/tourism-guide-content";
+import { TourismGuideSectionImage } from "@/components/tourism-guide-section-image";
 import { Button } from "@/components/ui/button";
 import { getCatalogGroupedWithDbPrices } from "@/lib/property-db";
 import { siteConfig } from "@/lib/site";
@@ -10,6 +11,7 @@ import {
   getTourismGuideFaqs,
   getTourismGuideMeta,
   getTourismGuideSections,
+  TOURISM_GUIDE_HERO,
   TOURISM_GUIDE_PATH,
 } from "@/lib/tourism-guide";
 
@@ -25,6 +27,7 @@ export const metadata: Metadata = {
     description: meta.description,
     locale: siteConfig.locale,
     type: "article",
+    images: [{ url: TOURISM_GUIDE_HERO.src, alt: TOURISM_GUIDE_HERO.alt }],
   },
   alternates: {
     canonical: TOURISM_GUIDE_PATH,
@@ -60,6 +63,8 @@ export default async function GuiaTuristicaPage() {
           title={meta.title}
           subtitle="Guía práctica de San Clemente: playas, actividades y recomendaciones para planear tu viaje a la costa de Manabí."
         />
+
+        <TourismGuideSectionImage image={TOURISM_GUIDE_HERO} priority className="mt-8" />
 
         <p className="mt-6 rounded-lg border border-sand-dark bg-sand/50 px-4 py-3 text-sm text-muted">
           {siteConfig.copy.guideCityNote}{" "}

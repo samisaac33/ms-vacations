@@ -3,18 +3,32 @@ import { addMinutes } from "date-fns";
 import { getDb } from "@/db/index";
 import { bookings, properties, syncLogs } from "@/db/schema";
 import { assertRangeAvailable, AvailabilityError, expireStalePendingBookings } from "@/lib/availability";
+import { trySendVoucherIfReady } from "@/lib/booking-billing-service";
 import { notifyAdminPendingVerification } from "@/lib/notifications/admin";
+import {
+  notifyGuestBookingConfirmed,
+  notifyGuestDepositReceived,
+} from "@/lib/notifications/guest";
 import {
   calculateSplitSchedule,
   isSplitPaymentEligible,
+  SPLIT_MIN_DAYS_UNTIL_CHECKIN,
   type PaymentTiming,
 } from "@/lib/payment-schedule";
+import {
+  applyVerifiedPaymentToBooking,
+  resolveVerifiedPaidCents,
+  type VerificationMode,
+} from "@/lib/bank-transfer-verification";
 import { validateStayLength } from "@/lib/stay-rules";
+import { loadHighSeasonPeriodsForPropertySlug } from "@/lib/high-season-query";
 import { isPayPalConfigured } from "@/lib/payments/paypal";
 import { isPayPhoneConfigured } from "@/lib/payments/payphone";
 import type { InitiatePaymentResult, PaymentMethod } from "@/lib/payments/types";
-import { calculateStayDirectTotalCents } from "@/lib/pricing-query";
-import { totalCentsForPaymentMethod } from "@/lib/pricing";
+import { getStayQuoteByPropertyId } from "@/lib/pricing-query";
+import { bookingTotalCentsForPaymentMethod } from "@/lib/pricing";
+import { getPropertyBySlug } from "@/lib/properties";
+import { ensurePropertyRowBySlug } from "@/lib/property-db";
 
 const ONLINE_PENDING_MINUTES = 30;
 const BANK_TRANSFER_HOLD_MINUTES = 30;
@@ -66,7 +80,8 @@ export function chargeCentsForBooking(row: BookingChargeRow): number {
 export async function createPendingBookingAndCheckout(
   input: CreateBookingInput,
 ): Promise<CreateBookingResult> {
-  const stayLengthError = validateStayLength(input.checkIn, input.checkOut);
+  const highSeasonPeriods = await loadHighSeasonPeriodsForPropertySlug(input.slug);
+  const stayLengthError = validateStayLength(input.checkIn, input.checkOut, highSeasonPeriods);
   if (stayLengthError) {
     return { ok: false, code: "unavailable", message: stayLengthError };
   }
@@ -80,11 +95,20 @@ export async function createPendingBookingAndCheckout(
     return {
       ok: false,
       code: "unavailable",
-      message: "El pago fraccionado requiere al menos 14 días antes del check-in.",
+      message: `El pago fraccionado requiere al menos ${SPLIT_MIN_DAYS_UNTIL_CHECKIN} días antes del check-in.`,
     };
   }
 
   const db = getDb();
+
+  const propRow = await ensurePropertyRowBySlug(input.slug);
+  if (!propRow) {
+    return {
+      ok: false,
+      code: "property_not_found",
+      message: "Propiedad no encontrada en la base de datos. Ejecute npm run db:seed tras db:push.",
+    };
+  }
 
   try {
     const created = await db.transaction(async (tx) => {
@@ -92,7 +116,7 @@ export async function createPendingBookingAndCheckout(
       const [prop] = await tx
         .select()
         .from(properties)
-        .where(eq(properties.slug, input.slug))
+        .where(eq(properties.id, propRow.id))
         .limit(1);
       if (!prop) {
         return { type: "not_found" as const };
@@ -101,13 +125,18 @@ export async function createPendingBookingAndCheckout(
       await tx.execute(sql`SELECT 1 FROM properties WHERE id = ${prop.id}::uuid FOR UPDATE`);
 
       await assertRangeAvailable(tx, prop.id, input.checkIn, input.checkOut);
-      const baseDirectTotalCents = await calculateStayDirectTotalCents(
+      const quote = await getStayQuoteByPropertyId(
         prop.id,
         input.checkIn,
         input.checkOut,
         tx,
       );
-      const totalCents = totalCentsForPaymentMethod(baseDirectTotalCents, input.paymentMethod);
+      const totalCents = bookingTotalCentsForPaymentMethod(
+        quote.nightlyTotalDirectCents,
+        quote.cleaningFeeCents,
+        input.paymentMethod,
+        input.slug,
+      );
       const split =
         effectiveTiming === "split"
           ? calculateSplitSchedule(totalCents, input.checkIn)
@@ -226,28 +255,40 @@ export async function createPendingBookingAndCheckout(
   }
 }
 
+type BookingConfirmationEmailKind = "confirmed" | "deposit";
+
+type BookingConfirmationResult =
+  | {
+      ok: true;
+      emailKind?: BookingConfirmationEmailKind;
+      emailSent?: boolean;
+      verifiedPaidCents?: number;
+      balanceCents?: number;
+    }
+  | { ok: false; reason: string };
+
 export async function confirmBookingAfterPayment(params: {
   bookingId: string;
   externalId?: string | null;
   amountCents: number | null;
-}): Promise<{ ok: true } | { ok: false; reason: string }> {
+}): Promise<BookingConfirmationResult> {
   const db = getDb();
-  return await db.transaction(async (tx) => {
+  const result: BookingConfirmationResult = await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT 1 FROM bookings WHERE id = ${params.bookingId}::uuid FOR UPDATE`);
     const [row] = await tx
       .select()
       .from(bookings)
       .where(eq(bookings.id, params.bookingId))
       .limit(1);
-    if (!row) return { ok: false, reason: "Reserva no encontrada" };
-    if (row.status === "confirmed") return { ok: true };
-    if (row.status === "pending_balance") return { ok: true };
+    if (!row) return { ok: false as const, reason: "Reserva no encontrada" };
+    if (row.status === "confirmed") return { ok: true as const };
+    if (row.status === "pending_balance") return { ok: true as const };
     if (row.status !== "pending_payment") {
-      return { ok: false, reason: "Estado de reserva no permite confirmación" };
+      return { ok: false as const, reason: "Estado de reserva no permite confirmación" };
     }
     if (row.pendingExpiresAt && row.pendingExpiresAt < new Date()) {
       await tx.update(bookings).set({ status: "expired" }).where(eq(bookings.id, params.bookingId));
-      return { ok: false, reason: "La reserva expiró antes del pago" };
+      return { ok: false as const, reason: "La reserva expiró antes del pago" };
     }
 
     const expectedCents = chargeCentsForBooking(row);
@@ -257,7 +298,7 @@ export async function confirmBookingAfterPayment(params: {
         level: "error",
         message: `Monto distinto al esperado en reserva ${params.bookingId}`,
       });
-      return { ok: false, reason: "Monto del pago no coincide con la reserva" };
+      return { ok: false as const, reason: "Monto del pago no coincide con la reserva" };
     }
 
     const isSplitDeposit = row.paymentTiming === "split" && row.depositCents != null;
@@ -271,8 +312,24 @@ export async function confirmBookingAfterPayment(params: {
         depositPaidAt: isSplitDeposit ? new Date() : row.depositPaidAt,
       })
       .where(eq(bookings.id, params.bookingId));
-    return { ok: true };
+    return {
+      ok: true as const,
+      emailKind: isSplitDeposit ? ("deposit" as const) : ("confirmed" as const),
+    };
   });
+
+  if (result.ok && result.emailKind === "confirmed") {
+    const emailSent = await notifyGuestBookingConfirmed(params.bookingId);
+    await trySendVoucherIfReady(params.bookingId);
+    return { ...result, emailSent };
+  }
+  if (result.ok && result.emailKind === "deposit") {
+    const emailSent = await notifyGuestDepositReceived(params.bookingId);
+    await trySendVoucherIfReady(params.bookingId);
+    return { ...result, emailSent };
+  }
+
+  return result;
 }
 
 export async function submitBankTransferProof(params: {
@@ -325,30 +382,61 @@ export async function submitBankTransferProof(params: {
 
 export async function confirmBankTransferBooking(
   bookingId: string,
-): Promise<{ ok: true } | { ok: false; reason: string }> {
+  verification: { mode: VerificationMode; partialCents?: number },
+): Promise<BookingConfirmationResult> {
   const db = getDb();
-  return await db.transaction(async (tx) => {
+  const result: BookingConfirmationResult = await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT 1 FROM bookings WHERE id = ${bookingId}::uuid FOR UPDATE`);
     const [row] = await tx.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
-    if (!row) return { ok: false, reason: "Reserva no encontrada" };
-    if (row.status === "confirmed") return { ok: true };
-    if (row.status === "pending_balance") return { ok: true };
+    if (!row) return { ok: false as const, reason: "Reserva no encontrada" };
+    if (row.status === "confirmed") return { ok: true as const };
+    if (row.status === "pending_balance") return { ok: true as const };
     if (row.status !== "pending_verification" || row.paymentMethod !== "bank_transfer") {
-      return { ok: false, reason: "La reserva no está pendiente de verificación" };
+      return { ok: false as const, reason: "La reserva no está pendiente de verificación" };
     }
 
-    const isSplitDeposit = row.paymentTiming === "split" && row.depositCents != null;
+    const resolved = resolveVerifiedPaidCents(
+      row.totalCents,
+      verification.mode,
+      verification.partialCents,
+    );
+    if (!resolved.ok) return { ok: false as const, reason: resolved.reason };
+
+    const paymentUpdate = applyVerifiedPaymentToBooking(row, resolved.paidCents);
+    const emailKind: BookingConfirmationEmailKind =
+      paymentUpdate.status === "pending_balance" ? "deposit" : "confirmed";
 
     await tx
       .update(bookings)
       .set({
-        status: isSplitDeposit ? "pending_balance" : "confirmed",
+        status: paymentUpdate.status,
+        depositCents: paymentUpdate.depositCents,
+        balanceCents: paymentUpdate.balanceCents,
+        balanceDueAt: paymentUpdate.balanceDueAt,
+        depositPaidAt: paymentUpdate.depositPaidAt,
         pendingExpiresAt: null,
-        depositPaidAt: isSplitDeposit ? new Date() : row.depositPaidAt,
       })
       .where(eq(bookings.id, bookingId));
-    return { ok: true };
+    return {
+      ok: true as const,
+      emailKind,
+      verifiedPaidCents: resolved.paidCents,
+      balanceCents: paymentUpdate.balanceCents ?? 0,
+    };
   });
+
+  if (result.ok && result.emailKind === "confirmed") {
+    const emailSent = await notifyGuestBookingConfirmed(bookingId);
+    await trySendVoucherIfReady(bookingId);
+    return { ...result, emailSent };
+  }
+  if (result.ok && result.emailKind === "deposit") {
+    const emailSent = await notifyGuestDepositReceived(bookingId);
+    await trySendVoucherIfReady(bookingId);
+    return { ...result, emailSent };
+  }
+
+  return result;
 }
 
 export async function rejectBankTransferBooking(
@@ -361,6 +449,28 @@ export async function rejectBankTransferBooking(
     if (!row) return { ok: false, reason: "Reserva no encontrada" };
     if (row.status !== "pending_verification") {
       return { ok: false, reason: "Solo se pueden rechazar reservas en verificación" };
+    }
+    await tx
+      .update(bookings)
+      .set({ status: "cancelled", pendingExpiresAt: null })
+      .where(eq(bookings.id, bookingId));
+    return { ok: true };
+  });
+}
+
+export async function cancelBankTransferBookingAdmin(
+  bookingId: string,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const db = getDb();
+  return await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT 1 FROM bookings WHERE id = ${bookingId}::uuid FOR UPDATE`);
+    const [row] = await tx.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
+    if (!row) return { ok: false, reason: "Reserva no encontrada" };
+    if (row.paymentMethod !== "bank_transfer") {
+      return { ok: false, reason: "Solo aplica a reservas por transferencia bancaria" };
+    }
+    if (row.status !== "confirmed" && row.status !== "pending_balance") {
+      return { ok: false, reason: "Solo se pueden cancelar reservas confirmadas o con saldo pendiente" };
     }
     await tx
       .update(bookings)
@@ -395,5 +505,10 @@ export async function getBookingForGuest(bookingId: string) {
     .innerJoin(properties, eq(bookings.propertyId, properties.id))
     .where(eq(bookings.id, bookingId))
     .limit(1);
-  return row ?? null;
+  if (!row) return null;
+  const catalog = getPropertyBySlug(row.slug);
+  return {
+    ...row,
+    propertyName: catalog?.name ?? row.slug,
+  };
 }

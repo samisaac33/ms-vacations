@@ -1,14 +1,29 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { BankTransferProofUpload } from "@/components/booking/bank-transfer-proof-upload";
+import { BookingConfirmedResult } from "@/components/booking/booking-confirmed-result";
+import { BookingBillingForm } from "@/components/booking/booking-billing-form";
+import { BookingPendingResult } from "@/components/booking/booking-pending-result";
 import { Button } from "@/components/ui/button";
+import { guestBookingToResultSummary } from "@/lib/booking-result-summary";
 import { formatUsd } from "@/lib/pricing";
 import type { BankAccountDetails } from "@/lib/payments/bank-transfer";
+import type { PaymentTiming } from "@/lib/payment-schedule";
 
 type Props = {
   bookingId: string;
   reference: string;
   totalUsd: number;
+  propertyName: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  guestEmail: string;
+  paymentTiming: PaymentTiming;
+  depositCents: number | null;
+  balanceCents: number | null;
+  balanceDueAt: string | null;
   bank: BankAccountDetails;
   status: string;
   proofUrl: string | null;
@@ -18,31 +33,52 @@ export function BankTransferUploadForm({
   bookingId,
   reference,
   totalUsd,
+  propertyName,
+  checkIn,
+  checkOut,
+  guests,
+  guestEmail,
+  paymentTiming,
+  depositCents,
+  balanceCents,
+  balanceDueAt,
   bank,
   status,
   proofUrl,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [uploaded, setUploaded] = useState(
     status === "pending_verification" || status === "confirmed" || Boolean(proofUrl),
   );
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  const summary = guestBookingToResultSummary({
+    propertyName,
+    checkIn,
+    checkOut,
+    guests,
+    reference,
+    totalUsd,
+    guestEmail,
+    paymentMethod: "bank_transfer",
+    paymentTiming,
+    depositCents,
+    balanceCents,
+    balanceDueAt,
+  });
+
+  async function onSubmit() {
     setError(null);
-    const form = e.currentTarget;
-    const fileInput = form.elements.namedItem("proof") as HTMLInputElement;
-    const file = fileInput.files?.[0];
-    if (!file) {
-      setError("Selecciona un archivo.");
+    if (!proofFile) {
+      setError("Selecciona una imagen de comprobante.");
       return;
     }
 
     setLoading(true);
     try {
       const body = new FormData();
-      body.append("proof", file);
+      body.append("proof", proofFile);
       const res = await fetch(`/api/bookings/${bookingId}/proof`, {
         method: "POST",
         body,
@@ -60,34 +96,43 @@ export function BankTransferUploadForm({
     }
   }
 
-  if (status === "confirmed") {
+  if (status === "confirmed" || status === "pending_balance") {
     return (
-      <p className="rounded-xl border border-ocean/20 bg-ocean-light/40 px-4 py-3 text-sm text-ink">
-        Tu reserva está confirmada. Revisa tu correo para más detalles.
-      </p>
+      <BookingConfirmedResult
+        summary={summary}
+        bookingId={bookingId}
+        subtitle="Tu transferencia fue verificada. Revisa tu correo para más detalles y completa los datos de facturación para recibir el comprobante en PDF."
+      />
     );
   }
 
   if (uploaded || status === "pending_verification") {
     return (
-      <p className="rounded-xl border border-ocean/20 bg-ocean-light/40 px-4 py-3 text-sm text-ink">
-        Comprobante recibido. MS Vacations revisará tu transferencia y confirmará la reserva por correo.
+      <div className="space-y-4">
+        <BookingPendingResult reference={reference} via="upload" />
+        {guestEmail && (
+          <BookingBillingForm bookingId={bookingId} guestEmail={guestEmail} />
+        )}
         {proofUrl && (
-          <>
-            {" "}
-            <a href={proofUrl} target="_blank" rel="noopener noreferrer" className="text-ocean hover:underline">
+          <p className="text-center text-sm text-muted">
+            <a
+              href={proofUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ocean hover:underline"
+            >
               Ver comprobante
             </a>
-          </>
+          </p>
         )}
-      </p>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-sand-dark bg-white p-5">
-        <p className="text-sm text-muted">Total a transferir (incluye −7% por transferencia)</p>
+        <p className="text-sm text-muted">Total a transferir</p>
         <p className="mt-1 text-2xl font-semibold text-ink">${formatUsd(totalUsd)} USD</p>
         <p className="mt-2 text-sm text-muted">
           Referencia / concepto: <strong className="text-ink">{reference}</strong>
@@ -119,29 +164,24 @@ export function BankTransferUploadForm({
         )}
       </dl>
 
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="proof" className="text-sm font-medium text-ink">
-            Subir comprobante (JPG, PNG, WEBP o PDF, máx. 5 MB)
-          </label>
-          <input
-            id="proof"
-            name="proof"
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            required
-            className="mt-2 block w-full text-sm text-muted file:mr-4 file:rounded-lg file:border-0 file:bg-ocean file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
-          />
-        </div>
-        {error && (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-            {error}
-          </p>
-        )}
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Subiendo…" : "Enviar comprobante"}
-        </Button>
-      </form>
+      <BankTransferProofUpload
+        disabled={loading}
+        onReady={(file) => setProofFile(file)}
+      />
+
+      {error && (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+          {error}
+        </p>
+      )}
+
+      <Button type="button" disabled={loading || !proofFile} onClick={onSubmit} className="w-full">
+        {loading ? "Subiendo…" : "Enviar comprobante"}
+      </Button>
+
+      {guestEmail && (
+        <BookingBillingForm bookingId={bookingId} guestEmail={guestEmail} />
+      )}
     </div>
   );
 }

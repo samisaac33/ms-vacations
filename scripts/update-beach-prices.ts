@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { properties } from "../db/schema";
 import { beachBasePriceUpdates } from "../lib/beach-price-migration";
-import { bankTransferTotalCents } from "../lib/pricing";
+import { guestDirectPriceUsd } from "../lib/property-pricing";
 
 async function main() {
   const url = process.env.DATABASE_URL;
@@ -20,8 +20,8 @@ async function main() {
       .update(properties)
       .set({ basePricePerNightCents: newUsd * 100 })
       .where(eq(properties.slug, slug));
-    const transferUsd = bankTransferTotalCents(newUsd * 100) / 100;
-    console.log(`  ${slug}: $${priorUsd} → base $${newUsd} (transferencia $${transferUsd})`);
+    const transferUsd = guestDirectPriceUsd(slug);
+    console.log(`  ${slug}: referencia $${newUsd} · transferencia $${transferUsd} (huésped $${priorUsd})`);
   }
 
   await client.end();

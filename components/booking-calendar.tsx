@@ -9,6 +9,7 @@ import {
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { useEffect, useMemo, useState } from "react";
+import { BookingRangeErrorAlert } from "@/components/booking/booking-range-error-alert";
 import { useBookingAvailability } from "@/hooks/use-booking-availability";
 import { selectBookingDateRange } from "@/lib/booking-date-selection";
 import {
@@ -16,6 +17,7 @@ import {
   todayInGuayaquil,
   type DateRange,
 } from "@/lib/availability-utils";
+import type { HighSeasonPeriod } from "@/lib/stay-rules";
 
 type Props = {
   slug: string;
@@ -24,6 +26,8 @@ type Props = {
   onRangeChange: (checkIn: string, checkOut: string) => void;
   onBlocksLoaded?: (blocks: DateRange[]) => void;
   onRangeError?: (message: string | null) => void;
+  highSeasonPeriods?: HighSeasonPeriod[];
+  rangeError?: string | null;
 };
 
 function toIso(d: Date): string {
@@ -58,6 +62,8 @@ export function BookingCalendar({
   onRangeChange,
   onBlocksLoaded,
   onRangeError,
+  highSeasonPeriods = [],
+  rangeError,
 }: Props) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const { blocks, loading, fetchError, lastSyncAt } = useBookingAvailability(slug, onBlocksLoaded);
@@ -77,7 +83,7 @@ export function BookingCalendar({
 
   function handleDayClick(iso: string) {
     onRangeError?.(null);
-    const result = selectBookingDateRange(iso, { checkIn, checkOut }, blocks, today);
+    const result = selectBookingDateRange(iso, { checkIn, checkOut }, blocks, today, highSeasonPeriods);
     if (!result.ok) {
       onRangeError?.(result.error);
       return;
@@ -127,6 +133,7 @@ export function BookingCalendar({
 
   return (
     <div>
+      {rangeError ? <BookingRangeErrorAlert message={rangeError} className="mb-4" /> : null}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <button

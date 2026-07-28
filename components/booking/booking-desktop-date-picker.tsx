@@ -10,9 +10,11 @@ import {
   toIsoDate,
   WeekdayHeader,
 } from "@/components/booking/booking-date-picker-shared";
+import { BookingRangeErrorAlert } from "@/components/booking/booking-range-error-alert";
 import { useBookingAvailability } from "@/hooks/use-booking-availability";
 import { selectBookingDateRange } from "@/lib/booking-date-selection";
 import { isNightBlocked, todayInGuayaquil } from "@/lib/availability-utils";
+import type { HighSeasonPeriod } from "@/lib/stay-rules";
 
 type Props = {
   slug: string;
@@ -21,6 +23,8 @@ type Props = {
   onDraftChange: (checkIn: string, checkOut: string) => void;
   onRangeError?: (message: string | null) => void;
   onBlocksLoaded?: (blocks: { start: string; end: string }[]) => void;
+  highSeasonPeriods?: HighSeasonPeriod[];
+  rangeError?: string | null;
 };
 
 function MonthGrid({
@@ -77,6 +81,8 @@ export function BookingDesktopDatePicker({
   onDraftChange,
   onRangeError,
   onBlocksLoaded,
+  highSeasonPeriods = [],
+  rangeError,
 }: Props) {
   const { blocks, loading, fetchError } = useBookingAvailability(slug, onBlocksLoaded);
   const today = todayInGuayaquil();
@@ -101,6 +107,7 @@ export function BookingDesktopDatePicker({
       { checkIn: draftCheckIn, checkOut: draftCheckOut },
       blocks,
       today,
+      highSeasonPeriods,
     );
     if (!result.ok) {
       onRangeError?.(result.error);
@@ -128,6 +135,7 @@ export function BookingDesktopDatePicker({
 
   return (
     <div>
+      {rangeError ? <BookingRangeErrorAlert message={rangeError} className="mb-4" /> : null}
       <div className="flex items-start gap-2">
         <button
           type="button"
