@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HomeHeroPanel } from "@/components/home-hero-panel";
+import { HomeBookingFlowMobile } from "@/components/home-booking-flow-mobile";
 import { HomeWhyBookDirect } from "@/components/home-why-book-direct";
 import {
   HomeDestinationPicker,
@@ -132,6 +133,8 @@ export default async function Home() {
           />
         </div>
       </section>
+
+      <HomeBookingFlowMobile />
 
       <HomeWhyBookDirect />
 
