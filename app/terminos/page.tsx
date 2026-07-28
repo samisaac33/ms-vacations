@@ -17,9 +17,12 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function TerminosPage() {
+import { loadPromotionalVatPeriods } from "@/lib/vat-periods-query";
+
+export default async function TerminosPage() {
   const info = getLegalContactInfo();
-  const sections = getTermsOfServiceSections(info);
+  const vatPeriods = await loadPromotionalVatPeriods();
+  const sections = getTermsOfServiceSections(info, vatPeriods);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">

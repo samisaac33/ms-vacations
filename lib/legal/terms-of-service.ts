@@ -3,10 +3,11 @@ import { formatLegalEntityBlock } from "@/lib/legal/contact-info";
 import {
   HOSPITALITY_VAT_PROMOTIONAL_RATE,
   HOSPITALITY_VAT_STANDARD_RATE,
+  type VatPeriod,
   getPromotionalVatPeriodsSummary,
 } from "@/lib/legal/hospitality-vat";
 
-const LAST_UPDATED = "10 de julio de 2026";
+const LAST_UPDATED = "21 de julio de 2026";
 
 function contactChannels({ contactEmail, contactWhatsapp }: LegalContactInfo): string {
   const parts: string[] = [];
@@ -23,7 +24,10 @@ export function getTermsOfServiceMeta() {
   };
 }
 
-export function getTermsOfServiceSections(info: LegalContactInfo): LegalSection[] {
+export function getTermsOfServiceSections(
+  info: LegalContactInfo,
+  vatPeriods?: VatPeriod[],
+): LegalSection[] {
   const siteHost = info.siteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
   const contact = contactChannels(info);
 
@@ -65,8 +69,9 @@ export function getTermsOfServiceSections(info: LegalContactInfo): LegalSection[
         "Los precios publicados y el total de tu reserva se expresan en dólares estadounidenses (USD). Salvo indicación contraria en la confirmación, los importes incluyen el Impuesto al Valor Agregado (IVA) aplicable al servicio de alojamiento turístico.",
         `La tarifa general del IVA para hospedaje turístico en Ecuador es del ${HOSPITALITY_VAT_STANDARD_RATE * 100} %. Durante feriados nacionales o locales —y los fines de semana colindantes cuando así lo disponga un Decreto Ejecutivo— la tarifa puede reducirse al ${HOSPITALITY_VAT_PROMOTIONAL_RATE * 100} % para servicios turísticos registrados conforme a la Ley de Turismo.`,
         "La reducción al 8 % no es automática: requiere decreto presidencial vigente, registro de turismo y emisión del comprobante de venta con la tarifa correspondiente. Períodos decretados publicados en este sitio (referencia): " +
-          getPromotionalVatPeriodsSummary() +
+          getPromotionalVatPeriodsSummary(vatPeriods) +
           ". Consulta la versión vigente al reservar; MS Vacations actualizará los períodos cuando se publiquen nuevos decretos.",
+        "Durante esos períodos el precio final por noche puede ser más bajo que la tarifa estándar con IVA al 15 %.",
         "Si tu estancia abarca noches con tarifas de IVA distintas, el desglose se reflejará en la factura o comprobante emitido al confirmar el pago.",
       ],
     },
@@ -100,7 +105,7 @@ export function getTermsOfServiceSections(info: LegalContactInfo): LegalSection[
     {
       title: "Cancelaciones y reembolsos",
       paragraphs: [
-        "Las condiciones de cancelación para reservas directas se rigen por nuestra Política de cancelaciones (política Moderate, alineada con el estándar de Airbnb para estancias de hasta 27 noches).",
+        "Las condiciones de cancelación para reservas directas se rigen por nuestra Política de cancelaciones: reembolso del 100 % dentro de las primeras 24 horas posteriores a la confirmación; después de ese plazo, penalización equivalente al 50 % del valor total de la reserva.",
         "Consulta el detalle completo en la página de cancelaciones de este sitio. Las solicitudes de cancelación deben enviarse por los canales indicados en dicha política.",
       ],
     },
@@ -127,8 +132,8 @@ export function getTermsOfServiceSections(info: LegalContactInfo): LegalSection[
     {
       title: "Depósitos, daños y cargos adicionales",
       paragraphs: [
-        "Salvo que se indique expresamente en la confirmación o en la ficha de la propiedad, el precio de la reserva incluye el alojamiento según lo descrito.",
-        "MS Vacations puede reclamar el pago de daños causados por incumplimiento de estas condiciones o por uso negligente, previa comunicación y, cuando corresponda, documentación del daño.",
+        "Todas las reservas directas están sujetas a una garantía reembolsable de USD 300, cuyas condiciones de cobertura, inspección post check-out y devolución se describen en nuestra Política de garantía reembolsable, disponible en /garantia de este sitio.",
+        "En caso de daños, faltantes, incumplimiento del reglamento o gastos extraordinarios de limpieza debidamente justificados, los valores correspondientes serán descontados de la garantía. Si los costos exceden el monto de la garantía, el huésped será responsable de cubrir la diferencia.",
       ],
     },
     {

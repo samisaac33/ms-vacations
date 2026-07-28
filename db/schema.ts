@@ -26,6 +26,8 @@ export const paymentMethodEnum = pgEnum("payment_method", [
 
 export const paymentTimingEnum = pgEnum("payment_timing", ["full_now", "split"]);
 
+export const billingIdTypeEnum = pgEnum("billing_id_type", ["RUC", "CEDULA", "PASAPORTE"]);
+
 export const properties = pgTable("properties", {
   id: uuid("id").defaultRandom().primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -74,6 +76,12 @@ export const bookings = pgTable("bookings", {
   paymentProofUrl: text("payment_proof_url"),
   paymentProofUploadedAt: timestamp("payment_proof_uploaded_at", { withTimezone: true }),
   guestEmail: text("guest_email"),
+  billingName: text("billing_name"),
+  billingIdType: billingIdTypeEnum("billing_id_type"),
+  billingIdNumber: text("billing_id_number"),
+  billingCity: text("billing_city"),
+  billingCompletedAt: timestamp("billing_completed_at", { withTimezone: true }),
+  voucherSentAt: timestamp("voucher_sent_at", { withTimezone: true }),
   termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
   termsVersion: text("terms_version"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -100,5 +108,49 @@ export const propertyNightlyRates = pgTable(
   },
   (table) => [
     uniqueIndex("property_nightly_rates_property_date_idx").on(table.propertyId, table.date),
+  ],
+);
+
+/** Configuración global del panel admin (fila única id = default). */
+export const adminSettings = pgTable("admin_settings", {
+  id: text("id").primaryKey().default("default"),
+  notificationEmail: text("notification_email"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Períodos globales con IVA promocional 8 % (todas las propiedades). */
+export const promotionalVatPeriods = pgTable("promotional_vat_periods", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  label: text("label"),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Temporadas altas con estancia mínima configurable (por propiedad vía junction). */
+export const highSeasonPeriods = pgTable("high_season_periods", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  label: text("label"),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  minNights: integer("min_nights").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const highSeasonPeriodProperties = pgTable(
+  "high_season_period_properties",
+  {
+    periodId: uuid("period_id")
+      .notNull()
+      .references(() => highSeasonPeriods.id, { onDelete: "cascade" }),
+    propertyId: uuid("property_id")
+      .notNull()
+      .references(() => properties.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    uniqueIndex("high_season_period_properties_period_property_idx").on(
+      table.periodId,
+      table.propertyId,
+    ),
   ],
 );

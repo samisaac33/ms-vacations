@@ -1,13 +1,21 @@
 import { cookies } from "next/headers";
-import { AdminApplyBeachPricesPanel } from "@/app/admin/admin-apply-beach-prices";
-import { AdminMigrateSplitPaymentPanel } from "@/app/admin/admin-migrate-split-payment";
+import { AdminBillingPanel } from "@/app/admin/admin-billing-panel";
+import { AdminSectionCard } from "@/app/admin/admin-section-card";
+import { AdminMigrateBillingPanel } from "@/app/admin/admin-migrate-billing";
 import { AdminCalendarShell } from "@/app/admin/admin-calendar-shell";
-import { AdminIcalPanel } from "@/app/admin/admin-ical-panel";
+import { AdminConfigNav } from "@/app/admin/admin-config-nav";
+import { AdminConfigSummary } from "@/app/admin/admin-config-summary";
 import { AdminLoginForm } from "@/app/admin/admin-login-form";
+import { AdminPaymentsHistory } from "@/app/admin/admin-payments-history";
 import { AdminPaymentsPanel } from "@/app/admin/admin-payments-panel";
-import { splitPaymentMigrationNeeded } from "@/app/admin/actions";
+import { AdminHighSeasonPanel } from "@/app/admin/admin-high-season-panel";
+import { AdminVatPeriodsPanel } from "@/app/admin/admin-vat-periods-panel";
+import { countBookingsMissingBilling, getBookingsForBillingAdmin } from "@/lib/admin-billing";
+import { billingMigrationNeeded } from "@/lib/apply-billing-migration";
 import { getAdminIcalDashboard } from "@/lib/admin-dashboard";
-import { getPendingVerificationBookings } from "@/lib/admin-payments";
+import { getBankTransferHistory, getPendingVerificationBookings } from "@/lib/admin-payments";
+import { listHighSeasonPeriodRows } from "@/lib/high-season-query";
+import { listPromotionalVatPeriodRows } from "@/lib/vat-periods-query";
 
 export const metadata = {
   title: "Configuración",
@@ -22,64 +30,126 @@ export default async function AdminConfiguracionPage() {
     return (
       <div className="mx-auto max-w-sm px-4 py-16">
         <h1 className="text-xl font-semibold">Acceso equipo</h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Defina <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ADMIN_SECRET</code> en el entorno.
+        <p className="mt-2 text-sm text-zinc-600">
+          Defina la contraseña de administrador en el entorno del servidor.
         </p>
         <AdminLoginForm />
       </div>
     );
   }
 
-  const dashboard = await getAdminIcalDashboard();
-  const needsSplitPaymentMigration = await splitPaymentMigrationNeeded();
+  let vatPeriods: Awaited<ReturnType<typeof listPromotionalVatPeriodRows>> = [];
+  let highSeasonPeriods: Awaited<ReturnType<typeof listHighSeasonPeriodRows>> = [];
+  let adminProperties: { id: string; name: string }[] = [];
+  try {
+    vatPeriods = await listPromotionalVatPeriodRows();
+  } catch {
+    // DB no disponible
+  }
+  try {
+    highSeasonPeriods = await listHighSeasonPeriodRows();
+  } catch {
+    // DB no disponible
+  }
+  try {
+    const dashboard = await getAdminIcalDashboard();
+    adminProperties =
+      dashboard?.properties.map((p) => ({ id: p.id, name: p.name })) ?? [];
+  } catch {
+    // DB no disponible
+  }
   let pendingPayments: Awaited<ReturnType<typeof getPendingVerificationBookings>> = [];
+  let transferHistory: Awaited<ReturnType<typeof getBankTransferHistory>> = [];
+  let billingBookings: Awaited<ReturnType<typeof getBookingsForBillingAdmin>> = [];
   let paymentsLoadError: string | null = null;
+  let historyLoadError: string | null = null;
+  let billingLoadError: string | null = null;
+  let needsBillingMigration = false;
+  try {
+    needsBillingMigration = await billingMigrationNeeded();
+  } catch {
+    needsBillingMigration = true;
+  }
   try {
     pendingPayments = await getPendingVerificationBookings();
   } catch (e) {
     paymentsLoadError = e instanceof Error ? e.message : "Error al cargar transferencias pendientes.";
   }
+  try {
+    transferHistory = await getBankTransferHistory();
+  } catch (e) {
+    historyLoadError = e instanceof Error ? e.message : "Error al cargar el historial de transferencias.";
+  }
+  try {
+    billingBookings = await getBookingsForBillingAdmin();
+  } catch (e) {
+    billingLoadError = e instanceof Error ? e.message : "Error al cargar datos de facturación.";
+  }
+
+  const missingBillingCount = countBookingsMissingBilling(billingBookings);
 
   return (
-    <AdminCalendarShell activeTab="configuracion" title="Configuración">
-      <div className="mx-auto max-w-3xl">
-        <p className="text-sm text-zinc-600">
-          Tarifas, calendarios iCal, sincronización y transferencias pendientes.
-        </p>
+    <AdminCalendarShell
+      activeTab="configuracion"
+      title="Configuración"
+      configPendingCount={pendingPayments.length}
+    >
+      <div className="mx-auto max-w-5xl">
+        <AdminConfigNav />
+        <AdminConfigSummary
+          pendingPaymentsCount={pendingPayments.length}
+          missingBillingCount={missingBillingCount}
+        />
 
-        {dashboard ? (
-          <>
-            {needsSplitPaymentMigration && <AdminMigrateSplitPaymentPanel />}
-            <AdminApplyBeachPricesPanel />
-            <AdminIcalPanel
-              properties={dashboard.properties.map((p) => ({
-                ...p,
-                lastIcalSyncAt: p.lastIcalSyncAt?.toISOString() ?? null,
-              }))}
-              logs={dashboard.logs.map((l) => ({
-                ...l,
-                createdAt: l.createdAt.toISOString(),
-              }))}
-            />
-          </>
-        ) : (
-          <p className="mt-8 text-sm text-amber-800">
-            <code className="rounded bg-amber-100 px-1">DATABASE_URL</code> no configurada. Defínala para
-            gestionar calendarios.
+        {pendingPayments.length > 0 && (
+          <p className="mb-4 hidden rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 md:block">
+            {pendingPayments.length === 1
+              ? "1 transferencia pendiente de verificación"
+              : `${pendingPayments.length} transferencias pendientes de verificación`}
           </p>
         )}
 
         {paymentsLoadError ? (
-          <p className="mt-10 text-sm text-amber-800">
+          <p className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
             No se pudieron cargar las transferencias pendientes: {paymentsLoadError}
           </p>
         ) : (
           <AdminPaymentsPanel bookings={pendingPayments} />
         )}
 
-        <p className="mt-10 text-xs text-zinc-500">
-          Guía: <code className="rounded bg-zinc-100 px-1">docs/operaciones.md</code>
-        </p>
+        {historyLoadError ? (
+          <p className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            No se pudo cargar el historial: {historyLoadError}
+          </p>
+        ) : (
+          <AdminPaymentsHistory bookings={transferHistory} />
+        )}
+
+        {needsBillingMigration && (
+          <AdminSectionCard
+            title="Migrar esquema de facturación"
+            variant="alert"
+            collapsible="mobile"
+            defaultOpen
+            className="mb-3 md:mb-6"
+            description="Añade las columnas de facturación en PostgreSQL. Ejecutar una vez si fallan reservas o datos de facturación."
+          >
+            <AdminMigrateBillingPanel embedded />
+          </AdminSectionCard>
+        )}
+
+        {billingLoadError ? (
+          <p className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            No se pudieron cargar los datos de facturación: {billingLoadError}
+          </p>
+        ) : (
+          <AdminBillingPanel bookings={billingBookings} />
+        )}
+
+        <div className="mt-3 space-y-3 md:mt-6 md:space-y-6">
+          <AdminHighSeasonPanel periods={highSeasonPeriods} properties={adminProperties} />
+          <AdminVatPeriodsPanel periods={vatPeriods} />
+        </div>
       </div>
     </AdminCalendarShell>
   );

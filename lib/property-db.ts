@@ -7,6 +7,7 @@ import {
   PROPERTIES,
   type Property,
 } from "@/lib/properties";
+import { upsertCatalogPropertyBySlug } from "@/lib/seed-properties-db";
 
 export async function getPropertyRowBySlug(slug: string) {
   if (!hasDatabase()) return null;
@@ -17,6 +18,16 @@ export async function getPropertyRowBySlug(slug: string) {
   } catch {
     return null;
   }
+}
+
+export async function ensurePropertyRowBySlug(slug: string) {
+  const existing = await getPropertyRowBySlug(slug);
+  if (existing) return existing;
+
+  const upserted = await upsertCatalogPropertyBySlug(slug);
+  if (!upserted) return null;
+
+  return getPropertyRowBySlug(slug);
 }
 
 export async function getPropertyRowById(id: string) {

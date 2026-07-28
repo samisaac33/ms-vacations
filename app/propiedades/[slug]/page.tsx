@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
-import { PropertyBookingPanel } from "@/components/property-booking-panel";
+import { PropertyAboutPanel } from "@/components/property-about-panel";
+import { PropertyAmenitiesPanel } from "@/components/property-amenities-panel";
 import { PropertyDetailMobile } from "@/components/property-detail-mobile";
+import { PropertyDetailStayShell } from "@/components/property-detail-stay-shell";
+import { PropertyHighlights } from "@/components/property-highlights";
 import { PropertyLocationMap } from "@/components/property-location-map";
 import { PropertyPhotoGallery } from "@/components/property-photo-gallery";
 import { PropertySummaryStats } from "@/components/property-summary-stats";
 import { getPropertyBySlugWithDbPrice, getAllPropertySlugs } from "@/lib/property-db";
+import { loadHighSeasonPeriodsForPropertySlug } from "@/lib/high-season-query";
 import { getStayQuoteBySlug } from "@/lib/pricing-query";
-import { buildStaySearchQuery, parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
+import { directPricePerNightUsd } from "@/lib/pricing";
+import { buildCatalogHref, buildStaySearchQuery, parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
 import { siteConfig } from "@/lib/site";
 
 type Props = {
@@ -41,12 +46,16 @@ export default async function PropertyDetailPage(props: Props) {
   const p = await getPropertyBySlugWithDbPrice(slug);
   if (!p) notFound();
 
+  const highSeasonPeriods = await loadHighSeasonPeriodsForPropertySlug(slug);
+
   const parsed = parseStaySearchFromParams(queryParams);
   const datesValid = Boolean(
     parsed?.checkIn &&
       parsed.checkOut &&
-      !validateStaySearch(parsed.checkIn, parsed.checkOut),
+      !validateStaySearch(parsed.checkIn, parsed.checkOut, undefined, highSeasonPeriods),
   );
+
+  const destino = parsed?.destino ?? p.destination;
 
   const stay = datesValid
     ? {
@@ -58,11 +67,24 @@ export default async function PropertyDetailPage(props: Props) {
 
   const stayQuery = datesValid
     ? buildStaySearchQuery({
+        destino,
         checkIn: parsed!.checkIn,
         checkOut: parsed!.checkOut,
         huespedes: parsed!.huespedes,
       })
     : "";
+
+  const catalogHref = datesValid
+    ? buildCatalogHref(
+        {
+          destino,
+          checkIn: parsed!.checkIn!,
+          checkOut: parsed!.checkOut!,
+          huespedes: parsed!.huespedes ?? 2,
+        },
+        siteConfig.copy.catalogPath,
+      )
+    : siteConfig.copy.catalogPath;
 
   const quoteRow =
     datesValid && parsed?.checkIn && parsed?.checkOut
@@ -77,16 +99,20 @@ export default async function PropertyDetailPage(props: Props) {
     : null;
 
   const shareLink = `${siteConfig.url}/propiedades/${slug}${stayQuery}`;
+  const pricePerNightUsd = directPricePerNightUsd(p.slug);
 
   return (
     <article className="mx-auto w-full max-w-7xl lg:px-6 lg:py-8">
       <PropertyDetailMobile
         property={p}
+        destino={destino}
         shareLink={shareLink}
-        catalogHref={siteConfig.copy.catalogPath}
+        catalogHref={catalogHref}
+        stay={stay}
         stayQuery={stayQuery}
         hasStay={datesValid}
         quote={quote}
+        highSeasonPeriods={highSeasonPeriods}
       />
 
       <div className="hidden lg:block lg:px-0">
@@ -94,7 +120,7 @@ export default async function PropertyDetailPage(props: Props) {
           title={p.name}
           subtitle={`${p.location.area}, ${p.location.province}`}
           breadcrumbs={[
-            { label: siteConfig.copy.catalogNav, href: siteConfig.copy.catalogPath },
+            { label: siteConfig.copy.catalogNav, href: catalogHref },
             { label: p.name },
           ]}
         />
@@ -102,49 +128,20 @@ export default async function PropertyDetailPage(props: Props) {
 
         <PropertyPhotoGallery images={p.images} propertyName={p.name} shareLink={shareLink} />
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-start">
-          <section className="space-y-8">
-            <div>
-              <h2 className="text-xl font-semibold text-ink">Descripción</h2>
-              <p className="mt-3 leading-relaxed text-muted">{p.description}</p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-ink">Amenidades</h3>
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {p.amenities.map((a) => (
-                  <li
-                    key={a}
-                    className="rounded-full bg-ocean-light px-3 py-1 text-sm text-ink"
-                  >
-                    {a}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-ink">Reglas</h3>
-              <ul className="mt-3 list-inside list-disc space-y-1 text-muted">
-                {p.rules.map((r) => (
-                  <li key={r}>{r}</li>
-                ))}
-              </ul>
-            </div>
-
-            <PropertyLocationMap property={p} />
-          </section>
-
-          <aside className="lg:sticky lg:top-24">
-            <PropertyBookingPanel
-              slug={p.slug}
-              pricePerNightUsd={p.basePricePerNightUsd}
-              stay={stay}
-              stayQuery={stayQuery}
-              quote={quote}
-            />
-          </aside>
-        </div>
+        <PropertyDetailStayShell
+          property={p}
+          destino={destino}
+          stay={stay}
+          stayQuery={stayQuery}
+          quote={quote}
+          pricePerNightUsd={pricePerNightUsd}
+          highSeasonPeriods={highSeasonPeriods}
+          afterThingsToKnow={<PropertyLocationMap property={p} />}
+        >
+          <PropertyHighlights highlights={p.highlights} />
+          <PropertyAboutPanel property={p} />
+          <PropertyAmenitiesPanel property={p} />
+        </PropertyDetailStayShell>
       </div>
     </article>
   );

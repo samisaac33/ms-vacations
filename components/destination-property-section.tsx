@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Property } from "@/lib/properties";
+import type { CatalogCardQuote } from "@/lib/pricing-query";
 import { PropertyCard } from "@/components/property-card";
 
 type Props = {
@@ -9,6 +10,8 @@ type Props = {
   properties: Property[];
   showDiscountNote?: boolean;
   stayQuery?: string;
+  hasStay?: boolean;
+  quotesBySlug?: Map<string, CatalogCardQuote>;
   emptyMessage?: string;
 };
 
@@ -19,6 +22,8 @@ export function DestinationPropertySection({
   properties,
   showDiscountNote = true,
   stayQuery = "",
+  hasStay = false,
+  quotesBySlug,
   emptyMessage,
 }: Props) {
   if (properties.length === 0) {
@@ -44,13 +49,21 @@ export function DestinationPropertySection({
         <h2 className="font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{heading}</h2>
         <p className="mt-2 text-muted">
           {subtitle}
-          {showDiscountNote && <> Precios en USD por noche (reserva directa).</>}
+          {showDiscountNote &&
+            (hasStay
+              ? " Totales por estancia en USD (reserva directa, incl. limpieza)."
+              : " Precios en USD por noche (reserva directa).")}
         </p>
       </div>
-      <ul className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {properties.map((p) => (
-          <li key={p.id}>
-            <PropertyCard property={p} stayQuery={stayQuery} />
+          <li key={p.id} className="min-w-0">
+            <PropertyCard
+              property={p}
+              stayQuery={stayQuery}
+              hasStay={hasStay}
+              quote={quotesBySlug?.get(p.slug) ?? null}
+            />
           </li>
         ))}
       </ul>

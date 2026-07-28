@@ -4,8 +4,8 @@ import { parseLocalDate } from "@/lib/dates";
 import type { PaymentMethod } from "@/lib/payments/types";
 import { totalCentsForPaymentMethod } from "@/lib/pricing";
 
-export const SPLIT_BALANCE_DAYS_BEFORE_CHECKIN = 14;
-export const SPLIT_MIN_DAYS_UNTIL_CHECKIN = 14;
+export const SPLIT_BALANCE_DAYS_BEFORE_CHECKIN = 7;
+export const SPLIT_MIN_DAYS_UNTIL_CHECKIN = 7;
 
 export type PaymentTiming = "full_now" | "split";
 

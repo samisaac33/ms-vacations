@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "MS Vacations",
   tagline: "Alojamientos vacacionales en playa y ciudad",
   description:
-    "Casas y apartamentos en San Clemente y Portoviejo, Manabí. Reserva en línea con calendario de disponibilidad y pago directo.",
+    "Casas en San Clemente y Portoviejo, Manabí. Reserva en línea con calendario de disponibilidad y pago directo.",
   locale: "es_EC",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   contact: {
@@ -25,7 +25,7 @@ export const siteConfig = {
       label: "Ciudad",
       area: "Portoviejo",
       subtitle:
-        "Apartamentos en Portoviejo para viajes de trabajo, familia o estadías urbanas en Manabí.",
+        "Casas en Portoviejo para viajes de trabajo, familia o estadías urbanas en Manabí.",
     },
   },
   /** Textos orientados al huésped (evitar jerga de administrador). */
@@ -43,7 +43,7 @@ export const siteConfig = {
     catalogNav: "Alojamientos",
     catalogTitle: "Alojamientos vacacionales",
     catalogSubtitle:
-      "Casas en San Clemente y apartamentos en Portoviejo. Tarifas en USD con reserva directa.",
+      "Casas en San Clemente y Portoviejo. Tarifas en USD con reserva directa.",
     featuredBeachHeading: "San Clemente",
     featuredCityHeading: "Portoviejo",
     seeAll: "Ver todos los alojamientos →",

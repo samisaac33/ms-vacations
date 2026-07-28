@@ -1,5 +1,6 @@
 ﻿import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import Link from "next/link";
 import {
   buildStayPriceBreakdown,
   formatBreakdownUsd,
@@ -40,27 +41,40 @@ export function PriceBreakdownContent({
         {!compact && (
           <div className="mb-4 space-y-2 border-b border-sand-dark pb-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">Por noche</p>
-            {breakdown.nightly.map((night) => (
+            {quote.nightly.map((night) => (
               <div key={night.date} className="flex items-center justify-between text-sm">
-                <span className="text-muted">{formatNightDate(night.date)}</span>
-                <span className="font-medium text-ink">{formatBreakdownUsd(night.totalCents)}</span>
+                <span className="text-muted">
+                  {formatNightDate(night.date)}
+                  {night.isNewYearsEve ? (
+                    <span className="ml-1.5 text-xs font-medium text-amber-800">Fin de año ×2</span>
+                  ) : null}
+                </span>
+                <span className="font-medium text-ink">{formatBreakdownUsd(night.directCents)}</span>
               </div>
             ))}
           </div>
         )}
 
         <div className="space-y-2">
-          {breakdown.lines.map((line) => (
-            <div
-              key={line.label}
-              className={`flex items-center justify-between text-sm ${
-                line.indent ? "pl-2 text-muted" : ""
-              } ${line.emphasis ? "border-t border-sand-dark pt-3 text-base font-semibold text-ink" : ""}`}
-            >
-              <span>{line.label}</span>
-              <span className={line.emphasis ? "text-ink" : ""}>
-                {formatBreakdownUsd(line.amountCents)}
-              </span>
+          {breakdown.lines.map((line, index) => (
+            <div key={`${line.label}-${index}`}>
+              <div
+                className={`flex items-center justify-between text-sm ${
+                  line.indent ? "pl-2 text-muted" : ""
+                } ${line.emphasis ? "border-t border-sand-dark pt-3 text-base font-semibold text-ink" : ""}`}
+              >
+                <span>{line.label}</span>
+                <span className={line.emphasis ? "text-ink" : ""}>
+                  {formatBreakdownUsd(line.amountCents)}
+                </span>
+              </div>
+              {line.label === "Garantía reembolsable" && (
+                <p className="mt-1 pl-2 text-xs text-muted">
+                  <Link href="/garantia" className="font-medium text-ocean underline underline-offset-2">
+                    Ver política
+                  </Link>
+                </p>
+              )}
             </div>
           ))}
         </div>

@@ -16,9 +16,8 @@ type Props = {
   destinations: DestinationCard[];
 };
 
-function propertyLabel(count: number, id: "beach" | "city") {
-  if (count === 1) return id === "beach" ? "casa" : "apartamento";
-  return id === "beach" ? "casas" : "apartamentos";
+function propertyLabel(count: number) {
+  return count === 1 ? "casa" : "casas";
 }
 
 export function HomeDestinationPicker({ destinations }: Props) {
@@ -52,7 +51,7 @@ export function HomeDestinationPicker({ destinations }: Props) {
                 {destination.name}
               </h3>
               <p className="mt-1 text-sm font-medium text-white/90">
-                {destination.propertyCount} {propertyLabel(destination.propertyCount, destination.id)} ·
+                {destination.propertyCount} {propertyLabel(destination.propertyCount)} ·
                 desde ${formatUsd(destination.priceFromUsd)}
               </p>
             </div>

@@ -8,6 +8,7 @@ import {
 } from "@/components/booking/booking-desktop-edit-modals";
 import { BookingSummarySidebar } from "@/components/booking/booking-summary-sidebar";
 import { useBookingCheckout, type BookingPricingState } from "@/hooks/use-booking-checkout";
+import type { HighSeasonPeriod } from "@/lib/stay-rules";
 
 type PropertySummary = {
   slug: string;
@@ -22,6 +23,7 @@ type Props = {
   initialCheckIn?: string;
   initialCheckOut?: string;
   initialGuests?: number;
+  highSeasonPeriods?: HighSeasonPeriod[];
   onPricingChange?: (state: BookingPricingState) => void;
 };
 
@@ -32,6 +34,7 @@ export function BookingDesktopFlow({
   initialCheckIn,
   initialCheckOut,
   initialGuests,
+  highSeasonPeriods = [],
   onPricingChange,
 }: Props) {
   const [editModal, setEditModal] = useState<DesktopEditModal>(null);
@@ -43,6 +46,7 @@ export function BookingDesktopFlow({
     initialCheckIn,
     initialCheckOut,
     initialGuests,
+    highSeasonPeriods,
     onPricingChange,
   });
 
@@ -52,7 +56,6 @@ export function BookingDesktopFlow({
     guests,
     setGuests,
     paymentMethod,
-    setPaymentMethod,
     paymentTiming,
     splitSchedule,
     quote,
@@ -61,6 +64,7 @@ export function BookingDesktopFlow({
     handleBlocksLoaded,
     handleRangeChange,
     setRangeHint,
+    dateRangeError,
   } = checkout;
 
   const hasInitialDates = Boolean(initialCheckIn && initialCheckOut);
@@ -87,6 +91,7 @@ export function BookingDesktopFlow({
           paymentTiming={paymentTiming}
           splitSchedule={splitSchedule}
           totalUsd={totalUsd}
+          dateRangeError={dateRangeError}
           onEdit={setEditModal}
         />
       </div>
@@ -110,8 +115,8 @@ export function BookingDesktopFlow({
           setRangeHint(msg);
         }}
         onGuestsChange={setGuests}
-        onPaymentMethodChange={setPaymentMethod}
         rangeError={rangeError}
+        highSeasonPeriods={highSeasonPeriods}
       />
     </>
   );

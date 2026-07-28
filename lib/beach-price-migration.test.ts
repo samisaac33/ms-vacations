@@ -1,31 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { beachBasePriceUpdates } from "@/lib/beach-price-migration";
-import { bankTransferTotalCents, basePriceFromPriorDirectUsd } from "@/lib/pricing";
+import { guestDirectPriceUsd } from "@/lib/property-pricing";
 
 describe("beachBasePriceUpdates", () => {
-  it("define seis propiedades de playa", () => {
-    expect(beachBasePriceUpdates()).toHaveLength(6);
+  it("define todas las propiedades de playa del catálogo", () => {
+    expect(beachBasePriceUpdates()).toHaveLength(9);
   });
 
-  it("Villa Palmera: base $428 y transferencia $400", () => {
+  it("Villa Palmera: referencia $465 y huésped $400", () => {
     const villa = beachBasePriceUpdates().find((row) => row.slug === "villa-palmera");
-    expect(villa?.newUsd).toBe(428);
-    expect(bankTransferTotalCents(villa!.newUsd * 100) / 100).toBe(400);
+    expect(villa?.newUsd).toBe(465);
+    expect(villa?.transferUsd).toBe(400);
+    expect(guestDirectPriceUsd("villa-palmera")).toBe(400);
   });
-});
 
-describe("bankTransferTotalCents", () => {
-  it("revierte el markup del 7 % sobre la tarifa base", () => {
-    expect(bankTransferTotalCents(53_500)).toBe(50_000);
-    expect(bankTransferTotalCents(26_800)).toBe(25_047);
-    expect(bankTransferTotalCents(32_100)).toBe(30_000);
+  it("La Punta: referencia $581 y huésped $500", () => {
+    const laPunta = beachBasePriceUpdates().find(
+      (row) => row.slug === "home-luxury-la-punta-18-personas-max",
+    );
+    expect(laPunta?.newUsd).toBe(581);
+    expect(laPunta?.transferUsd).toBe(500);
   });
-});
 
-describe("basePriceFromPriorDirectUsd + transferencia", () => {
-  it("La Punta: base $535 y transferencia $500", () => {
-    const base = basePriceFromPriorDirectUsd(500);
-    expect(base).toBe(535);
-    expect(bankTransferTotalCents(base * 100) / 100).toBe(500);
+  it("Porto Norte: referencia $372 y huésped $320", () => {
+    const porto = beachBasePriceUpdates().find((row) => row.slug === "porto-norte");
+    expect(porto?.newUsd).toBe(372);
+    expect(porto?.transferUsd).toBe(320);
+    expect(guestDirectPriceUsd("porto-norte")).toBe(320);
   });
 });

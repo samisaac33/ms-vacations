@@ -1,33 +1,42 @@
 type Props = {
   className?: string;
-  size?: number;
+  height?: number;
+  showTagline?: boolean;
 };
 
-export function SiteLogoMark({ className = "", size = 36 }: Props) {
+function textSize(height: number): { name: string; tagline: string } {
+  if (height <= 32) {
+    return { name: "text-xs sm:text-sm", tagline: "text-[9px] sm:text-[10px]" };
+  }
+  return { name: "text-sm sm:text-base", tagline: "text-[10px] sm:text-[11px]" };
+}
+
+export function SiteLogo({ className = "", height = 40, showTagline = true }: Props) {
+  const sizes = textSize(height);
+
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 32 32"
-      fill="none"
-      aria-hidden
-      className={className}
-    >
-      <rect width="32" height="32" rx="8" fill="currentColor" className="text-ocean" />
-      <path
-        d="M4 22c3-2 5-2 8 0s5 2 8 0 5-2 8 0"
-        stroke="#E6F4F6"
-        strokeWidth="1.5"
-        strokeLinecap="round"
+    <span className={`inline-flex items-center gap-2.5 ${className}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo-mark.svg"
+        alt=""
+        aria-hidden
+        height={height}
+        style={{ height, width: "auto", maxHeight: height }}
+        className="block shrink-0 object-contain"
       />
-      <path
-        d="M4 26c3-2 5-2 8 0s5 2 8 0 5-2 8 0"
-        stroke="#FAF7F2"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity="0.75"
-      />
-      <circle cx="24" cy="9" r="3" fill="#E8A838" />
-    </svg>
+      <span className="min-w-0 leading-tight">
+        <span
+          className={`block font-display font-semibold tracking-wide text-ink ${sizes.name}`}
+        >
+          MS VACATIONS
+        </span>
+        {showTagline ? (
+          <span className={`block font-medium tracking-wide text-muted ${sizes.tagline}`}>
+            Home &amp; Apartments for Rent
+          </span>
+        ) : null}
+      </span>
+    </span>
   );
 }

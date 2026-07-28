@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { formatUsd } from "@/lib/pricing";
 
@@ -10,6 +12,7 @@ type Props = {
     totalUsd: number;
   } | null;
   hasStay: boolean;
+  onOpenDates?: () => void;
 };
 
 export function PropertyMobileBookingBar({
@@ -18,6 +21,7 @@ export function PropertyMobileBookingBar({
   stayQuery,
   quote,
   hasStay,
+  onOpenDates,
 }: Props) {
   const nights = quote?.nights;
   const totalUsd = quote?.totalUsd;
@@ -25,7 +29,12 @@ export function PropertyMobileBookingBar({
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sand-dark bg-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgb(26_43_43/0.08)] lg:hidden">
       <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
+        <button
+          type="button"
+          onClick={onOpenDates}
+          className="min-w-0 text-left"
+          aria-label={hasStay ? "Editar fechas de la estadía" : "Seleccionar fechas"}
+        >
           {hasStay && totalUsd != null && nights ? (
             <>
               <p className="font-display text-lg font-semibold text-ink">
@@ -42,16 +51,27 @@ export function PropertyMobileBookingBar({
                 ~${formatUsd(pricePerNightUsd)}
                 <span className="text-sm font-normal text-muted"> / noche</span>
               </p>
-              <p className="text-xs text-muted">Reserva directa · USD</p>
+              <p className="text-xs text-muted">Toca para elegir fechas</p>
             </>
           )}
-        </div>
-        <Link
-          href={`/reservar/${slug}${stayQuery}`}
-          className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-ocean px-8 text-base font-semibold text-white transition-colors hover:bg-ocean-dark"
-        >
-          Reservar
-        </Link>
+        </button>
+
+        {hasStay ? (
+          <Link
+            href={`/reservar/${slug}${stayQuery}`}
+            className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-ocean px-8 text-base font-semibold text-white transition-colors hover:bg-ocean-dark"
+          >
+            Reservar
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={onOpenDates}
+            className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-ocean px-8 text-base font-semibold text-white transition-colors hover:bg-ocean-dark"
+          >
+            Ver fechas
+          </button>
+        )}
       </div>
     </div>
   );

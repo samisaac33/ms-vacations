@@ -5,6 +5,7 @@ import { BookingDesktopModal } from "@/components/booking/booking-desktop-modal"
 import { formatUsd } from "@/lib/pricing";
 import {
   formatBalanceDueDate,
+  SPLIT_BALANCE_DAYS_BEFORE_CHECKIN,
   type PaymentTiming,
   type SplitSchedule,
 } from "@/lib/payment-schedule";
@@ -96,7 +97,8 @@ export function PaymentTimingSelector({
                 </button>
               </div>
               <p className="text-sm leading-relaxed text-muted">
-                Pagas el 50 % al confirmar la reserva y el 50 % restante el día que falten 14 días
+                Pagas el 50 % al confirmar la reserva y el 50 % restante el día que falten{" "}
+                {SPLIT_BALANCE_DAYS_BEFORE_CHECKIN} días
                 para tu check-in. No hay cargos extra por pagar en dos partes. El saldo pendiente
                 debe transferirse o pagarse online antes de esa fecha.
               </p>
@@ -110,7 +112,8 @@ export function PaymentTimingSelector({
             maxWidthClass="max-w-md"
           >
             <p className="text-sm leading-relaxed text-muted">
-              Pagas el 50 % al confirmar la reserva y el 50 % restante el día que falten 14 días
+              Pagas el 50 % al confirmar la reserva y el 50 % restante el día que falten{" "}
+              {SPLIT_BALANCE_DAYS_BEFORE_CHECKIN} días
               para tu check-in. No hay cargos extra por pagar en dos partes. El saldo pendiente
               debe transferirse o pagarse online antes de esa fecha.
             </p>

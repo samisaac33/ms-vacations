@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import { isNightBlocked, rangeOverlapsAny, type DateRange } from "@/lib/availability-utils";
-import { validateStayLength } from "@/lib/stay-rules";
+import { validateStayLength, type HighSeasonPeriod } from "@/lib/stay-rules";
 
 export type DateRangeSelection = {
   checkIn: string;
@@ -16,6 +16,7 @@ export function selectBookingDateRange(
   current: DateRangeSelection,
   blocks: DateRange[],
   today: string,
+  highSeasonPeriods: HighSeasonPeriod[] = [],
 ): DateSelectionResult | { ok: true; range: DateRangeSelection; error?: undefined } {
   const { checkIn, checkOut } = current;
 
@@ -58,7 +59,7 @@ export function selectBookingDateRange(
     };
   }
 
-  const stayLengthError = validateStayLength(start, end);
+  const stayLengthError = validateStayLength(start, end, highSeasonPeriods);
   if (stayLengthError) {
     return { ok: false, error: stayLengthError };
   }
@@ -68,4 +69,24 @@ export function selectBookingDateRange(
 
 export function isValidBookingRange(checkIn: string, checkOut: string): boolean {
   return Boolean(checkIn && checkOut && checkOut > checkIn);
+}
+
+export function getBookingRangeValidationError(
+  checkIn: string,
+  checkOut: string,
+  highSeasonPeriods: HighSeasonPeriod[] = [],
+): string | null {
+  if (!checkIn || !checkOut) return null;
+  if (checkOut <= checkIn) {
+    return "La salida debe ser después de la entrada.";
+  }
+  return validateStayLength(checkIn, checkOut, highSeasonPeriods);
+}
+
+export function isBookingRangeValidWithRules(
+  checkIn: string,
+  checkOut: string,
+  highSeasonPeriods: HighSeasonPeriod[] = [],
+): boolean {
+  return getBookingRangeValidationError(checkIn, checkOut, highSeasonPeriods) === null;
 }

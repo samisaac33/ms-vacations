@@ -1,7 +1,7 @@
 import type { LegalContactInfo, LegalSection } from "@/lib/legal/types";
 import { formatLegalEntityBlock } from "@/lib/legal/contact-info";
 
-const LAST_UPDATED = "10 de julio de 2026";
+const LAST_UPDATED = "21 de julio de 2026";
 
 function contactChannels({ contactEmail, contactWhatsapp }: LegalContactInfo): string {
   const parts: string[] = [];
@@ -14,7 +14,7 @@ export function getCancellationPolicyMeta() {
   return {
     lastUpdated: LAST_UPDATED,
     description:
-      "Política de cancelaciones, cambios y devoluciones para reservas directas en MS Vacations — reembolsos según plazos Moderate.",
+      "Política de cancelación de reservas directas en MS Vacations — reembolso 100 % en 24 h o penalización del 50 % del total.",
   };
 }
 
@@ -42,22 +42,29 @@ export function getCancellationPolicySections(info: LegalContactInfo): LegalSect
       ],
     },
     {
-      title: "Ventana de cancelación gratuita de 24 horas",
+      title: "Política de cancelación de reservas",
       paragraphs: [
-        "Tras confirmar el pago de tu reserva directa, dispones de un plazo de 24 horas para cancelar con reembolso total del importe pagado, siempre que la fecha de check-in sea al menos 7 días después de la confirmación.",
+        "Con el objetivo de brindar un servicio transparente y garantizar la disponibilidad de nuestras propiedades, se establece la siguiente política de cancelación:",
+      ],
+    },
+    {
+      title: "Cancelación sin penalización",
+      paragraphs: [
+        "El huésped podrá cancelar su reserva dentro de las primeras 24 horas posteriores a la confirmación de la misma y recibirá el reembolso del 100 % de los valores pagados, siempre que la cancelación se realice dentro de ese plazo.",
         "El plazo de 24 horas se cuenta desde el momento en que recibes la confirmación de pago, según la hora oficial de Ecuador (America/Guayaquil).",
       ],
     },
     {
-      title: "Política Moderate",
+      title: "Cancelación después de 24 horas",
       paragraphs: [
-        "MS Vacations aplica la política de cancelación Moderate, alineada con el estándar de Airbnb para estancias cortas:",
+        "Una vez transcurridas las primeras 24 horas desde la confirmación de la reserva, cualquier cancelación estará sujeta a una penalización equivalente al 50 % del valor total de la reserva. El porcentaje restante será reembolsado conforme a los tiempos y procedimientos establecidos por el método de pago utilizado.",
       ],
-      list: [
-        "Reembolso total si cancelas al menos 5 días naturales antes de la fecha de check-in (hora Ecuador, America/Guayaquil).",
-        "Si cancelas con menos de 5 días de antelación al check-in, recibirás un reembolso parcial equivalente al 50% del importe correspondiente a las noches no disfrutadas (las noches comprendidas entre la fecha de cancelación y el check-out previsto en tu reserva).",
-        "Las noches ya transcurridas, si hubieras iniciado la estancia, no son reembolsables.",
-        "Cualquier impuesto, tasa o cargo incluido en el precio total se ajustará de forma proporcional al reembolso aplicable.",
+    },
+    {
+      title: "Aceptación de la política",
+      paragraphs: [
+        "Al confirmar una reserva, el huésped declara haber leído, comprendido y aceptado esta política de cancelación, la cual forma parte de los términos y condiciones de la reserva.",
+        "Agradecemos su comprensión, ya que esta política nos permite gestionar adecuadamente la disponibilidad de nuestras propiedades y ofrecer un servicio de calidad a todos nuestros huéspedes.",
       ],
     },
     {
@@ -66,7 +73,7 @@ export function getCancellationPolicySections(info: LegalContactInfo): LegalSect
         "Si deseas modificar las fechas de check-in o check-out de una reserva confirmada, contáctanos por " +
           contact +
           " con la mayor antelación posible.",
-        "Los cambios están sujetos a disponibilidad de la propiedad y a la tarifa vigente para las nuevas fechas. Si el nuevo total es mayor, deberás abonar la diferencia antes de confirmar el cambio; si es menor, aplicaremos la política de reembolso parcial según las secciones siguientes cuando corresponda.",
+        "Los cambios están sujetos a disponibilidad de la propiedad y a la tarifa vigente para las nuevas fechas. Si el nuevo total es mayor, deberás abonar la diferencia antes de confirmar el cambio.",
         "Un cambio de fechas no garantiza la misma tarifa por noche ni la misma condición de IVA (15 % o 8 % en feriados decretados) que la reserva original.",
         "MS Vacations evaluará cada solicitud de cambio de forma individual y confirmará por escrito si el cambio procede y el importe resultante.",
       ],

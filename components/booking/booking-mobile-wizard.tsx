@@ -19,6 +19,7 @@ import { PayPalPaymentButtons } from "@/components/booking/paypal-payment-button
 import { PayphonePaymentBox } from "@/components/booking/payphone-payment-box";
 import { BookingStepReview } from "@/components/booking/booking-step-review";
 import { useBookingCheckout } from "@/hooks/use-booking-checkout";
+import type { HighSeasonPeriod } from "@/lib/stay-rules";
 import { LEGAL_TERMS_VERSION } from "@/lib/legal/constants";
 import { formatUsd } from "@/lib/pricing";
 import {
@@ -47,6 +48,7 @@ type Props = {
   initialCheckIn?: string;
   initialCheckOut?: string;
   initialGuests?: number;
+  highSeasonPeriods?: HighSeasonPeriod[];
   onPricingChange?: Parameters<typeof useBookingCheckout>[0]["onPricingChange"];
 };
 
@@ -75,6 +77,7 @@ export function BookingMobileWizard({
   initialCheckIn,
   initialCheckOut,
   initialGuests,
+  highSeasonPeriods = [],
   onPricingChange,
 }: Props) {
   const router = useRouter();
@@ -90,6 +93,7 @@ export function BookingMobileWizard({
     initialCheckIn,
     initialCheckOut,
     initialGuests,
+    highSeasonPeriods,
     onPricingChange,
   });
 
@@ -111,8 +115,10 @@ export function BookingMobileWizard({
     setError,
     rangeHint,
     setRangeHint,
+    dateRangeError,
     quote,
     quoteLoading,
+    quoteError,
     step1Done,
     totalUsd,
     dueNowUsd,
@@ -181,13 +187,7 @@ export function BookingMobileWizard({
       return true;
     }
     if (step === 4 && isBankTransfer) {
-      return (
-        Boolean(guestEmail.trim()) &&
-        termsAccepted &&
-        Boolean(proofFile) &&
-        !loading &&
-        !bankTransferComplete
-      );
+      return Boolean(guestEmail.trim()) && !loading && !bankTransferComplete;
     }
     return false;
   }
@@ -228,7 +228,7 @@ export function BookingMobileWizard({
       }
 
       window.open(url, "_blank", "noopener,noreferrer");
-      setTransferSuccess({ reference, via: "whatsapp" });
+      setTransferSuccess({ reference, via: "whatsapp", bookingId: result.bookingId });
     } finally {
       setWhatsAppLoading(false);
     }
@@ -248,7 +248,16 @@ export function BookingMobileWizard({
     }
 
     if (step === 4 && isBankTransfer) {
-      if (!canAdvance() || !proofFile) return;
+      if (!canAdvance()) return;
+
+      if (!termsAccepted) {
+        setError("Debes aceptar los términos y condiciones para continuar.");
+        return;
+      }
+      if (!proofFile) {
+        setError("Sube el comprobante de transferencia para continuar.");
+        return;
+      }
 
       const result = await submitBooking({ skipRedirect: true, bankTransferInit: "standard" });
       if (!result.ok || !result.bookingId) return;
@@ -262,6 +271,7 @@ export function BookingMobileWizard({
       setTransferSuccess({
         reference: formatBookingReference(result.bookingId),
         via: "upload",
+        bookingId: result.bookingId,
       });
     }
   }
@@ -278,7 +288,7 @@ export function BookingMobileWizard({
           : step === 3
             ? "Siguiente"
             : isBankTransfer
-              ? `Confirmar compra · $${formatUsd(checkoutAmountUsd)} USD`
+              ? "Confirmar y enviar"
               : `Confirmar compra · $${formatUsd(checkoutAmountUsd)} USD`;
 
   const showPrimaryButton = !isOnlinePaymentStep && !(isBankTransfer && bankTransferComplete);
@@ -371,6 +381,7 @@ export function BookingMobileWizard({
             paymentMethodLabel={paymentMethodLabel(paymentMethod)}
             paymentMethod={paymentMethod}
             nights={quote.nights}
+            propertySlug={property.slug}
             bank={bank}
             bankTransfer={{
               propertyName: property.name,
@@ -413,12 +424,12 @@ export function BookingMobileWizard({
           />
         )}
 
-        {rangeHint && (
+        {(dateRangeError || quoteError) && (step === 1 || step === 3) && (
           <p
-            className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
             role="alert"
           >
-            {rangeHint}
+            {dateRangeError || quoteError}
           </p>
         )}
 
@@ -458,7 +469,8 @@ export function BookingMobileWizard({
         onBlocksLoaded={handleBlocksLoaded}
         onRangeError={setRangeHint}
         onGuestsChange={setGuests}
-        rangeError={rangeHint}
+        rangeError={dateRangeError}
+        highSeasonPeriods={highSeasonPeriods}
       >
         {sheet === "details" && quote ? (
           <PriceBreakdownContent

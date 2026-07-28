@@ -4,8 +4,18 @@ import { properties, propertyNightlyRates } from "@/db/schema";
 import type { AvailabilityBlock } from "@/lib/availability-query";
 import { getAvailabilityBySlug } from "@/lib/availability-query";
 import type { DateRange } from "@/lib/availability-utils";
-import { eachDayIsoInclusive, eachNightIso } from "@/lib/dates";
-import { directPricePerNightCents } from "@/lib/pricing";
+import { eachDayIsoInclusive, eachNightIso, nightsBetween } from "@/lib/dates";
+import type { VatPeriod } from "@/lib/legal/hospitality-vat";
+import { directCentsForNight, isPromotionalVatDate } from "@/lib/legal/hospitality-vat";
+import { applyNewYearsEveGuestDirectCents } from "@/lib/new-years-eve-pricing";
+import {
+  catalogReferencePriceUsd,
+  guestDirectPriceUsd,
+  cleaningFeeCents,
+  guestDirectCentsFromReference,
+} from "@/lib/property-pricing";
+import { loadPromotionalVatPeriods } from "@/lib/vat-periods-query";
+import { ensurePropertyRowBySlug } from "@/lib/property-db";
 
 type Db = ReturnType<typeof getDb>;
 
@@ -18,10 +28,25 @@ export type PricingDay = {
   blockSource?: "external" | "booking";
 };
 
+export type StayQuoteNightly = {
+  date: string;
+  referenceCents: number;
+  /** Precio huésped a IVA 15 % (antes de tarifa promocional). */
+  guestDirectCents: number;
+  directCents: number;
+  isPromotionalVat: boolean;
+  isOverride: boolean;
+  isNewYearsEve: boolean;
+};
+
 export type StayQuote = {
+  slug: string;
   nights: number;
+  nightly: StayQuoteNightly[];
+  cleaningFeeCents: number;
+  nightlyTotalDirectCents: number;
+  /** Noches + limpieza (total transferencia). */
   totalDirectCents: number;
-  nightly: { date: string; referenceCents: number; directCents: number; isOverride: boolean }[];
 };
 
 function blockSourceForNight(night: string, blocks: AvailabilityBlock[]): "external" | "booking" | undefined {
@@ -67,6 +92,41 @@ export function referenceCentsForNight(
   return { referenceCents: baseReferenceCents, isOverride: false };
 }
 
+export function catalogReferenceCentsForSlug(slug: string): number {
+  return Math.round(catalogReferencePriceUsd(slug) * 100);
+}
+
+/** Cotización de una noche (función pura, testeable sin DB). */
+export function quoteNightlyForDate(params: {
+  date: string;
+  slug: string;
+  catalogReferenceCents: number;
+  overrides: Map<string, number>;
+  vatPeriods?: VatPeriod[];
+}): StayQuoteNightly {
+  const { date, slug, catalogReferenceCents, overrides, vatPeriods = [] } = params;
+  const { referenceCents, isOverride } = referenceCentsForNight(
+    date,
+    catalogReferenceCents,
+    overrides,
+  );
+  const guestCents = guestDirectCentsFromReference(referenceCents, slug, catalogReferenceCents);
+  const { guestDirectCents, isNewYearsEve } = applyNewYearsEveGuestDirectCents(
+    date,
+    guestCents,
+    isOverride,
+  );
+  return {
+    date,
+    referenceCents,
+    guestDirectCents,
+    directCents: directCentsForNight(guestDirectCents, date, vatPeriods),
+    isPromotionalVat: isPromotionalVatDate(date, vatPeriods),
+    isOverride,
+    isNewYearsEve,
+  };
+}
+
 export async function calculateStayDirectTotalCents(
   propertyId: string,
   checkIn: string,
@@ -88,19 +148,30 @@ export async function getStayQuoteByPropertyId(
 
   const nights = eachNightIso(checkIn, checkOut);
   const overrides = await getOverridesMapForDates(propertyId, nights, db);
+  const vatPeriods = await loadPromotionalVatPeriods();
+  const catalogReferenceCents = catalogReferenceCentsForSlug(prop.slug);
 
-  const nightly = nights.map((date) => {
-    const { referenceCents, isOverride } = referenceCentsForNight(date, prop.basePricePerNightCents, overrides);
-    return {
+  const nightly = nights.map((date) =>
+    quoteNightlyForDate({
       date,
-      referenceCents,
-      directCents: directPricePerNightCents(referenceCents),
-      isOverride,
-    };
-  });
+      slug: prop.slug,
+      catalogReferenceCents,
+      overrides,
+      vatPeriods,
+    }),
+  );
 
-  const totalDirectCents = nightly.reduce((sum, n) => sum + n.directCents, 0);
-  return { nights: nightly.length, totalDirectCents, nightly };
+  const nightlyTotalDirectCents = nightly.reduce((sum, n) => sum + n.directCents, 0);
+  const cleaning = cleaningFeeCents(prop.slug);
+  const totalDirectCents = nightlyTotalDirectCents + cleaning;
+  return {
+    slug: prop.slug,
+    nights: nightly.length,
+    nightly,
+    cleaningFeeCents: cleaning,
+    nightlyTotalDirectCents,
+    totalDirectCents,
+  };
 }
 
 export async function getStayQuoteBySlug(
@@ -109,10 +180,67 @@ export async function getStayQuoteBySlug(
   checkOut: string,
 ): Promise<StayQuote | null> {
   if (!hasDatabase()) return null;
-  const db = getDb();
-  const [prop] = await db.select().from(properties).where(eq(properties.slug, slug)).limit(1);
+  const prop = await ensurePropertyRowBySlug(slug);
   if (!prop) return null;
-  return getStayQuoteByPropertyId(prop.id, checkIn, checkOut, db);
+  return getStayQuoteByPropertyId(prop.id, checkIn, checkOut);
+}
+
+export type CatalogCardQuote = {
+  nights: number;
+  totalUsd: number;
+};
+
+export function toCatalogCardQuote(quote: StayQuote): CatalogCardQuote {
+  return {
+    nights: quote.nights,
+    totalUsd: quote.totalDirectCents / 100,
+  };
+}
+
+export function fallbackCatalogCardQuote(
+  slug: string,
+  checkIn: string,
+  checkOut: string,
+): CatalogCardQuote | null {
+  const nights = eachNightIso(checkIn, checkOut);
+  if (nights.length < 1) return null;
+  const nightlyUsd = Math.round(guestDirectPriceUsd(slug));
+  const nightlyCents = nightlyUsd * 100;
+  let lodgingCents = 0;
+  for (const date of nights) {
+    const { guestDirectCents } = applyNewYearsEveGuestDirectCents(date, nightlyCents, false);
+    lodgingCents += guestDirectCents;
+  }
+  const totalUsd = lodgingCents / 100 + cleaningFeeCents(slug) / 100;
+  return { nights: nights.length, totalUsd };
+}
+
+export async function resolveCatalogCardQuote(
+  slug: string,
+  checkIn: string,
+  checkOut: string,
+): Promise<CatalogCardQuote | null> {
+  const quote = await getStayQuoteBySlug(slug, checkIn, checkOut);
+  if (quote) return toCatalogCardQuote(quote);
+  return fallbackCatalogCardQuote(slug, checkIn, checkOut);
+}
+
+export async function getCatalogCardQuotesBySlug(
+  slugs: string[],
+  checkIn: string,
+  checkOut: string,
+): Promise<Map<string, CatalogCardQuote>> {
+  const entries = await Promise.all(
+    slugs.map(async (slug) => {
+      const quote = await resolveCatalogCardQuote(slug, checkIn, checkOut);
+      return [slug, quote] as const;
+    }),
+  );
+  const map = new Map<string, CatalogCardQuote>();
+  for (const [slug, quote] of entries) {
+    if (quote) map.set(slug, quote);
+  }
+  return map;
 }
 
 export async function getAdminPricingDays(
@@ -142,21 +270,37 @@ export async function getAdminPricingDays(
       ),
     );
   const overrides = new Map(overrideRows.map((r) => [r.date, r.referencePriceCents]));
+  const vatPeriods = await loadPromotionalVatPeriods();
+  const catalogReferenceCents = catalogReferenceCentsForSlug(prop.slug);
 
   const days: PricingDay[] = eachDayIsoInclusive(from, to).map((date) => {
-    const { referenceCents, isOverride } = referenceCentsForNight(date, prop.basePricePerNightCents, overrides);
+    const { referenceCents, isOverride } = referenceCentsForNight(
+      date,
+      catalogReferenceCents,
+      overrides,
+    );
     const blockSource = blockSourceForNight(date, blocks);
+    const guestCents = guestDirectCentsFromReference(
+      referenceCents,
+      prop.slug,
+      catalogReferenceCents,
+    );
+    const { guestDirectCents } = applyNewYearsEveGuestDirectCents(
+      date,
+      guestCents,
+      isOverride,
+    );
     return {
       date,
       referenceCents,
-      directCents: directPricePerNightCents(referenceCents),
+      directCents: directCentsForNight(guestDirectCents, date, vatPeriods),
       isOverride,
       blocked: blockSource !== undefined,
       blockSource,
     };
   });
 
-  return { baseReferenceCents: prop.basePricePerNightCents, days };
+  return { baseReferenceCents: catalogReferenceCents, days };
 }
 
 export async function upsertNightlyRates(

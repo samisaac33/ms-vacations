@@ -1,13 +1,16 @@
 import {
   formatVatRatePercent,
-  hospitalityVatRatePercentForDate,
+  HOSPITALITY_VAT_STANDARD_RATE,
+  hospitalityVatRatePercentForNight,
 } from "@/lib/legal/hospitality-vat";
 import type { PaymentMethod } from "@/lib/payments/types";
 import {
-  BANK_TRANSFER_DISCOUNT_PERCENT,
+  CARD_PAYMENT_MARKUP_PERCENT,
+  bookingTotalCentsForPaymentMethod,
+  bookingTotalUsdForPaymentMethod,
   formatUsd,
-  totalCentsForPaymentMethod,
-  totalUsdForPaymentMethod,
+  refundableGuaranteeCents,
+  stayTotalCentsForPaymentMethod,
 } from "@/lib/pricing";
 import type { StayQuote } from "@/lib/pricing-query";
 
@@ -29,8 +32,8 @@ export type StayPriceBreakdown = {
   lines: PriceBreakdownLine[];
   subtotalBaseCents: number;
   vatByRate: { ratePercent: number; cents: number }[];
-  totalBeforeDiscountCents: number;
-  discountCents: number;
+  totalBeforeMarkupCents: number;
+  markupCents: number;
   totalCents: number;
   totalUsd: number;
   paymentMethod: PaymentMethod;
@@ -47,7 +50,7 @@ export function buildStayPriceBreakdown(
   paymentMethod: PaymentMethod,
 ): StayPriceBreakdown {
   const nightly = quote.nightly.map((night) => {
-    const ratePercent = hospitalityVatRatePercentForDate(night.date);
+    const ratePercent = hospitalityVatRatePercentForNight(night);
     const rate = ratePercent / 100;
     const { baseCents, vatCents } = vatFromInclusiveCents(night.directCents, rate);
     return {
@@ -60,7 +63,8 @@ export function buildStayPriceBreakdown(
   });
 
   const subtotalBaseCents = nightly.reduce((sum, n) => sum + n.baseCents, 0);
-  const totalBeforeDiscountCents = quote.totalDirectCents;
+  const lodgingBeforeMarkupCents = quote.nightlyTotalDirectCents;
+  const totalBeforeMarkupCents = lodgingBeforeMarkupCents + quote.cleaningFeeCents;
 
   const vatMap = new Map<number, number>();
   for (const night of nightly) {
@@ -70,21 +74,31 @@ export function buildStayPriceBreakdown(
     .sort((a, b) => b[0] - a[0])
     .map(([ratePercent, cents]) => ({ ratePercent, cents }));
 
-  const totalCents = totalCentsForPaymentMethod(quote.totalDirectCents, paymentMethod);
-  const discountCents =
-    paymentMethod === "bank_transfer" ? totalBeforeDiscountCents - totalCents : 0;
+  const stayTotalCents = stayTotalCentsForPaymentMethod(
+    quote.nightlyTotalDirectCents,
+    quote.cleaningFeeCents,
+    paymentMethod,
+  );
+  const totalCents = bookingTotalCentsForPaymentMethod(
+    quote.nightlyTotalDirectCents,
+    quote.cleaningFeeCents,
+    paymentMethod,
+    quote.slug,
+  );
+  const markupCents =
+    paymentMethod !== "bank_transfer" ? stayTotalCents - totalBeforeMarkupCents : 0;
 
   const lines: PriceBreakdownLine[] = [];
 
   if (quote.nights > 1) {
     lines.push({
       label: `${quote.nights} noches`,
-      amountCents: totalBeforeDiscountCents,
+      amountCents: lodgingBeforeMarkupCents,
     });
   } else {
     lines.push({
       label: "1 noche",
-      amountCents: totalBeforeDiscountCents,
+      amountCents: lodgingBeforeMarkupCents,
     });
   }
 
@@ -102,15 +116,41 @@ export function buildStayPriceBreakdown(
     });
   }
 
-  lines.push({
-    label: "Subtotal con IVA incluido",
-    amountCents: totalBeforeDiscountCents,
-  });
+  if (quote.cleaningFeeCents > 0) {
+    const { baseCents: cleaningBaseCents, vatCents: cleaningVatCents } = vatFromInclusiveCents(
+      quote.cleaningFeeCents,
+      HOSPITALITY_VAT_STANDARD_RATE,
+    );
+    const cleaningVatRatePercent = HOSPITALITY_VAT_STANDARD_RATE * 100;
 
-  if (discountCents > 0) {
     lines.push({
-      label: `Descuento transferencia (−${BANK_TRANSFER_DISCOUNT_PERCENT} %)`,
-      amountCents: -discountCents,
+      label: "Recargo de limpieza",
+      amountCents: quote.cleaningFeeCents,
+    });
+    lines.push({
+      label: "Subtotal sin IVA",
+      amountCents: cleaningBaseCents,
+      indent: true,
+    });
+    lines.push({
+      label: `IVA ${formatVatRatePercent(cleaningVatRatePercent)} %`,
+      amountCents: cleaningVatCents,
+      indent: true,
+    });
+  }
+
+  if (markupCents > 0) {
+    lines.push({
+      label: `Recargo tarjeta (+${CARD_PAYMENT_MARKUP_PERCENT} %)`,
+      amountCents: markupCents,
+    });
+  }
+
+  const guaranteeCents = refundableGuaranteeCents(quote.slug);
+  if (guaranteeCents > 0) {
+    lines.push({
+      label: "Garantía reembolsable",
+      amountCents: guaranteeCents,
     });
   }
 
@@ -125,10 +165,15 @@ export function buildStayPriceBreakdown(
     lines,
     subtotalBaseCents,
     vatByRate,
-    totalBeforeDiscountCents,
-    discountCents,
+    totalBeforeMarkupCents,
+    markupCents,
     totalCents,
-    totalUsd: totalUsdForPaymentMethod(quote.totalDirectCents, paymentMethod),
+    totalUsd: bookingTotalUsdForPaymentMethod(
+      quote.nightlyTotalDirectCents,
+      quote.cleaningFeeCents,
+      paymentMethod,
+      quote.slug,
+    ),
     paymentMethod,
   };
 }

@@ -37,7 +37,7 @@ export default function CancelacionesPage() {
       <LegalBusinessNotice />
       <LegalDocument
         lastUpdated={meta.lastUpdated}
-        intro="Condiciones de cancelación, modificación de fechas y reembolso para reservas directas pagadas en este sitio. Política Moderate, alineada con el estándar de Airbnb para estancias de hasta 27 noches."
+        intro="Condiciones de cancelación, modificación de fechas y reembolso para reservas directas pagadas en este sitio. Reembolso del 100 % dentro de las primeras 24 horas tras la confirmación; después, penalización del 50 % del valor total."
         sections={sections}
       />
       <LegalNav currentPath="/cancelaciones" />

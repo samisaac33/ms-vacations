@@ -1,4 +1,4 @@
-import { count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, isNull, like, sql } from "drizzle-orm";
 import { getDb, hasDatabase } from "@/db/index";
 import { externalBlocks, properties, syncLogs } from "@/db/schema";
 import { formatUsd } from "@/lib/pricing";
@@ -92,4 +92,31 @@ export async function getAdminIcalDashboard(): Promise<{
     .limit(20);
 
   return { properties: adminProperties, logs: logRows };
+}
+
+/** Última sync iCal batch 100 % exitosa; si no hay, la más reciente por propiedad. */
+export async function getLastSuccessfulIcalSyncAt(): Promise<Date | null> {
+  if (!hasDatabase()) return null;
+
+  const db = getDb();
+  const [lastBatch] = await db
+    .select({ createdAt: syncLogs.createdAt })
+    .from(syncLogs)
+    .where(
+      and(
+        isNull(syncLogs.propertyId),
+        eq(syncLogs.level, "info"),
+        like(syncLogs.message, "%0 fallidas%"),
+      ),
+    )
+    .orderBy(desc(syncLogs.createdAt))
+    .limit(1);
+
+  if (lastBatch) return lastBatch.createdAt;
+
+  const [row] = await db
+    .select({ max: sql<Date | null>`max(${properties.lastIcalSyncAt})` })
+    .from(properties);
+
+  return row?.max ?? null;
 }

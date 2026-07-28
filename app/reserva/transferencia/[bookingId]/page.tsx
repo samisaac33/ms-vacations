@@ -15,20 +15,35 @@ export default async function BankTransferPage({ params }: Props) {
 
   const bank = getBankAccountDetails();
   const reference = formatBookingReference(bookingId);
+  const isComplete =
+    booking.status === "pending_verification" || booking.status === "confirmed";
 
   return (
     <div className="mx-auto max-w-lg px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-semibold text-ink">Transferencia bancaria</h1>
-      <p className="mt-2 text-sm text-muted">
-        Realiza la transferencia por el monto indicado e indica la referencia <strong>{reference}</strong>.
-        Luego sube el comprobante para que confirmemos tu reserva.
-      </p>
+      {!isComplete && (
+        <>
+          <h1 className="text-2xl font-semibold text-ink">Transferencia bancaria</h1>
+          <p className="mt-2 text-sm text-muted">
+            Realiza la transferencia por el monto indicado e indica la referencia{" "}
+            <strong>{reference}</strong>. Luego sube el comprobante para que confirmemos tu reserva.
+          </p>
+        </>
+      )}
 
-      <div className="mt-8">
+      <div className={isComplete ? "" : "mt-8"}>
         <BankTransferUploadForm
           bookingId={bookingId}
           reference={reference}
           totalUsd={booking.totalCents / 100}
+          propertyName={booking.propertyName}
+          checkIn={booking.checkIn}
+          checkOut={booking.checkOut}
+          guests={booking.guests}
+          guestEmail={booking.guestEmail ?? ""}
+          paymentTiming={booking.paymentTiming}
+          depositCents={booking.depositCents}
+          balanceCents={booking.balanceCents}
+          balanceDueAt={booking.balanceDueAt}
           bank={bank}
           status={booking.status}
           proofUrl={booking.paymentProofUrl}

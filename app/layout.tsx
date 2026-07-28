@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
-import { SiteFooter } from "@/components/site-footer";
+import { SiteFooterGate } from "@/components/site-footer-gate";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { WhatsAppFloatingButton } from "@/components/whatsapp-floating-button";
@@ -21,6 +21,11 @@ const fraunces = Fraunces({
 
 const ogImage = PROPERTIES[0]?.images[0]?.src ?? "/properties/placeholder-1.svg";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: {
     default: `${siteConfig.name} | San Clemente y Portoviejo`,
@@ -30,6 +35,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   icons: {
     icon: "/favicon.svg",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: siteConfig.name,
@@ -57,11 +63,12 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-sand text-ink font-sans">
         <ThemeProvider>
           <SiteHeader />
-          <div className="flex-1">{children}</div>
-          <SiteFooter />
+          <div className="min-w-0 flex-1">{children}</div>
+          <SiteFooterGate />
           <WhatsAppFloatingButton />
         </ThemeProvider>
       </body>
     </html>
   );
 }
+

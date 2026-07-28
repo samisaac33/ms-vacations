@@ -38,7 +38,9 @@ export function PaymentMethodConfirmCard({ paymentMethod }: Props) {
           </span>
           <div className="min-w-0">
             <p className="font-semibold text-ink">{option.label}</p>
-            <p className="mt-0.5 text-muted">{option.subtitle}</p>
+            {option.subtitle ? (
+              <p className="mt-0.5 text-muted">{option.subtitle}</p>
+            ) : null}
             <p className="mt-2 text-ink">{copy.detail}</p>
           </div>
         </div>

@@ -12,9 +12,12 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
+    "db:seed": "tsx scripts/seed.ts",
     "db:migrate:payment-proof": "tsx scripts/migrate-payment-proof.ts",
     "db:migrate:split-payment": "tsx scripts/migrate-split-payment.ts",
-    "db:seed": "tsx scripts/seed.ts",
+    "db:migrate:admin-settings-vat": "tsx scripts/migrate-admin-settings-vat.ts",
+    "db:migrate:high-season": "tsx scripts/migrate-high-season-periods.ts",
+    "db:migrate:billing": "tsx scripts/migrate-billing.ts",
     "db:update-beach-prices": "tsx scripts/update-beach-prices.ts",
     "db:clear-stale-pricing-overrides": "tsx scripts/clear-stale-pricing-overrides.ts"
   },
@@ -27,7 +30,9 @@
     "postgres": "^3.4.5",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-icons": "^5.7.0"
+    "react-icons": "^5.7.0",
+    "resend": "^6.17.2",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

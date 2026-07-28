@@ -2,24 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import {
-  CardNetworkLogos,
-  CreditCardIcon,
-  PayPalLogoIcon,
-  ProdubancoIcon,
-} from "@/components/booking/payment-brand-icons";
 import { PayPalPaymentButtons } from "@/components/booking/paypal-payment-buttons";
 import { PayphonePaymentBox } from "@/components/booking/payphone-payment-box";
+import { PaymentMethodList } from "@/components/booking/payment-method-list";
 import { PaymentTimingSelector } from "@/components/booking/payment-timing-selector";
+import { GuaranteeIncludedNote } from "@/components/booking/guarantee-included-note";
 import type { DesktopEditModal } from "@/components/booking/booking-desktop-edit-modals";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { LEGAL_TERMS_VERSION } from "@/lib/legal/constants";
-import { PAYMENT_OPTIONS } from "@/lib/payment-options";
 import { isSplitPaymentEligible } from "@/lib/payment-schedule";
 import { buildOnlineCheckoutSnapshot } from "@/lib/payments/online-checkout";
-import type { PaymentMethod } from "@/lib/payments/types";
-import { formatUsd } from "@/lib/pricing";
+import { formatUsd, appliesRefundableGuarantee } from "@/lib/pricing";
 import type { useBookingCheckout } from "@/hooks/use-booking-checkout";
 
 type Checkout = ReturnType<typeof useBookingCheckout>;
@@ -31,16 +25,6 @@ type Props = {
   onOpenModal: (mode: Exclude<DesktopEditModal, null>) => void;
   autoOpenDates?: boolean;
 };
-
-function PaymentMethodBrandIcon({ method }: { method: PaymentMethod }) {
-  if (method === "bank_transfer") return <ProdubancoIcon className="shrink-0" />;
-  if (method === "payphone") return <CreditCardIcon className="shrink-0" />;
-  return <PayPalLogoIcon className="shrink-0" />;
-}
-
-function paymentMethodLabel(method: PaymentMethod): string {
-  return PAYMENT_OPTIONS.find((o) => o.id === method)?.label ?? method;
-}
 
 export function BookingDesktopCheckout({
   slug,
@@ -59,6 +43,7 @@ export function BookingDesktopCheckout({
     guestEmail,
     setGuestEmail,
     paymentMethod,
+    setPaymentMethod,
     paymentTiming,
     setPaymentTiming,
     termsAccepted,
@@ -67,6 +52,8 @@ export function BookingDesktopCheckout({
     error,
     quote,
     quoteLoading,
+    quoteError,
+    dateRangeError,
     step1Done,
     dueNowUsd,
     dueNowCents,
@@ -84,6 +71,10 @@ export function BookingDesktopCheckout({
       onOpenModal("dates");
     }
   }, [autoOpenDates, checkIn, checkOut, onOpenModal]);
+
+  useEffect(() => {
+    setShowOnlinePayment(false);
+  }, [paymentMethod]);
 
   const checkoutAmountUsd = isSplitDeposit ? dueNowUsd : totalUsd;
 
@@ -139,31 +130,25 @@ export function BookingDesktopCheckout({
       </header>
 
       {quote && !quoteLoading && step1Done && (
-        <PaymentTimingSelector
-          totalUsd={step1TotalUsd}
-          splitSchedule={step1SplitSchedule}
-          paymentTiming={paymentTiming}
-          onChange={setPaymentTiming}
-        />
+        <div className="space-y-2">
+          {appliesRefundableGuarantee(slug) && <GuaranteeIncludedNote />}
+          <PaymentTimingSelector
+            totalUsd={step1TotalUsd}
+            splitSchedule={step1SplitSchedule}
+            paymentTiming={paymentTiming}
+            onChange={setPaymentTiming}
+          />
+        </div>
       )}
 
       <section className={`space-y-3 ${!step1Done ? "pointer-events-none opacity-50" : ""}`}>
         <p className="text-base font-semibold text-ink">Método de pago</p>
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-sand-dark bg-surface px-4 py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <PaymentMethodBrandIcon method={paymentMethod} />
-            <span className="text-sm font-medium text-ink">{paymentMethodLabel(paymentMethod)}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onOpenModal("payment")}
-            disabled={!step1Done}
-            className="shrink-0 rounded-lg border border-sand-dark bg-sand/80 px-3 py-1.5 text-sm font-semibold text-ink disabled:opacity-40"
-          >
-            Cambia
-          </button>
-        </div>
-        {paymentMethod === "payphone" && <CardNetworkLogos className="px-1" />}
+        <PaymentMethodList
+          paymentMethod={paymentMethod}
+          onChange={setPaymentMethod}
+          disabled={!step1Done}
+          name="desktop-paymentMethod"
+        />
       </section>
 
       <form onSubmit={onSubmit} className={`space-y-6 ${!step1Done ? "pointer-events-none opacity-50" : ""}`}>
@@ -212,10 +197,14 @@ export function BookingDesktopCheckout({
             , la{" "}
             <Link href="/privacidad" className="text-ink underline underline-offset-2">
               política de privacidad
-            </Link>{" "}
-            y la{" "}
+            </Link>
+            , la{" "}
             <Link href="/cancelaciones" className="text-ink underline underline-offset-2">
               política de cancelación
+            </Link>{" "}
+            y la{" "}
+            <Link href="/garantia" className="text-ink underline underline-offset-2">
+              política de garantía reembolsable
             </Link>
             .
           </span>
@@ -227,7 +216,13 @@ export function BookingDesktopCheckout({
           </p>
         )}
 
-        {!step1Done && !error && (
+        {!step1Done && !error && (dateRangeError || quoteError) && (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+            {dateRangeError || quoteError}
+          </p>
+        )}
+
+        {!step1Done && !error && !dateRangeError && !quoteError && (
           <p className="text-sm text-muted">
             Selecciona fechas en el resumen para continuar con el pago.
           </p>

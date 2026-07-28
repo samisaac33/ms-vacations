@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { PropertyAmenitiesList } from "@/components/property-amenities-list";
+import { PropertyAboutPanel } from "@/components/property-about-panel";
+import { PropertyAmenitiesPanel } from "@/components/property-amenities-panel";
 import { PropertyBedroomsCarousel } from "@/components/property-bedrooms-carousel";
+import { PropertyStaySearchSheet } from "@/components/property-booking-widget";
+import { PropertyHighlights } from "@/components/property-highlights";
 import { PropertyLocationMap } from "@/components/property-location-map";
 import { PropertyMobileBookingBar } from "@/components/property-mobile-booking-bar";
 import { PropertyPhotoGallery } from "@/components/property-photo-gallery";
@@ -12,30 +15,46 @@ import { PropertyThingsToKnow } from "@/components/property-things-to-know";
 import type { GalleryImage } from "@/lib/property-photo-groups";
 import { getBedroomCards } from "@/lib/property-photo-groups";
 import type { Property } from "@/lib/properties";
+import { directPricePerNightUsd } from "@/lib/pricing";
+import type { StayDestination } from "@/lib/stay-search";
+import type { HighSeasonPeriod } from "@/lib/stay-rules";
 
 type Quote = {
   nights: number;
   totalUsd: number;
 } | null;
 
+type StayDates = {
+  checkIn: string;
+  checkOut: string;
+  huespedes?: number;
+};
+
 type Props = {
   property: Property;
+  destino: StayDestination;
   shareLink: string;
   catalogHref: string;
+  stay?: StayDates;
   stayQuery: string;
   hasStay: boolean;
   quote: Quote;
+  highSeasonPeriods?: HighSeasonPeriod[];
 };
 
 export function PropertyDetailMobile({
   property,
+  destino,
   shareLink,
   catalogHref,
+  stay,
   stayQuery,
   hasStay,
   quote,
+  highSeasonPeriods = [],
 }: Props) {
   const [tour, setTour] = useState<{ index: number } | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const images: GalleryImage[] =
     property.images.length > 0
@@ -43,6 +62,10 @@ export function PropertyDetailMobile({
       : [{ src: "/properties/placeholder-1.svg", alt: `${property.name} — imagen no disponible` }];
 
   const bedrooms = getBedroomCards(images);
+
+  function openDatesSheet() {
+    setSheetOpen(true);
+  }
 
   return (
     <>
@@ -61,7 +84,7 @@ export function PropertyDetailMobile({
               {property.name}
             </h1>
             <p className="mt-2 text-sm text-muted">
-              Alojamiento entero · {property.location.area}, {property.location.province}
+              Casa completa · {property.location.area}, {property.location.province}
             </p>
             <div className="mt-2 flex justify-center">
               <PropertySummaryStats capacity={property.capacity} />
@@ -74,14 +97,20 @@ export function PropertyDetailMobile({
               onOpenPhoto={(index) => setTour({ index })}
             />
 
-            <PropertyAmenitiesList amenities={property.amenities} />
+            <PropertyHighlights highlights={property.highlights} />
 
-            <section>
-              <h2 className="text-xl font-semibold text-ink">Descripción</h2>
-              <p className="mt-3 leading-relaxed text-muted">{property.description}</p>
-            </section>
+            <PropertyAboutPanel property={property} />
 
-            <PropertyThingsToKnow rules={property.rules} />
+            <PropertyAmenitiesPanel property={property} />
+
+            <PropertyThingsToKnow
+              property={property}
+              propertySlug={property.slug}
+              rules={property.rules}
+              checkIn={stay?.checkIn}
+              checkOut={stay?.checkOut}
+              onAddDates={openDatesSheet}
+            />
 
             <PropertyLocationMap property={property} />
           </div>
@@ -89,10 +118,22 @@ export function PropertyDetailMobile({
 
         <PropertyMobileBookingBar
           slug={property.slug}
-          pricePerNightUsd={property.basePricePerNightUsd}
+          pricePerNightUsd={directPricePerNightUsd(property.slug)}
           stayQuery={stayQuery}
           quote={quote}
           hasStay={hasStay}
+          onOpenDates={openDatesSheet}
+        />
+
+        <PropertyStaySearchSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          slug={property.slug}
+          propertyName={property.name}
+          maxGuests={property.capacity.guests}
+          destino={destino}
+          stay={stay}
+          highSeasonPeriods={highSeasonPeriods}
         />
       </div>
 

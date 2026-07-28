@@ -83,7 +83,7 @@ export function PropertyAmenitiesList({ amenities }: Props) {
 
   return (
     <section>
-      <h2 className="text-xl font-semibold text-ink">Lo que este lugar ofrece</h2>
+      <h2 className="text-xl font-semibold text-ink">Comodidades</h2>
       <ul className="mt-4 space-y-4">
         {amenities.map((amenity) => {
           const Icon = amenityIcon(amenity);

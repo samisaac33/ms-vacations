@@ -37,33 +37,31 @@ function PropertyIcalForm({ property }: { property: PropertyRow }) {
   const [state, formAction, pending] = useActionState(updateIcalUrl, {} as IcalActionState);
 
   return (
-    <form action={formAction} className="mt-3 space-y-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+    <form action={formAction} className="mt-3 space-y-2 border-t border-zinc-100 pt-3">
       <input type="hidden" name="propertyId" value={property.id} />
-      <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-        URL iCal (Airbnb → web)
-      </label>
+      <label className="block text-xs font-medium text-zinc-600">URL iCal (Airbnb → web)</label>
       <input
         name="icalUrl"
         type="url"
         required
         defaultValue={property.icalUrl}
         disabled={pending}
-        className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-950"
+        className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm disabled:opacity-60"
       />
       {state?.error && (
-        <p className="text-xs text-red-700 dark:text-red-400" role="alert">
+        <p className="text-xs text-red-700" role="alert">
           {state.error}
         </p>
       )}
       {state?.success && (
-        <p className="text-xs text-green-700 dark:text-green-400" role="status">
+        <p className="text-xs text-emerald-700" role="status">
           {state.success}
         </p>
       )}
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium disabled:opacity-60 dark:border-zinc-600"
+        className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium disabled:opacity-60"
       >
         {pending ? "Guardando…" : "Guardar URL"}
       </button>
@@ -71,27 +69,27 @@ function PropertyIcalForm({ property }: { property: PropertyRow }) {
   );
 }
 
-function SyncButton() {
+function SyncButton({ compact = false }: { compact?: boolean }) {
   const [state, formAction, pending] = useActionState(triggerIcalSync, {} as IcalActionState);
 
   return (
-    <div className="mt-6">
+    <div className={compact ? "" : "mt-4"}>
       <form action={formAction}>
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
         >
           {pending ? "Sincronizando…" : "Sincronizar iCal ahora"}
         </button>
       </form>
       {state?.error && (
-        <p className="mt-2 text-sm text-red-700 dark:text-red-400" role="alert">
+        <p className="mt-2 text-sm text-red-700" role="alert">
           {state.error}
         </p>
       )}
       {state?.success && (
-        <p className="mt-2 text-sm text-green-700 dark:text-green-400" role="status">
+        <p className="mt-2 text-sm text-emerald-700" role="status">
           {state.success}
         </p>
       )}
@@ -99,91 +97,100 @@ function SyncButton() {
   );
 }
 
+function PropertyRowCompact({ property }: { property: PropertyRow }) {
+  return (
+    <details className="rounded-lg border border-zinc-200 bg-white">
+      <summary className="cursor-pointer list-none px-4 py-3 [&::-webkit-details-marker]:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="font-medium text-zinc-900">{property.name}</p>
+            <p className="text-xs text-zinc-500">
+              {property.blockCount} bloques · Última sync: {formatDate(property.lastIcalSyncAt)} · ~
+              ${formatUsd(property.priceUsd)}/noche
+            </p>
+          </div>
+          <Link
+            href={`/admin/propiedades/${property.slug}/precios`}
+            className="text-xs font-medium text-zinc-800 underline hover:no-underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Precios →
+          </Link>
+        </div>
+      </summary>
+      <div className="border-t border-zinc-100 px-4 pb-4">
+        <p className="mt-2 font-mono text-xs text-zinc-500">{property.icalUrlMasked}</p>
+        <PropertyIcalForm property={property} />
+      </div>
+    </details>
+  );
+}
+
 export function AdminIcalPanel({
   properties,
   logs,
+  defaultOpen = false,
 }: {
   properties: PropertyRow[];
   logs: LogRow[];
+  defaultOpen?: boolean;
 }) {
+  const hasRecentErrors = logs.some((l) => l.level === "error");
+
   return (
-    <div className="mt-8 space-y-8">
-      <section>
-        <h2 className="text-lg font-semibold">Propiedades</h2>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Precio por noche, calendarios iCal y sincronización con Airbnb.
-        </p>
-        <SyncButton />
-        <ul className="mt-6 space-y-4">
+    <details
+      id="ical"
+      className="scroll-mt-24 rounded-xl border border-zinc-200 bg-white shadow-sm"
+      open={defaultOpen || hasRecentErrors}
+    >
+      <summary className="cursor-pointer list-none px-5 py-4 [&::-webkit-details-marker]:hidden">
+        <span className="font-semibold text-zinc-900">
+          Calendarios y sincronización ({properties.length} propiedades)
+        </span>
+        <span className="mt-1 block text-sm font-normal text-zinc-600">
+          Importación iCal desde Airbnb y logs recientes.
+        </span>
+      </summary>
+
+      <div className="space-y-6 border-t border-zinc-100 px-5 pb-5 pt-4">
+        <SyncButton compact />
+
+        <ul className="space-y-2">
           {properties.map((p) => (
-            <li
-              key={p.id}
-              className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="font-medium">{p.name}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{p.slug}</p>
-                </div>
-                <div className="text-right text-xs text-zinc-600 dark:text-zinc-400">
-                  <p>{p.blockCount} bloques importados</p>
-                  <p>Última sync: {formatDate(p.lastIcalSyncAt)}</p>
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
-                <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                  Precio base:{" "}
-                  <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                    ~${formatUsd(p.priceUsd)}
-                  </span>{" "}
-                  / noche
-                </p>
-                <Link
-                  href={`/admin/propiedades/${p.slug}/precios`}
-                  className="text-xs font-medium text-zinc-800 underline hover:no-underline dark:text-zinc-200"
-                >
-                  Calendario de precios →
-                </Link>
-              </div>
-              <p className="mt-3 font-mono text-xs text-zinc-500 dark:text-zinc-400">
-                {p.icalUrlMasked}
-              </p>
-              <PropertyIcalForm property={p} />
+            <li key={p.id}>
+              <PropertyRowCompact property={p} />
             </li>
           ))}
         </ul>
-      </section>
 
-      <section>
-        <h2 className="text-lg font-semibold">Logs recientes</h2>
-        {logs.length === 0 ? (
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Sin registros aún.</p>
-        ) : (
-          <ul className="mt-3 space-y-2">
-            {logs.map((log) => (
-              <li
-                key={log.id}
-                className="rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700"
-              >
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
-                  <span>{formatDate(log.createdAt)}</span>
-                  <span
-                    className={
-                      log.level === "error"
-                        ? "font-medium text-red-700 dark:text-red-400"
-                        : "font-medium text-zinc-700 dark:text-zinc-300"
-                    }
-                  >
-                    {log.level}
-                  </span>
-                  {log.propertySlug && <span>{log.propertySlug}</span>}
-                </div>
-                <p className="mt-1 text-zinc-800 dark:text-zinc-200">{log.message}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+        <section>
+          <h3 className="text-sm font-semibold text-zinc-900">Logs recientes</h3>
+          {logs.length === 0 ? (
+            <p className="mt-2 text-sm text-zinc-600">Sin registros aún.</p>
+          ) : (
+            <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto">
+              {logs.map((log) => (
+                <li key={log.id} className="rounded-lg border border-zinc-200 px-3 py-2 text-sm">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
+                    <span>{formatDate(log.createdAt)}</span>
+                    <span
+                      className={
+                        log.level === "error"
+                          ? "font-medium text-red-700"
+                          : "font-medium text-zinc-700"
+                      }
+                    >
+                      {log.level}
+                    </span>
+                    {log.propertySlug && <span>{log.propertySlug}</span>}
+                  </div>
+                  <p className="mt-1 text-zinc-800">{log.message}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </details>
   );
 }

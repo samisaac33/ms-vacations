@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import ical from "node-ical";
 import { getDb } from "@/db/index";
 import { externalBlocks, properties, syncLogs } from "@/db/schema";
+import { syncCatalogIcalUrls } from "@/lib/seed-properties-db";
 
 function formatDateGuayaquil(d: Date): string {
   return d.toLocaleDateString("en-CA", { timeZone: "America/Guayaquil" });
@@ -144,6 +145,7 @@ export async function syncPropertyIcal(
 }
 
 export async function syncAllPropertiesIcal(): Promise<IcalSyncBatchResult> {
+  await syncCatalogIcalUrls();
   const db = getDb();
   const all = await db
     .select({ id: properties.id, slug: properties.slug })

@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { AdminCalendarShell } from "@/app/admin/admin-calendar-shell";
 import { AdminLoginForm } from "@/app/admin/admin-login-form";
 import { AdminMultiCalendar } from "@/app/admin/admin-multi-calendar";
+import { getPendingVerificationBookings } from "@/lib/admin-payments";
 
 export const metadata = {
   title: "Calendario",
@@ -37,8 +38,20 @@ export default async function AdminPage(props: Props) {
 
   const title = format(parseISO(`${initialMonth}-01T12:00:00`), "LLLL yyyy", { locale: es });
 
+  let pendingCount = 0;
+  try {
+    const pending = await getPendingVerificationBookings();
+    pendingCount = pending.length;
+  } catch {
+    // ignore
+  }
+
   return (
-    <AdminCalendarShell activeTab="calendario" title={`Calendario · ${title}`}>
+    <AdminCalendarShell
+      activeTab="calendario"
+      title={`Calendario · ${title}`}
+      configPendingCount={pendingCount}
+    >
       <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-zinc-200" />}>
         <AdminMultiCalendar initialMonth={initialMonth} />
       </Suspense>

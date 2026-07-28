@@ -1,6 +1,7 @@
 ﻿import { hasDatabase } from "@/db/index";
 import { createPendingBookingAndCheckout } from "@/lib/booking-service";
 import { isValidDateOrder } from "@/lib/dates";
+import { loadHighSeasonPeriodsForPropertySlug } from "@/lib/high-season-query";
 import { validateStayLength } from "@/lib/stay-rules";
 import { isPaymentMethod } from "@/lib/payments/types";
 import { isPaymentTiming } from "@/lib/payment-schedule";
@@ -59,7 +60,8 @@ export async function POST(r: Request) {
   if (!isValidDateOrder(b.checkIn, b.checkOut)) {
     return Response.json({ error: "Rango de fechas inválido" }, { status: 400 });
   }
-  const stayLengthError = validateStayLength(b.checkIn, b.checkOut);
+  const highSeasonPeriods = await loadHighSeasonPeriodsForPropertySlug(b.slug);
+  const stayLengthError = validateStayLength(b.checkIn, b.checkOut, highSeasonPeriods);
   if (stayLengthError) {
     return Response.json({ error: stayLengthError }, { status: 400 });
   }
