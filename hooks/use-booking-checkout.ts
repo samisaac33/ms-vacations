@@ -19,6 +19,7 @@ import {
   type SplitSchedule,
 } from "@/lib/payment-schedule";
 import { bookingTotalCentsForPaymentMethod, formatUsd } from "@/lib/pricing";
+import { bookingScreenshotDemoQuote } from "@/lib/booking-screenshot-demo";
 import type { StayQuote } from "@/lib/pricing-query";
 
 export type BookingPricingState = {
@@ -38,6 +39,7 @@ type Options = {
   initialGuests?: number;
   highSeasonPeriods?: HighSeasonPeriod[];
   onPricingChange?: (state: BookingPricingState) => void;
+  contentCapture?: boolean;
 };
 
 export function useBookingCheckout({
@@ -48,6 +50,7 @@ export function useBookingCheckout({
   initialGuests,
   highSeasonPeriods = [],
   onPricingChange,
+  contentCapture = false,
 }: Options) {
   const [checkIn, setCheckIn] = useState(initialCheckIn);
   const [checkOut, setCheckOut] = useState(initialCheckOut);
@@ -151,6 +154,13 @@ export function useBookingCheckout({
       return;
     }
 
+    if (contentCapture) {
+      setQuote(bookingScreenshotDemoQuote(slug));
+      setQuoteError(null);
+      setQuoteLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setQuoteLoading(true);
     setQuoteError(null);
@@ -177,7 +187,7 @@ export function useBookingCheckout({
     return () => {
       cancelled = true;
     };
-  }, [slug, checkIn, checkOut, datesComplete, stayLengthError]);
+  }, [slug, checkIn, checkOut, datesComplete, stayLengthError, contentCapture]);
 
   useEffect(() => {
     onPricingChange?.({

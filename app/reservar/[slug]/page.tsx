@@ -8,6 +8,7 @@ import { directPricePerNightUsd } from "@/lib/pricing";
 import { parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
 import { siteConfig } from "@/lib/site";
 import { getBankAccountDetails } from "@/lib/payments/bank-transfer";
+import { isContentCaptureParam } from "@/lib/booking-screenshot-demo";
 import { BookingReserveLayout } from "./booking-reserve-layout";
 
 type Props = {
@@ -41,6 +42,7 @@ export default async function ReservarPage(props: Props) {
     !validateStaySearch(parsed.checkIn, parsed.checkOut, undefined, highSeasonPeriods);
 
   const dbReady = hasDatabase();
+  const contentCapture = isContentCaptureParam(queryParams.contentCapture);
   const image = p.images[0];
   const bank = getBankAccountDetails();
 
@@ -58,7 +60,7 @@ export default async function ReservarPage(props: Props) {
         />
       </div>
 
-      {!dbReady && (
+      {!dbReady && !contentCapture && (
         <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 lg:mx-0 mx-4">
           Falta configurar{" "}
           <code className="rounded bg-amber-100/80 px-1">DATABASE_URL</code> y ejecutar{" "}
@@ -71,6 +73,7 @@ export default async function ReservarPage(props: Props) {
         slug={p.slug}
         maxGuests={p.capacity.guests}
         bank={bank}
+        contentCapture={contentCapture}
         initialCheckIn={datesValid ? parsed!.checkIn : undefined}
         initialCheckOut={datesValid ? parsed!.checkOut : undefined}
         initialGuests={parsed?.huespedes}

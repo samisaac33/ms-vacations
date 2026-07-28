@@ -27,6 +27,7 @@ type Props = {
   initialCheckOut?: string;
   initialGuests?: number;
   highSeasonPeriods?: HighSeasonPeriod[];
+  contentCapture?: boolean;
 };
 
 export function BookingReserveLayout({
@@ -38,6 +39,7 @@ export function BookingReserveLayout({
   initialCheckOut,
   initialGuests,
   highSeasonPeriods = [],
+  contentCapture = false,
 }: Props) {
   const [, setPricing] = useState<BookingPricingState>({
     quote: null,
@@ -63,6 +65,7 @@ export function BookingReserveLayout({
         initialCheckOut={initialCheckOut}
         initialGuests={initialGuests}
         highSeasonPeriods={highSeasonPeriods}
+        contentCapture={contentCapture}
         onPricingChange={setPricing}
       />
 
