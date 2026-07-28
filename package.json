@@ -20,7 +20,8 @@
     "db:migrate:billing": "tsx scripts/migrate-billing.ts",
     "db:update-beach-prices": "tsx scripts/update-beach-prices.ts",
     "db:clear-stale-pricing-overrides": "tsx scripts/clear-stale-pricing-overrides.ts",
-    "screenshots:booking": "node scripts/capture-booking-screenshots.mjs"
+    "screenshots:booking": "node scripts/capture-booking-screenshots.mjs",
+    "content:booking-illustrations": "node scripts/generate-booking-illustrations.mjs"
   },
   "dependencies": {
     "axios": "^1.18.1",
