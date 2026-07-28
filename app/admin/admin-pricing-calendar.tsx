@@ -181,7 +181,7 @@ export function AdminPricingCalendar({
             <button
               type="button"
               onClick={() => handleMonthChange(startOfMonth(new Date()))}
-              className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-white"
+              className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-surface"
             >
               Hoy
             </button>
@@ -332,7 +332,7 @@ function SettingsPanel({
   onSaved: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-1 shadow-sm">
+    <div className="rounded-2xl border border-zinc-200 bg-surface p-1 shadow-sm">
       <div className="border-b border-zinc-100 px-4 py-3">
         <p className="text-sm font-semibold">{propertyName}</p>
         <p className="text-xs text-zinc-500">Configuración del calendario</p>
@@ -540,7 +540,7 @@ function RangeActions({
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-zinc-900 disabled:opacity-50"
+          className="w-full rounded-xl bg-surface px-3 py-2.5 text-sm font-semibold text-zinc-900 disabled:opacity-50"
         >
           {savePending ? "Guardando…" : "Guardar"}
         </button>

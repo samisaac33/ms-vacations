@@ -139,7 +139,7 @@ export function BookingCalendar({
           <button
             type="button"
             onClick={() => setMonth((m) => subMonths(m, 1))}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-sand-dark bg-white text-ink transition-colors hover:border-ocean/30 hover:bg-ocean-light"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-sand-dark bg-surface text-ink transition-colors hover:border-ocean/30 hover:bg-ocean-light"
             aria-label="Mes anterior"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -152,7 +152,7 @@ export function BookingCalendar({
           <button
             type="button"
             onClick={() => setMonth((m) => addMonths(m, 1))}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-sand-dark bg-white text-ink transition-colors hover:border-ocean/30 hover:bg-ocean-light"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-sand-dark bg-surface text-ink transition-colors hover:border-ocean/30 hover:bg-ocean-light"
             aria-label="Mes siguiente"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -167,7 +167,7 @@ export function BookingCalendar({
           }`}
         >
           <span
-            className={`h-1.5 w-1.5 rounded-full ${awaitingCheckOut ? "bg-ocean" : "bg-white"}`}
+            className={`h-1.5 w-1.5 rounded-full ${awaitingCheckOut ? "bg-ocean" : "bg-surface"}`}
             aria-hidden
           />
           {awaitingCheckOut ? "2. Elige check-out" : "1. Elige check-in"}

@@ -51,7 +51,7 @@ export function BookingStepReview({
     <div className="space-y-6">
       <h2 className="font-display text-2xl font-semibold text-ink">Revisa y continúa</h2>
 
-      <div className="rounded-2xl border border-sand-dark bg-white">
+      <div className="rounded-2xl border border-sand-dark bg-surface">
         <div className="flex gap-3 border-b border-sand-dark p-4">
           {property.image && (
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-sand-dark">

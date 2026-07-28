@@ -36,7 +36,7 @@ export function AdminCalendarShell({
 }: Props) {
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-zinc-50 text-zinc-900">
-      <header className="border-b border-zinc-200 bg-white">
+      <header className="border-b border-zinc-200 bg-surface">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <nav className="flex flex-1 items-center gap-1">
             <TabLink href="/admin" active={activeTab === "calendario"}>

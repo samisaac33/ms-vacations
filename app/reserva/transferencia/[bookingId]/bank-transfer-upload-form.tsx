@@ -131,7 +131,7 @@ export function BankTransferUploadForm({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-sand-dark bg-white p-5">
+      <div className="rounded-xl border border-sand-dark bg-surface p-5">
         <p className="text-sm text-muted">Total a transferir</p>
         <p className="mt-1 text-2xl font-semibold text-ink">${formatUsd(totalUsd)} USD</p>
         <p className="mt-2 text-sm text-muted">

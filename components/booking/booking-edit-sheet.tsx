@@ -106,7 +106,7 @@ export function BookingEditSheet({
     return (
       <div className="fixed inset-0 z-[60] flex flex-col justify-end bg-ink/40 lg:hidden">
         <button type="button" className="flex-1" aria-label="Cerrar" onClick={onClose} />
-        <div className="flex max-h-[92vh] flex-col rounded-t-3xl bg-white">
+        <div className="flex max-h-[92vh] flex-col rounded-t-3xl bg-surface">
           <div className="flex shrink-0 items-center justify-between border-b border-sand-dark px-4 py-4">
             <h3 className="text-lg font-semibold text-ink">{title}</h3>
             <button
@@ -157,7 +157,7 @@ export function BookingEditSheet({
   return (
     <div className="fixed inset-0 z-[60] flex flex-col justify-end bg-ink/40 lg:hidden">
       <button type="button" className="flex-1" aria-label="Cerrar" onClick={onClose} />
-      <div className="max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white px-4 pb-8 pt-4">
+      <div className="max-h-[85vh] overflow-y-auto rounded-t-3xl bg-surface px-4 pb-8 pt-4">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-ink">{title}</h3>
           <button

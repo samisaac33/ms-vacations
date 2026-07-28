@@ -84,7 +84,7 @@ export function BookingMobileDatePicker({
   return (
     <div>
       {rangeError ? <BookingRangeErrorAlert message={rangeError} className="mb-4" /> : null}
-      <WeekdayHeader className="sticky top-0 z-10 bg-white pb-2" />
+      <WeekdayHeader className="sticky top-0 z-10 bg-surface pb-2" />
 
       {months.map((month) => {
         const grid = buildMonthGridMondayFirst(month);

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { AdminIcalSyncToolbar } from "@/app/admin/admin-ical-sync-header";
 import { adminLogout } from "@/app/admin/actions";
 import { SiteLogo } from "@/components/site-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   setMobileScrollChromeMenuOpen,
   useMobileScrollChrome,
@@ -119,11 +120,13 @@ export function SiteHeader() {
             </a>
           )}
 
+          <ThemeToggle />
+
           {isAdminRoute && (
             <form action={adminLogout} className="flex items-center md:hidden">
               <button
                 type="submit"
-                className="inline-flex h-10 items-center whitespace-nowrap rounded-lg border border-sand-dark bg-white px-3 text-sm font-medium text-ink hover:bg-sand-dark/50"
+                className="inline-flex h-10 items-center whitespace-nowrap rounded-lg border border-sand-dark bg-surface px-3 text-sm font-medium text-ink hover:bg-sand-dark/50"
               >
                 Cerrar sesión
               </button>
@@ -138,7 +141,7 @@ export function SiteHeader() {
 
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-white text-ink md:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink md:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}

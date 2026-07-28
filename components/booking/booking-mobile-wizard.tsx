@@ -294,7 +294,7 @@ export function BookingMobileWizard({
   const showPrimaryButton = !isOnlinePaymentStep && !(isBankTransfer && bankTransferComplete);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden">
+    <div className="fixed inset-0 z-50 flex flex-col bg-surface lg:hidden">
       <header className="flex shrink-0 items-center justify-between border-b border-sand-dark px-4 py-3">
         <button
           type="button"
@@ -443,7 +443,7 @@ export function BookingMobileWizard({
         )}
       </div>
 
-      <footer className="shrink-0 border-t border-sand-dark bg-white px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <footer className="shrink-0 border-t border-sand-dark bg-surface px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <BookingProgressBar currentStep={step} totalSteps={totalSteps} />
         {showPrimaryButton && primaryLabel && (
           <button

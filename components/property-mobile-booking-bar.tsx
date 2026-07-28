@@ -27,7 +27,7 @@ export function PropertyMobileBookingBar({
   const totalUsd = quote?.totalUsd;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sand-dark bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgb(26_43_43/0.08)] lg:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sand-dark bg-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgb(26_43_43/0.08)] lg:hidden">
       <div className="flex items-center justify-between gap-4">
         <button
           type="button"

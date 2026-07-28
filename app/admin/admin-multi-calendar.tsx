@@ -39,7 +39,7 @@ function MonthControls({
       <button
         type="button"
         onClick={() => onChange(startOfMonth(new Date()))}
-        className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-white"
+        className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-surface"
       >
         Hoy
       </button>
@@ -47,7 +47,7 @@ function MonthControls({
         <button
           type="button"
           onClick={() => onChange(subMonths(month, 1))}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-300 hover:bg-white"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-300 hover:bg-surface"
           aria-label="Mes anterior"
         >
           ‹
@@ -56,7 +56,7 @@ function MonthControls({
         <button
           type="button"
           onClick={() => onChange(addMonths(month, 1))}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-300 hover:bg-white"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-300 hover:bg-surface"
           aria-label="Mes siguiente"
         >
           ›
@@ -129,9 +129,9 @@ export function AdminMultiCalendar({ initialMonth }: { initialMonth?: string }) 
           {error}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-surface">
           <div className="flex">
-            <div className="sticky left-0 z-20 w-12 shrink-0 border-r border-zinc-200 bg-white md:w-56">
+            <div className="sticky left-0 z-20 w-12 shrink-0 border-r border-zinc-200 bg-surface md:w-56">
               <div className="flex h-12 items-center border-b border-zinc-200 px-3 text-xs font-medium text-zinc-500">
                 <span className="sr-only md:not-sr-only md:static">
                   {properties.length} anuncios

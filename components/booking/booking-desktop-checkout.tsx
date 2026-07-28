@@ -177,7 +177,7 @@ export function BookingDesktopCheckout({
             value={guestNotes}
             onChange={(e) => setGuestNotes(e.target.value)}
             disabled={!step1Done}
-            className="mt-2 w-full resize-none rounded-xl border border-sand-dark bg-white px-4 py-3 text-sm text-ink placeholder:text-muted focus:border-ocean focus:outline-none focus:ring-2 focus:ring-ocean/20"
+            className="mt-2 w-full resize-none rounded-xl border border-sand-dark bg-surface px-4 py-3 text-sm text-ink placeholder:text-muted focus:border-ocean focus:outline-none focus:ring-2 focus:ring-ocean/20"
           />
         </div>
 
@@ -247,7 +247,7 @@ export function BookingDesktopCheckout({
       </form>
 
       {showOnlinePayment && quote && paymentMethod === "payphone" && (
-        <section className="rounded-2xl border border-sand-dark bg-white p-6">
+        <section className="rounded-2xl border border-sand-dark bg-surface p-6">
           <PayphonePaymentBox
             guestEmail={guestEmail}
             quote={quote}
@@ -269,7 +269,7 @@ export function BookingDesktopCheckout({
       )}
 
       {showOnlinePayment && onlineCheckoutSnapshot && paymentMethod === "paypal" && (
-        <section className="rounded-2xl border border-sand-dark bg-white p-6">
+        <section className="rounded-2xl border border-sand-dark bg-surface p-6">
           <PayPalPaymentButtons
             checkout={onlineCheckoutSnapshot}
             chargeUsd={dueNowUsd}
