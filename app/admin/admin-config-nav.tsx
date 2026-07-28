@@ -7,6 +7,7 @@ const LINKS = [
   { href: "#correo", label: "Correo" },
   { href: "#iva", label: "IVA" },
   { href: "#temporadas", label: "Temporadas" },
+  { href: "#contenido", label: "Contenido" },
   { href: "#ical", label: "iCal" },
 ] as const;
 
