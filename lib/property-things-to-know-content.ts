@@ -151,7 +151,9 @@ function isSafetyNotIncluded(item: { label: string }): boolean {
 
 export function getSafetyDetail(property: Property): SafetyDetail {
   const groups = resolveAmenityGroups(property);
-  const securityCategory = groups.categories.find((c) => c.title === "Seguridad");
+  const securityCategory = groups.categories.find((c) =>
+    c.title.toLowerCase().includes("seguridad"),
+  );
   const included = securityCategory?.items ?? [];
   const notIncluded = (groups.notIncluded ?? []).filter(isSafetyNotIncluded);
 

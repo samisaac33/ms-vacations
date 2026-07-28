@@ -6,15 +6,24 @@ describe("getPropertyBadges", () => {
   it("incluye capacidad como primer badge", () => {
     const beach = PROPERTIES.find((p) => p.slug === "alojamiento-en-arrecife")!;
     const badges = getPropertyBadges(beach);
-    expect(badges[0]?.label).toContain("huéspedes");
+    expect(badges[0]?.label).toContain("12 huéspedes");
     expect(badges[0]?.tone).toBe("ocean");
   });
 
-  it("Home One incluye distancia al mar e hidromasaje", () => {
+  it("Arrecife incluye hidromasaje y llegada autónoma", () => {
+    const arrecife = PROPERTIES.find((p) => p.slug === "alojamiento-en-arrecife")!;
+    const badges = getPropertyBadges(arrecife);
+    expect(badges.some((b) => b.label === "Hidromasaje")).toBe(true);
+    expect(badges.some((b) => b.label === "Llegada autónoma")).toBe(true);
+    expect(badges.length).toBeGreaterThan(3);
+  });
+
+  it("Home One incluye distancia al mar, hidromasaje y mesa de billar", () => {
     const homeOne = PROPERTIES.find((p) => p.slug === "casa-vacacional-home-one-18-personas-max")!;
     const badges = getPropertyBadges(homeOne);
-    expect(badges.some((b) => b.label === "A 450 m del mar")).toBe(true);
+    expect(badges.some((b) => b.label === "A 300 m del mar")).toBe(true);
     expect(badges.some((b) => b.label === "Hidromasaje")).toBe(true);
+    expect(badges.some((b) => b.label === "Mesa de billar")).toBe(true);
     expect(badges.length).toBeGreaterThan(3);
   });
 

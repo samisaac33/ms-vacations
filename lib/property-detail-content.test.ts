@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PROPERTIES } from "@/lib/properties";
+import { getBedroomCards } from "@/lib/property-photo-groups";
 import {
   flattenAmenities,
   resolveAmenityGroups,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/property-detail-content";
 
 const HOME_ONE = "casa-vacacional-home-one-18-personas-max";
+const ARRECIFE = "alojamiento-en-arrecife";
 const HOME_TWO = "casa-vacacional-home-two-21-personas";
 const PORTO_NORTE = "porto-norte";
 const RUSTIC_HOUSE = "casa-rustica-18-personas-max";
@@ -24,8 +26,18 @@ describe("resolvePropertyAbout", () => {
   it("Home One usa contenido estructurado", () => {
     const property = PROPERTIES.find((p) => p.slug === HOME_ONE)!;
     const about = resolvePropertyAbout(property);
+    expect(about.sections).toHaveLength(3);
+    expect(about.intro).toContain("300 metros del mar");
+    expect(shouldShowAboutMore(about)).toBe(true);
+  });
+
+  it("Arrecife usa about con 2 secciones e intro sobre hidromasaje", () => {
+    const property = PROPERTIES.find((p) => p.slug === ARRECIFE)!;
+    const about = resolvePropertyAbout(property);
     expect(about.sections).toHaveLength(2);
-    expect(about.intro).toContain("piscina y área de hidromasaje");
+    expect(about.intro).toContain("hidromasaje");
+    expect(about.sections[0]?.title).toBe("El espacio");
+    expect(about.sections[1]?.title).toBe("Acceso de los huéspedes");
     expect(shouldShowAboutMore(about)).toBe(true);
   });
 
@@ -84,7 +96,16 @@ describe("resolveAmenityGroups", () => {
     const property = PROPERTIES.find((p) => p.slug === HOME_ONE)!;
     const groups = resolveAmenityGroups(property);
     expect(groups.categories.length).toBeGreaterThan(5);
+    expect(groups.notIncluded?.length).toBe(4);
+    expect(shouldShowAmenitiesMore(totalAmenityCount(groups))).toBe(true);
+  });
+
+  it("Arrecife expone amenityGroups estructurado con más de 8 servicios", () => {
+    const property = PROPERTIES.find((p) => p.slug === ARRECIFE)!;
+    const groups = resolveAmenityGroups(property);
+    expect(groups.categories.length).toBeGreaterThan(5);
     expect(groups.notIncluded?.length).toBe(5);
+    expect(totalAmenityCount(groups)).toBe(32);
     expect(shouldShowAmenitiesMore(totalAmenityCount(groups))).toBe(true);
   });
 
@@ -164,11 +185,37 @@ describe("Home One capacity", () => {
   it("expone la capacidad publicada", () => {
     const property = PROPERTIES.find((p) => p.slug === HOME_ONE)!;
     expect(property.capacity).toEqual({
+      guests: 18,
+      bedrooms: 4,
+      beds: 12,
+      bathrooms: 3.5,
+    });
+  });
+});
+
+describe("Arrecife capacity", () => {
+  it("expone la capacidad publicada", () => {
+    const property = PROPERTIES.find((p) => p.slug === ARRECIFE)!;
+    expect(property.capacity).toEqual({
       guests: 12,
       bedrooms: 3,
       beds: 7,
       bathrooms: 3.5,
     });
+  });
+});
+
+describe("Arrecife images", () => {
+  it("expone 17 fotos y carrusel de 3 habitaciones", () => {
+    const property = PROPERTIES.find((p) => p.slug === ARRECIFE)!;
+    expect(property.images).toHaveLength(17);
+    expect(property.images[0]?.src).toContain("arrecife/");
+    const bedrooms = getBedroomCards(property.images);
+    expect(bedrooms).toHaveLength(3);
+    expect(bedrooms[0]?.title).toBe("Habitación 1");
+    expect(bedrooms[0]?.subtitle).toContain("1 cama king");
+    expect(bedrooms[1]?.title).toBe("Habitación 2");
+    expect(bedrooms[2]?.title).toBe("Habitación 3");
   });
 });
 

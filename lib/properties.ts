@@ -171,6 +171,36 @@ const VILLA_PALMERA_IMAGES = [
   villaPalmeraImage("adicional-04.webp", "vista adicional"),
 ];
 
+function arrecifeImage(file: string, alt: string) {
+  return {
+    src: supabaseStorageUrl(`arrecife/${file}`, "current"),
+    alt: `Home Arrecife — ${alt}`,
+  };
+}
+
+const ARRECIFE_IMAGES = [
+  arrecifeImage("exterior-01.webp", "exterior"),
+  arrecifeImage("exterior-02.webp", "exterior vista 2"),
+  arrecifeImage("piscina-01.webp", "piscina"),
+  arrecifeImage("piscina-02.webp", "piscina vista 2"),
+  arrecifeImage("sala-01.webp", "sala"),
+  arrecifeImage("comedor-01.webp", "comedor"),
+  arrecifeImage("cocina-01.webp", "cocina"),
+  arrecifeImage("cocina-02.webp", "cocina vista 2"),
+  arrecifeImage("garaje-01.webp", "garaje"),
+  arrecifeImage(
+    "habitacion-1-01.webp",
+    "habitación 1 — 1 cama king, 2 camas dobles, 1 cama individual",
+  ),
+  arrecifeImage("habitacion-1-02.webp", "habitación 1 — vista 2"),
+  arrecifeImage("habitacion-1-bano-01.webp", "habitación 1 — baño"),
+  arrecifeImage("habitacion-2-01.webp", "habitación 2 — 1 cama doble, 1 cama individual"),
+  arrecifeImage("habitacion-2-bano-01.webp", "habitación 2 — baño"),
+  arrecifeImage("habitacion-3-01.webp", "habitación 3 — 1 cama king"),
+  arrecifeImage("habitacion-3-02.webp", "habitación 3 — vista 2"),
+  arrecifeImage("habitacion-3-bano-01.webp", "habitación 3 — baño"),
+];
+
 function homeOneImage(file: string, alt: string) {
   return {
     src: supabaseStorageUrl(`home-one/${file}`, "current"),
@@ -192,12 +222,13 @@ const HOME_ONE_IMAGES = [
   homeOneImage("cocina-01.webp", "cocina"),
   homeOneImage("cocina-02.webp", "cocina vista 2"),
   homeOneImage("garaje-01.webp", "garaje"),
-  homeOneImage("habitacion-1-01.webp", "habitación 1 — 1 cama king, 2 camas dobles, 1 cama individual"),
+  homeOneImage("habitacion-1-01.webp", "habitación 1 — 1 cama king"),
   homeOneImage("habitacion-1-bano-01.webp", "habitación 1 — baño"),
-  homeOneImage("habitacion-2-01.webp", "habitación 2 — 1 cama doble, 1 cama individual"),
+  homeOneImage("habitacion-2-01.webp", "habitación 2 — 1 cama doble, 1 cama individual, 1 litera"),
   homeOneImage("habitacion-2-bano-01.webp", "habitación 2 — baño"),
-  homeOneImage("habitacion-3-01.webp", "habitación 3 — 1 cama king"),
+  homeOneImage("habitacion-3-01.webp", "habitación 3 — 2 camas dobles, 1 litera"),
   homeOneImage("habitacion-3-bano-01.webp", "habitación 3 — baño"),
+  homeOneImage("habitacion-4-01.webp", "habitación 4 — 2 camas dobles, 1 cama individual"),
 ];
 
 function homeTwoImage(file: string, alt: string) {
@@ -421,43 +452,7 @@ export const PROPERTIES: Property[] = [
     name: "Home Arrecife",
     destination: "beach",
     shortDescription:
-      "A 300 m del mar: villa moderna de dos plantas con piscina iluminada, amplia zona exterior y luz cálida ideal para familias o grupos.",
-    description:
-      "Alojamiento con estilo actual, terrazas, comedor al aire libre y piscina. Cocina y espacios comunes para compartir. Zona de costa en San Clemente, Manabí.",
-    capacity: { guests: 14, bedrooms: 5, beds: 7, bathrooms: 4 },
-    amenities: [
-      "Wi‑Fi",
-      "Cocina equipada",
-      "Piscina privada",
-      "Estacionamiento",
-      "Terraza y zona exterior",
-      "Agua caliente",
-    ],
-    rules: [
-      "No fumar en interiores",
-      "Máximo de huéspedes según reserva",
-    ],
-    location: {
-      area: "San Clemente",
-      province: "Manabí",
-      country: "Ecuador",
-      googleMapsUrl: "https://maps.app.goo.gl/pb7RNYVtzTSdk1Wm9",
-      coordinates: { lat: -0.7684796, lng: -80.5118034 },
-    },
-    basePricePerNightUsd: 291,
-    icalUrl:
-      "https://www.airbnb.com.ec/calendar/ical/847175742779477105.ics?t=405b7afe008240abbc34a797a4a4a5f0",
-    images: [
-      { src: supabase("Alojamiento en Arrecife.webp"), alt: "Home Arrecife — fachada y piscina" },
-    ],
-  },
-  {
-    id: "2",
-    slug: "casa-vacacional-home-one-18-personas-max",
-    name: "Home One",
-    destination: "beach",
-    shortDescription:
-      "A 450 m del mar: casa privada con piscina e hidromasaje en San Clemente; hasta 12 personas, ideal para familias y grupos que buscan comodidad y exclusividad.",
+      "Casa con piscina e hidromasaje en San Clemente; hasta 12 personas en 3 habitaciones, ideal para familias y grupos que buscan comodidad y exclusividad.",
     description:
       "Casa vacacional en San Clemente con 3 habitaciones, piscina privada e hidromasaje de uso exclusivo. Hasta 12 huéspedes.",
     capacity: { guests: 12, bedrooms: 3, beds: 7, bathrooms: 3.5 },
@@ -469,14 +464,15 @@ export const PROPERTIES: Property[] = [
       "Cocina equipada",
       "Estacionamiento gratuito",
       "Lavadora",
-      "Zona de trabajo privada",
+      "Cámaras de seguridad",
+      "Llegada autónoma",
     ],
     about: {
       intro:
         "Disfruta de una estadía privada y confortable en esta hermosa casa con piscina y área de hidromasaje. Con capacidad para hasta 12 personas, es ideal para familias y grupos que buscan comodidad y exclusividad. Relájate en sus amplios espacios, disfruta del sol junto a la piscina y vive momentos inolvidables en un ambiente seguro y acogedor. En MS Vacations cuidamos cada detalle para que tu experiencia sea memorable.",
       sections: [
         {
-          title: "La propiedad",
+          title: "El espacio",
           lead: "🌴 Exclusiva Casa con Piscina & Hidromasaje | Capacidad 12 Personas",
           paragraphs: [
             "Disfruta de una experiencia única en esta moderna y elegante propiedad diseñada para el descanso y la comodidad. Ideal para familias o grupos de amigos, la casa cuenta con 3 amplias habitaciones y capacidad para hasta 12 huéspedes, ofreciendo espacios cómodos, funcionales y perfectamente equipados.",
@@ -493,7 +489,7 @@ export const PROPERTIES: Property[] = [
           ],
         },
         {
-          title: "Acceso e ingreso",
+          title: "Acceso de los huéspedes",
           lead: "🏡 Uso exclusivo de la propiedad",
           paragraphs: [
             "Estimados huéspedes, queremos informarles que durante su estadía podrán hacer uso completo y exclusivo de toda la propiedad. La casa no es compartida con otros huéspedes ni con terceros, por lo que disfrutarán de total privacidad en todas las áreas, incluyendo habitaciones, piscina, hidromasaje y zonas sociales.",
@@ -504,17 +500,19 @@ export const PROPERTIES: Property[] = [
     },
     highlights: [
       {
-        title: "Piscina e hidromasaje privados",
+        title: "Piscina privada",
         description:
-          "Una de las pocas casas en la zona con piscina e hidromasaje de uso exclusivo para tu grupo.",
+          "Sumérgete. Este es uno de los pocos lugares en la zona con piscina.",
       },
       {
         title: "Llegada autónoma",
-        description: "Personal del edificio disponible las 24 horas para recibir a los huéspedes.",
+        description:
+          "El personal del edificio te ayudará a hacer el check-in.",
       },
       {
-        title: "A 450 m del mar",
-        description: "Ubicación cercana a la playa en San Clemente.",
+        title: "Hidromasaje exclusivo",
+        description:
+          "Área de hidromasaje de uso privado para tu grupo durante la estadía.",
       },
     ],
     amenityGroups: {
@@ -528,7 +526,7 @@ export const PROPERTIES: Property[] = [
           ],
         },
         {
-          title: "Dormitorio y lavandería",
+          title: "Dormitorio y lavadero",
           items: [
             { label: "Lavadora Pagado" },
             { label: "Ganchos para la ropa" },
@@ -625,6 +623,215 @@ export const PROPERTIES: Property[] = [
     },
     rules: [
       "Capacidad máxima 12 huéspedes",
+      "No fumar en interiores",
+    ],
+    location: {
+      area: "San Clemente",
+      province: "Manabí",
+      country: "Ecuador",
+      googleMapsUrl: "https://maps.app.goo.gl/pb7RNYVtzTSdk1Wm9",
+      coordinates: { lat: -0.7684796, lng: -80.5118034 },
+    },
+    basePricePerNightUsd: 291,
+    icalUrl:
+      "https://www.airbnb.com.ec/calendar/ical/847175742779477105.ics?t=405b7afe008240abbc34a797a4a4a5f0",
+    images: ARRECIFE_IMAGES,
+  },
+  {
+    id: "2",
+    slug: "casa-vacacional-home-one-18-personas-max",
+    name: "Home One",
+    destination: "beach",
+    shortDescription:
+      "A 300 m del mar: casa privada con piscina e hidromasaje en San Clemente; hasta 18 personas en 4 habitaciones, ideal para familias y grupos que buscan comodidad y exclusividad.",
+    description:
+      "Casa vacacional en San Clemente con 4 habitaciones, piscina privada e hidromasaje de uso exclusivo. Hasta 18 huéspedes.",
+    capacity: { guests: 18, bedrooms: 4, beds: 12, bathrooms: 3.5 },
+    amenities: [
+      "Wi‑Fi",
+      "Acceso a la playa",
+      "Piscina privada",
+      "Mesa de billar",
+      "Aire acondicionado",
+      "Cocina equipada",
+      "Estacionamiento gratuito",
+      "Lavadora",
+      "Llegada autónoma",
+      "Cámaras de seguridad",
+    ],
+    about: {
+      intro:
+        "Tus vacaciones soñadas a tan solo 300 metros del mar, casa confortable, segura, totalmente amoblada; ideal para que disfrutes con familia y amigos. Un ambiente de distinción, te encantará su ubicación 🏝🌊",
+      sections: [
+        {
+          title: "El espacio",
+          lead: "Amplia casa vacacional para grupos grandes – 4 habitaciones, aire acondicionado y lavadora incluida",
+          paragraphs: [
+            "Disfruta de una cómoda estadía en esta espaciosa propiedad ideal para familias o grupos grandes. La casa cuenta con 4 habitaciones y capacidad para hasta 18 personas. Dos de las habitaciones disponen de baño privado, mientras que las otras dos comparten un baño social completo, ofreciendo comodidad para todos los huéspedes.",
+            "Todas las habitaciones, así como la sala principal, cuentan con aire acondicionado para garantizar una estancia fresca y placentera en todo momento. Además, tendrás a tu disposición lavadora de ropa, incluida en la reserva, para mayor practicidad durante tu estadía.",
+            "Una excelente opción para quienes buscan comodidad, amplitud y un ambiente familiar. ¡Te esperamos!",
+          ],
+        },
+        {
+          title: "Acceso de los huéspedes",
+          lead: "Uso exclusivo de áreas recreativas",
+          paragraphs: [
+            "Queremos que disfrutes al máximo tu estadía, por eso te informamos que todas las áreas recreativas como la zona de juegos, BBQ, piscina e hidromasaje son de uso exclusivo para ti y tu grupo. No son áreas sociales compartidas, lo que te garantiza total privacidad durante tu visita.",
+            "Además, no existen horarios establecidos para su uso, por lo que puedes disfrutar de estos espacios de forma ilimitada, en el momento que desees.",
+            "¡Relájate, disfruta y siéntete como en casa!",
+          ],
+        },
+        {
+          title: "Otros aspectos a destacar",
+          lead: "Servicio de piscina temperada (opcional)",
+          paragraphs: [
+            "La piscina está disponible para su uso durante toda la estadía y si deseas disfrutarla con temperatura agradable, ofrecemos el servicio de piscina temperada con un recargo de $15 por noche.",
+            "Para poder garantizar la temperatura ideal al momento de tu llegada, este servicio debe contratarse con al menos 24 horas de anticipación al check-in.",
+            "Si deseas activarlo, no dudes en contactarnos. ¡Estamos encantados de ayudarte a tener una experiencia aún más placentera!",
+          ],
+        },
+      ],
+    },
+    highlights: [
+      {
+        title: "Piscina privada",
+        description:
+          "Sumérgete. Este es uno de los pocos lugares en la zona con piscina.",
+      },
+      {
+        title: "Llegada autónoma",
+        description:
+          "Realiza tu llegada fácilmente mediante la caja de seguridad para llaves.",
+      },
+      {
+        title: "A 300 m del mar",
+        description: "Ubicación cercana a la playa en San Clemente.",
+      },
+    ],
+    amenityGroups: {
+      categories: [
+        {
+          title: "Baño",
+          items: [{ label: "Agua caliente" }],
+        },
+        {
+          title: "Dormitorio y lavadero",
+          items: [
+            { label: "Lavadora Gratis" },
+            { label: "Ganchos para la ropa" },
+            { label: "Sábanas" },
+            { label: "Plancha" },
+          ],
+        },
+        {
+          title: "Entretenimiento",
+          items: [
+            { label: "Televisor con cable estándar" },
+            { label: "Sistema de sonido" },
+            { label: "Mesa de billar" },
+          ],
+        },
+        {
+          title: "Calefacción y refrigeración",
+          items: [{ label: "Aire acondicionado" }],
+        },
+        {
+          title: "Seguridad en el hogar",
+          items: [
+            {
+              label: "Cámaras de seguridad en la parte exterior de la propiedad",
+              detail:
+                "Tenemos 3 cámaras: 1 en la entrada enfocando a la calle y puerta de ingreso, 1 área social enfocando la piscina y puerta de ingreso, 1 enfocando el frente de la casa (área social). Todas las grabaciones son las 24 horas del día, los 7 días de la semana.",
+            },
+            { label: "Detector de humo" },
+          ],
+        },
+        {
+          title: "Internet y oficina",
+          items: [{ label: "Wifi" }],
+        },
+        {
+          title: "Utensilios y vajilla",
+          items: [
+            { label: "Cocina", detail: "Los huéspedes pueden cocinar en este espacio" },
+            { label: "Refrigerador" },
+            { label: "Microondas" },
+            {
+              label: "Platos y cubiertos",
+              detail: "Bowls, palitos chinos, platos, tazas, etc.",
+            },
+            { label: "Horno" },
+            { label: "Tostadora" },
+            { label: "Licuadora" },
+            { label: "Arrocera" },
+            {
+              label: "Utensilios para hacer parrillada",
+              detail: "Parrilla, carbón, palillos de bambú/hierro, etc.",
+            },
+            { label: "Mesa del comedor" },
+          ],
+        },
+        {
+          title: "Características de la ubicación",
+          items: [
+            {
+              label: "Acceso a la playa",
+              detail: "Los huéspedes pueden disfrutar de una playa cercana",
+            },
+            {
+              label: "Entrada independiente",
+              detail: "Entrada por otra calle o edificio",
+            },
+          ],
+        },
+        {
+          title: "Exterior",
+          items: [
+            { label: "Patio o balcón" },
+            {
+              label: "Patio trasero",
+              detail:
+                "Un espacio abierto en la propiedad generalmente cubierto de pasto",
+            },
+            { label: "Parrilla" },
+          ],
+        },
+        {
+          title: "Estacionamiento e instalaciones",
+          items: [
+            { label: "Estacionamiento gratuito en las instalaciones" },
+            { label: "Piscina privada" },
+            { label: "Estacionamiento de pago fuera de las instalaciones" },
+            { label: "Alojamiento de un solo piso" },
+            { label: "Alojamiento sin escaleras" },
+          ],
+        },
+        {
+          title: "Servicios",
+          items: [
+            { label: "Apto para fumadores" },
+            {
+              label: "Disponible para estadías largas",
+              detail: "Permite estadías de 28 días o más",
+            },
+            { label: "Llegada autónoma" },
+            { label: "Caja de seguridad con llaves" },
+          ],
+        },
+      ],
+      notIncluded: [
+        { label: "Secadora" },
+        { label: "Servicios básicos" },
+        {
+          label: "Detector de monóxido de carbono",
+          detail:
+            "El anfitrión indicó que no es necesario un detector de monóxido de carbono. Si tienes alguna pregunta, comunícate con el anfitrión.",
+        },
+        { label: "Calefacción" },
+      ],
+    },
+    rules: [
+      "Capacidad máxima 18 huéspedes",
       "Uso de piscina según normas al confirmar",
       "Respetar horarios de descanso",
     ],

@@ -60,8 +60,17 @@ describe("getSafetyPreview", () => {
     expect(detail.notIncluded.some((i) => i.label.includes("Detector"))).toBe(true);
   });
 
-  it("propiedad sin datos de seguridad usa fallback", () => {
+  it("Arrecife muestra cámaras y ausencia de detectores", () => {
     const property = PROPERTIES.find((p) => p.slug === ARRECIFE)!;
+    const preview = getSafetyPreview(property);
+    expect(preview.lines.some((l) => l.toLowerCase().includes("cámara"))).toBe(true);
+    const detail = getSafetyDetail(property);
+    expect(detail.included.length).toBeGreaterThan(0);
+    expect(detail.notIncluded.some((i) => i.label.includes("Detector"))).toBe(true);
+  });
+
+  it("propiedad sin datos de seguridad usa fallback", () => {
+    const property = PROPERTIES.find((p) => p.slug === PORTO_NORTE)!;
     const preview = getSafetyPreview(property);
     expect(preview.lines[0]).toContain("MS Vacations");
   });

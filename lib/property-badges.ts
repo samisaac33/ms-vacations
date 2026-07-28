@@ -15,15 +15,18 @@ type CatalogBadgeDef = {
 const CATALOG_BADGES_BY_SLUG: Record<string, CatalogBadgeDef[]> = {
   "alojamiento-en-arrecife": [
     { label: "Piscina privada", tone: "accent" },
+    { label: "Hidromasaje", tone: "accent" },
     { label: "Wi‑Fi", tone: "neutral" },
     { label: "Cocina equipada", tone: "neutral" },
-    { label: "Terraza exterior", tone: "accent" },
+    { label: "Llegada autónoma", tone: "accent" },
+    { label: "Aire acondicionado", tone: "neutral" },
     { label: "Estacionamiento", tone: "neutral" },
   ],
   "casa-vacacional-home-one-18-personas-max": [
-    { label: "A 450 m del mar", tone: "accent" },
+    { label: "A 300 m del mar", tone: "accent" },
     { label: "Piscina privada", tone: "accent" },
     { label: "Hidromasaje", tone: "accent" },
+    { label: "Mesa de billar", tone: "accent" },
     { label: "BBQ exclusivo", tone: "accent" },
     { label: "Aire acondicionado", tone: "neutral" },
     { label: "Wi‑Fi", tone: "neutral" },
