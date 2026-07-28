@@ -4,7 +4,8 @@
  *
  * Requisitos:
  *   - Servidor local: npm run dev (por defecto http://localhost:3000)
- *   - Para el paso 2 con precios: DATABASE_URL + npm run db:push && npm run db:seed
+ *   - Para el paso 2 con precios reales: DATABASE_URL + npm run db:push && npm run db:seed
+ *   - Con contentCapture=1 el paso 2 usa precios demo aunque no haya BD
  *   - Chrome/Chromium: CHROME_PATH (default /usr/local/bin/google-chrome)
  *
  * Uso: npm run screenshots:booking
@@ -22,20 +23,22 @@ const CHECK_OUT = "2026-08-18";
 const GUESTS = 4;
 const DEMO_BOOKING_ID = "demo-reserva-movil";
 
+const CONTENT_CAPTURE = "&contentCapture=1";
+
 const SHOTS = [
   {
     base: "01-propiedad-movil",
-    url: `${BASE}/propiedades/${SLUG}?checkIn=${CHECK_IN}&checkOut=${CHECK_OUT}&huespedes=${GUESTS}`,
+    url: `${BASE}/propiedades/${SLUG}?checkIn=${CHECK_IN}&checkOut=${CHECK_OUT}&huespedes=${GUESTS}${CONTENT_CAPTURE}`,
     waitForText: "Reservar",
   },
   {
     base: "02-reservar-movil",
-    url: `${BASE}/reservar/${SLUG}?checkIn=${CHECK_IN}&checkOut=${CHECK_OUT}&huespedes=${GUESTS}`,
+    url: `${BASE}/reservar/${SLUG}?checkIn=${CHECK_IN}&checkOut=${CHECK_OUT}&huespedes=${GUESTS}${CONTENT_CAPTURE}`,
     waitForText: "Revisa y continúa",
   },
   {
     base: "03-confirmacion-movil",
-    url: `${BASE}/reserva/exito?bookingId=${DEMO_BOOKING_ID}`,
+    url: `${BASE}/reserva/exito?bookingId=${DEMO_BOOKING_ID}${CONTENT_CAPTURE}`,
     waitForText: "Reserva confirmada",
   },
 ];

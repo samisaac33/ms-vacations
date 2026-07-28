@@ -21,7 +21,7 @@
     "db:update-beach-prices": "tsx scripts/update-beach-prices.ts",
     "db:clear-stale-pricing-overrides": "tsx scripts/clear-stale-pricing-overrides.ts",
     "screenshots:booking": "node scripts/capture-booking-screenshots.mjs",
-    "content:booking-illustrations": "node scripts/generate-booking-illustrations.mjs"
+    "content:export-booking": "node scripts/export-booking-content.mjs"
   },
   "dependencies": {
     "axios": "^1.18.1",
