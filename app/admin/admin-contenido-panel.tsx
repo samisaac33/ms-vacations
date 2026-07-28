@@ -9,7 +9,7 @@ export function AdminContenidoPanel() {
     <AdminSectionCard
       id="contenido"
       title="Contenido — Proceso de reserva"
-      description="Material ilustrativo del flujo de reserva móvil. Descarga las imágenes para redes, presentaciones o documentación."
+      description="Capturas reales del sitio en móvil con flechas y etiquetas explicativas. Descarga para redes, presentaciones o documentación."
       className="mt-3 md:mt-6"
     >
       <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -44,8 +44,8 @@ export function AdminContenidoPanel() {
         ))}
       </ul>
       <p className="mt-4 text-xs text-zinc-500">
-        Para regenerar las ilustraciones:{" "}
-        <code className="rounded bg-zinc-100 px-1">npm run screenshots:booking</code> y luego{" "}
+        Para regenerar:{" "}
+        <code className="rounded bg-zinc-100 px-1">npm run dev</code> +{" "}
         <code className="rounded bg-zinc-100 px-1">npm run content:booking-illustrations</code>
       </p>
     </AdminSectionCard>
