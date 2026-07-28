@@ -1,8 +1,11 @@
+"use client";
+
 import Image from "next/image";
+import { useTheme } from "@/components/theme-provider";
 
 const STEPS = [
   {
-    image: "/images/booking-flow-mobile/01-propiedad-movil.png",
+    imageBase: "01-propiedad-movil",
     alt: "Ficha de propiedad en móvil: Villa Palmera con galería, detalles y botón Reservar",
     step: "1",
     title: "Elige tu alojamiento",
@@ -10,7 +13,7 @@ const STEPS = [
       "Explora fotos, capacidad y amenidades. Toca Reservar para elegir fechas y huéspedes.",
   },
   {
-    image: "/images/booking-flow-mobile/02-reservar-movil.png",
+    imageBase: "02-reservar-movil",
     alt: "Asistente de reserva en móvil: revisión de fechas, huéspedes y método de pago",
     step: "2",
     title: "Completa tu reserva",
@@ -18,7 +21,7 @@ const STEPS = [
       "Revisa fechas y huéspedes, elige método de pago y confirma en un flujo paso a paso.",
   },
   {
-    image: "/images/booking-flow-mobile/03-confirmacion-movil.png",
+    imageBase: "03-confirmacion-movil",
     alt: "Pantalla de confirmación en móvil tras completar la reserva",
     step: "3",
     title: "Recibe confirmación",
@@ -28,6 +31,8 @@ const STEPS = [
 ] as const;
 
 export function HomeBookingFlowMobile() {
+  const { theme } = useTheme();
+
   return (
     <section className="border-y border-sand-dark/60 bg-surface">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
@@ -43,29 +48,33 @@ export function HomeBookingFlowMobile() {
         </div>
 
         <ol className="mt-12 grid gap-10 lg:grid-cols-3 lg:gap-8">
-          {STEPS.map(({ image, alt, step, title, description }) => (
-            <li key={step} className="flex flex-col">
-              <div className="mx-auto w-full max-w-[260px] overflow-hidden rounded-[2rem] border border-sand-dark bg-sand/30 p-2 shadow-lg ring-1 ring-black/5">
-                <div className="overflow-hidden rounded-[1.6rem] bg-surface">
-                  <Image
-                    src={image}
-                    alt={alt}
-                    width={780}
-                    height={1688}
-                    className="h-auto w-full"
-                    sizes="(max-width: 1024px) 260px, 33vw"
-                  />
+          {STEPS.map(({ imageBase, alt, step, title, description }) => {
+            const image = `/images/booking-flow-mobile/${imageBase}-${theme}.png`;
+
+            return (
+              <li key={step} className="flex flex-col">
+                <div className="mx-auto w-full max-w-[260px] overflow-hidden rounded-[2rem] border border-sand-dark bg-sand/30 p-2 shadow-lg ring-1 ring-black/5">
+                  <div className="overflow-hidden rounded-[1.6rem] bg-surface">
+                    <Image
+                      src={image}
+                      alt={alt}
+                      width={780}
+                      height={1688}
+                      className="h-auto w-full"
+                      sizes="(max-width: 1024px) 260px, 33vw"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="mt-6 text-center lg:text-left">
-                <p className="text-xs font-semibold uppercase tracking-wide text-ocean">
-                  Paso {step}
-                </p>
-                <h3 className="mt-1 font-semibold text-ink">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>
-              </div>
-            </li>
-          ))}
+                <div className="mt-6 text-center lg:text-left">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ocean">
+                    Paso {step}
+                  </p>
+                  <h3 className="mt-1 font-semibold text-ink">{title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>
+                </div>
+              </li>
+            );
+          })}
         </ol>
       </div>
     </section>

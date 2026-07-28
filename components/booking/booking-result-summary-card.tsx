@@ -39,7 +39,7 @@ export function BookingResultSummaryCard({ summary }: { summary: BookingResultSu
     summary.balanceUsd != null;
 
   return (
-    <dl className="rounded-2xl border border-sand-dark bg-white p-4 text-sm">
+    <dl className="rounded-2xl border border-sand-dark bg-surface p-4 text-sm">
       <SummaryRow label="Propiedad" value={summary.propertyName} />
       <SummaryRow label="Fechas" value={formatDateRange(summary.checkIn, summary.checkOut)} />
       <SummaryRow label="Huéspedes" value={guestsLabel(summary.guests)} />
