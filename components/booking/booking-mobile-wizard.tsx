@@ -50,6 +50,7 @@ type Props = {
   initialGuests?: number;
   highSeasonPeriods?: HighSeasonPeriod[];
   onPricingChange?: Parameters<typeof useBookingCheckout>[0]["onPricingChange"];
+  contentCapture?: boolean;
 };
 
 const STEP_TITLES = [
@@ -79,6 +80,7 @@ export function BookingMobileWizard({
   initialGuests,
   highSeasonPeriods = [],
   onPricingChange,
+  contentCapture = false,
 }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -95,6 +97,7 @@ export function BookingMobileWizard({
     initialGuests,
     highSeasonPeriods,
     onPricingChange,
+    contentCapture,
   });
 
   const {
