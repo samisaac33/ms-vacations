@@ -3,8 +3,12 @@ import {
   getBookingRangeValidationError,
   isBookingRangeValidWithRules,
   isValidBookingRange,
+  selectBookingDateRange,
 } from "@/lib/booking-date-selection";
 import type { HighSeasonPeriod } from "@/lib/stay-rules";
+
+const RESERVA_9_10 = [{ start: "2026-08-09", end: "2026-08-10" }];
+const TODAY = "2026-07-31";
 
 const FIN_DE_ANO: HighSeasonPeriod = {
   startDate: "2026-12-26",
@@ -36,6 +40,31 @@ describe("getBookingRangeValidationError", () => {
   it("acepta rango válido", () => {
     expect(getBookingRangeValidationError("2026-07-06", "2026-07-07")).toBeNull();
     expect(getBookingRangeValidationError("2026-07-10", "2026-07-12")).toBeNull();
+  });
+});
+
+describe("selectBookingDateRange turnover", () => {
+  it("permite check-out el mismo día que el check-in de otra reserva", () => {
+    const checkIn = selectBookingDateRange("2026-08-08", { checkIn: "", checkOut: "" }, RESERVA_9_10, TODAY);
+    expect(checkIn).toEqual({ ok: true, range: { checkIn: "2026-08-08", checkOut: "" } });
+
+    const checkOut = selectBookingDateRange(
+      "2026-08-09",
+      { checkIn: "2026-08-08", checkOut: "" },
+      RESERVA_9_10,
+      TODAY,
+    );
+    expect(checkOut).toEqual({ ok: true, range: { checkIn: "2026-08-08", checkOut: "2026-08-09" } });
+  });
+
+  it("rechaza check-in en noche ocupada", () => {
+    const result = selectBookingDateRange("2026-08-09", { checkIn: "", checkOut: "" }, RESERVA_9_10, TODAY);
+    expect(result).toEqual({ ok: false, error: "Esa fecha no está disponible." });
+  });
+
+  it("permite check-in el día de check-out de otra reserva", () => {
+    const result = selectBookingDateRange("2026-08-10", { checkIn: "", checkOut: "" }, RESERVA_9_10, TODAY);
+    expect(result).toEqual({ ok: true, range: { checkIn: "2026-08-10", checkOut: "" } });
   });
 });
 

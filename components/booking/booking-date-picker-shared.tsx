@@ -49,7 +49,8 @@ export function DayCell({ iso, dayNum, checkIn, checkOut, today, blocked, onSele
   const hasRange = Boolean(checkIn && checkOut);
   const inRange = hasRange && iso > checkIn && iso < checkOut && !blocked;
   const isEndpoint = isStart || isEnd;
-  const disabled = past || blocked;
+  const pickingCheckIn = !checkIn || Boolean(checkIn && checkOut);
+  const disabled = past || (pickingCheckIn && blocked);
 
   let rangeBg = "";
   if (hasRange && (isStart || isEnd || inRange)) {
@@ -75,11 +76,11 @@ export function DayCell({ iso, dayNum, checkIn, checkOut, today, blocked, onSele
           past
             ? "cursor-not-allowed text-muted/40"
             : blocked
-              ? "cursor-not-allowed bg-coral/25 text-coral line-through decoration-coral/60"
+              ? `${disabled ? "cursor-not-allowed" : "cursor-pointer"} bg-coral/25 text-coral line-through decoration-coral/60`
               : "cursor-pointer text-ink"
         } ${isEndpoint ? "bg-ink text-white" : ""}`}
         aria-label={
-          blocked
+          disabled && blocked
             ? `${iso}, no disponible`
             : `${iso}${isStart ? ", check-in" : ""}${isEnd ? ", check-out" : ""}`
         }
