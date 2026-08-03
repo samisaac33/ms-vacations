@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { AdminIcalSyncToolbar } from "@/app/admin/admin-ical-sync-header";
 import { adminLogout } from "@/app/admin/actions";
 import { SiteLogo } from "@/components/site-logo";
-import { ThemeToggle } from "@/components/theme-toggle";
 import {
   setMobileScrollChromeMenuOpen,
   useMobileScrollChrome,
@@ -119,8 +118,6 @@ export function SiteHeader() {
               WhatsApp
             </a>
           )}
-
-          <ThemeToggle />
 
           {isAdminRoute && (
             <form action={adminLogout} className="flex items-center md:hidden">
