@@ -217,34 +217,39 @@ export function useBookingCheckout({
     setError(null);
 
     if (!isValidDateOrder(checkIn, checkOut)) {
-      setError("Selecciona check-in y check-out en el calendario.");
-      return { ok: false as const };
+      const message = "Selecciona check-in y check-out en el calendario.";
+      setError(message);
+      return { ok: false as const, error: message };
     }
 
     const lengthError = validateStayLength(checkIn, checkOut, highSeasonPeriods);
     if (lengthError) {
       setError(lengthError);
-      return { ok: false as const };
+      return { ok: false as const, error: lengthError };
     }
 
     if (!quote) {
-      setError(quoteError ?? "Espera a que se calcule el precio de tu estancia.");
-      return { ok: false as const };
+      const message = quoteError ?? "Espera a que se calcule el precio de tu estancia.";
+      setError(message);
+      return { ok: false as const, error: message };
     }
 
     if (blocks.length > 0 && rangeOverlapsAny(checkIn, checkOut, blocks)) {
-      setError("Las fechas seleccionadas coinciden con noches no disponibles.");
-      return { ok: false as const };
+      const message = "Las fechas seleccionadas coinciden con noches no disponibles.";
+      setError(message);
+      return { ok: false as const, error: message };
     }
 
     if (!guestEmail.trim()) {
-      setError("Ingresa tu correo electrónico.");
-      return { ok: false as const };
+      const message = "Ingresa tu correo electrónico.";
+      setError(message);
+      return { ok: false as const, error: message };
     }
 
     if (!termsAccepted) {
-      setError("Debes aceptar los términos y condiciones para continuar.");
-      return { ok: false as const };
+      const message = "Debes aceptar los términos y condiciones para continuar.";
+      setError(message);
+      return { ok: false as const, error: message };
     }
 
     const effectiveTiming =
@@ -276,8 +281,9 @@ export function useBookingCheckout({
         next?: string;
       };
       if (!res.ok) {
-        setError(data.error ?? "No se pudo completar la reserva");
-        return { ok: false as const };
+        const message = data.error ?? "No se pudo completar la reserva";
+        setError(message);
+        return { ok: false as const, error: message };
       }
       if (data.next === "payphone_box" && data.bookingId) {
         return {
@@ -307,11 +313,13 @@ export function useBookingCheckout({
         window.location.href = data.redirectUrl;
         return { ok: true as const, bookingId: data.bookingId, redirectUrl: data.redirectUrl };
       }
-      setError("No se recibió la URL del siguiente paso.");
-      return { ok: false as const };
+      const message = "No se recibió la URL del siguiente paso.";
+      setError(message);
+      return { ok: false as const, error: message };
     } catch {
-      setError("Error de red. Intente de nuevo.");
-      return { ok: false as const };
+      const message = "Error de red. Intente de nuevo.";
+      setError(message);
+      return { ok: false as const, error: message };
     } finally {
       setLoading(false);
     }

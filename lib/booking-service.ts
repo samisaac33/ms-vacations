@@ -1,4 +1,4 @@
-﻿import { eq, sql } from "drizzle-orm";
+﻿import { and, eq, sql } from "drizzle-orm";
 import { addMinutes } from "date-fns";
 import { getDb } from "@/db/index";
 import { bookings, properties, syncLogs } from "@/db/schema";
@@ -123,6 +123,45 @@ export async function createPendingBookingAndCheckout(
       }
 
       await tx.execute(sql`SELECT 1 FROM properties WHERE id = ${prop.id}::uuid FOR UPDATE`);
+
+      const normalizedEmail = input.guestEmail.trim().toLowerCase();
+      const [existingPending] = await tx
+        .select({
+          id: bookings.id,
+          totalCents: bookings.totalCents,
+        })
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.propertyId, prop.id),
+            eq(bookings.checkIn, input.checkIn),
+            eq(bookings.checkOut, input.checkOut),
+            eq(bookings.guests, input.guests),
+            eq(bookings.status, "pending_payment"),
+            eq(bookings.paymentMethod, input.paymentMethod),
+            eq(bookings.paymentTiming, effectiveTiming),
+            sql`lower(trim(${bookings.guestEmail})) = ${normalizedEmail}`,
+            sql`${bookings.pendingExpiresAt} > now()`,
+          ),
+        )
+        .limit(1);
+
+      if (existingPending) {
+        const renewedPendingExpiresAt =
+          input.paymentMethod === "bank_transfer"
+            ? addMinutes(new Date(), BANK_TRANSFER_HOLD_MINUTES)
+            : addMinutes(new Date(), ONLINE_PENDING_MINUTES);
+        await tx
+          .update(bookings)
+          .set({ pendingExpiresAt: renewedPendingExpiresAt })
+          .where(eq(bookings.id, existingPending.id));
+        return {
+          type: "reused" as const,
+          bookingId: existingPending.id,
+          totalCents: existingPending.totalCents,
+          prop,
+        };
+      }
 
       await assertRangeAvailable(tx, prop.id, input.checkIn, input.checkOut);
       const quote = await getStayQuoteByPropertyId(

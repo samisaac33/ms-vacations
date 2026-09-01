@@ -409,10 +409,14 @@ export function BookingMobileWizard({
             chargeUsd={dueNowUsd}
             chargeCents={dueNowCents}
             isSplitDeposit={isSplitDeposit}
+            bookingPersistKey={`ms-payphone:${slug}:${checkIn}:${checkOut}:${guestEmail.trim().toLowerCase()}`}
             onCreateBooking={async () => {
               const result = await submitBooking({ skipRedirect: true });
               if (!result.ok || !result.bookingId) {
-                return { ok: false as const, error: error ?? "No se pudo crear la reserva" };
+                return {
+                  ok: false as const,
+                  error: result.error ?? "No se pudo crear la reserva",
+                };
               }
               return { ok: true as const, bookingId: result.bookingId };
             }}

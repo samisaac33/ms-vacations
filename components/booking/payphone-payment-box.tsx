@@ -21,6 +21,8 @@ type Props = {
   chargeUsd: number;
   chargeCents: number;
   isSplitDeposit?: boolean;
+  /** Clave estable para reanudar el bookingId tras refresh (sessionStorage). */
+  bookingPersistKey?: string;
   onCreateBooking: () => Promise<CreateBookingResult>;
 };
 
@@ -68,6 +70,7 @@ export function PayphonePaymentBox({
   chargeUsd,
   chargeCents,
   isSplitDeposit = false,
+  bookingPersistKey,
   onCreateBooking,
 }: Props) {
   const [status, setStatus] = useState<"idle" | "loading" | "processing" | "ready" | "error">("idle");
@@ -76,6 +79,16 @@ export function PayphonePaymentBox({
   const ppbRef = useRef<PayPhonePaymentBoxInstance | null>(null);
   const bookingIdRef = useRef<string | null>(null);
   const configRef = useRef<{ token: string; storeId: string } | null>(null);
+
+  useEffect(() => {
+    if (!bookingPersistKey) return;
+    try {
+      const stored = sessionStorage.getItem(bookingPersistKey);
+      if (stored) bookingIdRef.current = stored;
+    } catch {
+      // sessionStorage puede estar bloqueado en modo privado estricto
+    }
+  }, [bookingPersistKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,12 +172,23 @@ export function PayphonePaymentBox({
     setStatus("processing");
 
     try {
-      if (!bookingIdRef.current) {
-        const created = await onCreateBooking();
-        if (!created.ok) {
-          throw new Error(created.error ?? "No se pudo crear la reserva");
+      const created = await onCreateBooking();
+      if (!created.ok) {
+        throw new Error(created.error ?? "No se pudo crear la reserva");
+      }
+
+      const bookingChanged = bookingIdRef.current !== created.bookingId;
+      bookingIdRef.current = created.bookingId;
+
+      if (bookingPersistKey) {
+        try {
+          sessionStorage.setItem(bookingPersistKey, created.bookingId);
+        } catch {
+          // ignore
         }
-        bookingIdRef.current = created.bookingId;
+      }
+
+      if (bookingChanged || !ppbRef.current) {
         await mountBox(created.bookingId);
       }
 
