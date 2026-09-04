@@ -64,7 +64,7 @@ export function PropertyStaySearchFields({
   id,
 }: StaySearchFieldsProps) {
   return (
-    <div id={id} className="overflow-hidden rounded-xl border border-ink/20 bg-white">
+    <div id={id} className="theme-light overflow-hidden rounded-xl border border-ink/20 bg-white">
       <div className="flex divide-x divide-ink/20">
         <PropertyStayDateField
           label="Llegada"
@@ -104,7 +104,7 @@ type GuestStepperProps = {
 
 export function PropertyGuestStepper({ guests, maxGuests, onChange }: GuestStepperProps) {
   return (
-    <div className="rounded-xl border border-sand-dark bg-white p-4">
+    <div className="theme-light rounded-xl border border-sand-dark bg-white p-4">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="font-semibold text-ink">Huéspedes</p>
