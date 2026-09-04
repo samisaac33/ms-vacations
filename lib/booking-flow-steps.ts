@@ -41,8 +41,8 @@ export const BOOKING_FLOW_STEPS: BookingFlowStep[] = [
   },
 ];
 
-export function bookingFlowScreenshotPath(imageBase: string, theme: "light" | "dark"): string {
-  return `/images/booking-flow-mobile/${imageBase}-${theme}.png`;
+export function bookingFlowScreenshotPath(imageBase: string): string {
+  return `/images/booking-flow-mobile/${imageBase}-light.png`;
 }
 
 export function bookingFlowExportPath(filename: string): string {

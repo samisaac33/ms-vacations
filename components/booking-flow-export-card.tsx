@@ -13,7 +13,7 @@ export function BookingFlowExportCard({ step: stepId }: Props) {
   const step = getBookingFlowStep(stepId);
   if (!step) notFound();
 
-  const screenshot = bookingFlowScreenshotPath(step.imageBase, "light");
+  const screenshot = bookingFlowScreenshotPath(step.imageBase);
 
   return (
     <div
