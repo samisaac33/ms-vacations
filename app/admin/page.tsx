@@ -22,8 +22,8 @@ export default async function AdminPage(props: Props) {
     return (
       <div className="mx-auto max-w-sm px-4 py-16">
         <h1 className="text-xl font-semibold">Acceso equipo</h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Defina <code className="rounded bg-zinc-200 px-1 dark:bg-zinc-800">ADMIN_SECRET</code> en el entorno.
+        <p className="mt-2 text-sm text-zinc-600">
+          Defina <code className="rounded bg-zinc-200 px-1">ADMIN_SECRET</code> en el entorno.
         </p>
         <AdminLoginForm />
       </div>

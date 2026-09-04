@@ -8,13 +8,13 @@ export function AdminMigrateSplitPaymentPanel({ embedded = false }: { embedded?:
 
   const content = (
     <>
-      <p className="text-xs font-bold uppercase tracking-widest text-red-800 dark:text-red-300">
+      <p className="text-xs font-bold uppercase tracking-widest text-red-800">
         Acción requerida
       </p>
-      <h3 className="mt-1 text-lg font-semibold text-red-950 dark:text-red-50">
+      <h3 className="mt-1 text-lg font-semibold text-red-950">
         Migrar esquema de pago fraccionado
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-red-900/90 dark:text-red-100/90">
+      <p className="mt-2 text-sm leading-relaxed text-red-900/90">
         Añade el estado <code className="rounded bg-red-100 px-1">pending_balance</code> y las columnas de
         pago fraccionado en PostgreSQL. Ejecutar <strong>una vez</strong> si el calendario de reservas muestra
         &quot;No se pudo cargar disponibilidad&quot;.
@@ -29,12 +29,12 @@ export function AdminMigrateSplitPaymentPanel({ embedded = false }: { embedded?:
         </button>
       </form>
       {state?.error && (
-        <p className="mt-3 text-sm text-red-700 dark:text-red-400" role="alert">
+        <p className="mt-3 text-sm text-red-700" role="alert">
           {state.error}
         </p>
       )}
       {state?.success && (
-        <p className="mt-3 text-sm text-green-800 dark:text-green-400" role="status">
+        <p className="mt-3 text-sm text-green-800" role="status">
           {state.success}
         </p>
       )}
@@ -43,14 +43,14 @@ export function AdminMigrateSplitPaymentPanel({ embedded = false }: { embedded?:
 
   if (embedded) {
     return (
-      <div className="rounded-2xl border-2 border-red-400 bg-red-50 p-5 dark:border-red-600 dark:bg-red-950/50">
+      <div className="rounded-2xl border-2 border-red-400 bg-red-50 p-5">
         {content}
       </div>
     );
   }
 
   return (
-    <section className="mt-6 rounded-2xl border-2 border-red-400 bg-red-50 p-5 shadow-sm dark:border-red-600 dark:bg-red-950/50">
+    <section className="mt-6 rounded-2xl border-2 border-red-400 bg-red-50 p-5 shadow-sm">
       {content}
     </section>
   );

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Captura pantallas móviles del flujo de reserva (modo claro y oscuro).
+ * Captura pantallas móviles del flujo de reserva.
  *
  * Requisitos:
  *   - Servidor local: npm run dev (por defecto http://localhost:3000)
@@ -14,7 +14,6 @@ import fs from "node:fs";
 import path from "node:path";
 import puppeteer from "puppeteer-core";
 
-const THEME_STORAGE_KEY = "ms-vacations-theme";
 const BASE = process.env.SCREENSHOT_BASE_URL ?? "http://localhost:3000";
 const OUT_DIR = path.join(process.cwd(), "public/images/booking-flow-mobile");
 const SLUG = "villa-palmera";
@@ -43,8 +42,6 @@ const SHOTS = [
   },
 ];
 
-const THEMES = ["light", "dark"];
-
 const VIEWPORT = { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true };
 
 const USER_AGENT =
@@ -69,13 +66,10 @@ async function waitForText(page, text) {
   );
 }
 
-async function capture(page, { url, file, theme, waitForText: needle }) {
+async function capture(page, { url, file, waitForText: needle }) {
   await page.setViewport(VIEWPORT);
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await waitForText(page, needle);
-  await page.evaluate((value) => {
-    document.documentElement.classList.toggle("dark", value === "dark");
-  }, theme);
   await page.evaluate(() => window.scrollTo(0, 0));
   await new Promise((r) => setTimeout(r, 1200));
   await page.screenshot({
@@ -83,7 +77,7 @@ async function capture(page, { url, file, theme, waitForText: needle }) {
     type: "png",
     fullPage: false,
   });
-  console.log(`✓ ${file} ← ${url} (${theme})`);
+  console.log(`✓ ${file} ← ${url}`);
 }
 
 async function main() {
@@ -95,25 +89,15 @@ async function main() {
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
   });
 
-  for (const theme of THEMES) {
-    const page = await browser.newPage();
-    await page.setUserAgent(USER_AGENT);
-    await page.evaluateOnNewDocument(
-      (key, value) => {
-        localStorage.setItem(key, value);
-      },
-      THEME_STORAGE_KEY,
-      theme,
-    );
+  const page = await browser.newPage();
+  await page.setUserAgent(USER_AGENT);
 
-    for (const shot of SHOTS) {
-      const file = `${shot.base}-${theme}.png`;
-      await capture(page, { ...shot, file, theme });
-    }
-
-    await page.close();
+  for (const shot of SHOTS) {
+    const file = `${shot.base}-light.png`;
+    await capture(page, { ...shot, file });
   }
 
+  await page.close();
   await browser.close();
   console.log(`\nCapturas guardadas en ${OUT_DIR}`);
 }
