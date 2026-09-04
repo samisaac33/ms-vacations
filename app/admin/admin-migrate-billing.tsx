@@ -8,15 +8,15 @@ export function AdminMigrateBillingPanel({ embedded = false }: { embedded?: bool
 
   const content = (
     <>
-      <p className="text-xs font-bold uppercase tracking-widest text-red-800 dark:text-red-300">
+      <p className="text-xs font-bold uppercase tracking-widest text-red-800">
         Acción requerida
       </p>
       {!embedded ? (
-        <h3 className="mt-1 text-lg font-semibold text-red-950 dark:text-red-50">
+        <h3 className="mt-1 text-lg font-semibold text-red-950">
           Migrar esquema de facturación
         </h3>
       ) : null}
-      <p className={`text-sm leading-relaxed text-red-900/90 dark:text-red-100/90 ${embedded ? "mt-1" : "mt-2"}`}>
+      <p className={`text-sm leading-relaxed text-red-900/90 ${embedded ? "mt-1" : "mt-2"}`}>
         Añade las columnas de facturación (
         <code className="rounded bg-red-100 px-1">billing_name</code>, datos fiscales y voucher) en
         PostgreSQL. Ejecutar <strong>una vez</strong> si las reservas fallan con error de columna
@@ -32,12 +32,12 @@ export function AdminMigrateBillingPanel({ embedded = false }: { embedded?: bool
         </button>
       </form>
       {state?.error && (
-        <p className="mt-3 text-sm text-red-700 dark:text-red-400" role="alert">
+        <p className="mt-3 text-sm text-red-700" role="alert">
           {state.error}
         </p>
       )}
       {state?.success && (
-        <p className="mt-3 text-sm text-green-800 dark:text-green-400" role="status">
+        <p className="mt-3 text-sm text-green-800" role="status">
           {state.success}
         </p>
       )}
@@ -49,7 +49,7 @@ export function AdminMigrateBillingPanel({ embedded = false }: { embedded?: bool
   }
 
   return (
-    <section className="mt-6 rounded-2xl border-2 border-red-400 bg-red-50 p-5 shadow-sm dark:border-red-600 dark:bg-red-950/50">
+    <section className="mt-6 rounded-2xl border-2 border-red-400 bg-red-50 p-5 shadow-sm">
       {content}
     </section>
   );

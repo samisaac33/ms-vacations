@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useTheme } from "@/components/theme-provider";
 import {
   BOOKING_FLOW_STEPS,
   bookingFlowExportPath,
@@ -9,31 +8,21 @@ import {
   type BookingFlowStep,
 } from "@/lib/booking-flow-steps";
 
-type ThemeMode = "light" | "dark" | "system";
-
 type Props = {
   variant: "home" | "admin";
   showDownload?: boolean;
-  theme?: ThemeMode;
 };
-
-function resolveTheme(mode: ThemeMode | undefined, systemTheme: "light" | "dark"): "light" | "dark" {
-  if (mode === "light" || mode === "dark") return mode;
-  return systemTheme;
-}
 
 function BookingFlowStepCard({
   step,
-  theme,
   variant,
   showDownload,
 }: {
   step: BookingFlowStep;
-  theme: "light" | "dark";
   variant: "home" | "admin";
   showDownload?: boolean;
 }) {
-  const screenshot = bookingFlowScreenshotPath(step.imageBase, theme);
+  const screenshot = bookingFlowScreenshotPath(step.imageBase);
   const exportHref = bookingFlowExportPath(step.exportFilename);
   const isAdmin = variant === "admin";
 
@@ -85,17 +74,13 @@ function BookingFlowStepCard({
   );
 }
 
-export function BookingFlowSteps({ variant, showDownload = false, theme: themeProp }: Props) {
-  const { theme: systemTheme } = useTheme();
-  const theme = resolveTheme(themeProp, systemTheme);
-
+export function BookingFlowSteps({ variant, showDownload = false }: Props) {
   const grid = (
     <ol className={variant === "admin" ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3" : "mt-12 grid gap-10 lg:grid-cols-3 lg:gap-8"}>
       {BOOKING_FLOW_STEPS.map((step) => (
         <BookingFlowStepCard
           key={step.step}
           step={step}
-          theme={theme}
           variant={variant}
           showDownload={showDownload}
         />

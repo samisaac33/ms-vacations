@@ -9,7 +9,7 @@ export function AdminContenidoPanel() {
       description="Capturas reales del sitio en móvil, listas para compartir en redes, WhatsApp o presentaciones."
       className="mt-3 md:mt-6"
     >
-      <BookingFlowSteps variant="admin" showDownload theme="light" />
+      <BookingFlowSteps variant="admin" showDownload />
       <p className="mt-4 text-xs text-zinc-500">
         Para regenerar capturas:{" "}
         <code className="rounded bg-zinc-100 px-1">npm run dev</code> +{" "}
