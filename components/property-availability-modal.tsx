@@ -118,7 +118,7 @@ export function PropertyAvailabilityModal({
 
       <div className="fixed inset-0 z-[70] flex flex-col justify-end bg-ink/40 lg:hidden">
         <button type="button" className="flex-1" aria-label="Cerrar" onClick={onClose} />
-        <div className="flex max-h-[92vh] flex-col rounded-t-3xl bg-white">
+        <div className="theme-light flex max-h-[92vh] flex-col rounded-t-3xl bg-white">
           <div className="flex shrink-0 items-center justify-between border-b border-sand-dark px-4 py-4">
             <h3 className="pr-4 text-lg font-semibold leading-tight text-ink">{title}</h3>
             <button

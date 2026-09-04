@@ -225,7 +225,7 @@ export const PropertyBookingWidget = forwardRef<PropertyBookingWidgetHandle, Pro
         </div>
 
         {calendarOpen && (
-          <div className="absolute left-0 right-0 top-[calc(100%-0.5rem)] z-20 mt-2 hidden rounded-2xl border border-sand-dark bg-white p-4 shadow-[var(--shadow-card)] lg:block">
+          <div className="theme-light absolute left-0 right-0 top-[calc(100%-0.5rem)] z-20 mt-2 hidden rounded-2xl border border-sand-dark bg-white p-4 shadow-[var(--shadow-card)] lg:block">
             <BookingCalendar
               slug={slug}
               checkIn={draftCheckIn}
@@ -333,7 +333,7 @@ export function PropertyStaySearchSheet({
   return (
     <div className="fixed inset-0 z-[70] flex flex-col justify-end bg-ink/40 lg:hidden">
       <button type="button" className="flex-1" aria-label="Cerrar" onClick={onClose} />
-      <div className="flex max-h-[92vh] flex-col rounded-t-3xl bg-white">
+      <div className="theme-light flex max-h-[92vh] flex-col rounded-t-3xl bg-white">
         <div className="flex shrink-0 items-center justify-between border-b border-sand-dark px-4 py-4">
           <h3 className="pr-4 text-lg font-semibold leading-tight text-ink">{title}</h3>
           <button

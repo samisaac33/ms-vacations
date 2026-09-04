@@ -38,6 +38,25 @@
   --shadow-soft: 0 4px 18px rgb(0 0 0 / 0.25);
 }
 
+/* Overlays with light surfaces must keep dark text even when the page is in dark mode. */
+.theme-light {
+  --sand: #faf8f4;
+  --sand-dark: #efe6d8;
+  --surface: #ffffff;
+  --ocean: #009dad;
+  --ocean-dark: #008a99;
+  --ocean-light: #e6f7f9;
+  --accent: #e8a838;
+  --accent-light: #fdf6e8;
+  --ink: #1a2b2b;
+  --muted: #5c6b6b;
+  --background: var(--sand);
+  --foreground: var(--ink);
+  --shadow-card: 0 10px 30px rgb(0 157 173 / 0.12);
+  --shadow-soft: 0 4px 18px rgb(26 43 43 / 0.08);
+  color: var(--foreground);
+}
+
 @theme inline {
   --color-sand: var(--sand);
   --color-sand-dark: var(--sand-dark);
