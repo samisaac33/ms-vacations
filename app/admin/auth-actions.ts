@@ -1,25 +1,18 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  clearAdminSessionCookie,
-  setAdminSessionCookie,
-} from "@/lib/admin-auth";
+import { clearAdminSessionCookie, setAdminSessionCookie } from "@/lib/admin-auth";
+import { verifyAdminPassword } from "@/lib/admin-login";
 
 export type AdminLoginState = { error?: string; success?: boolean };
 
+/** @deprecated Usar POST /api/admin/login desde el cliente. */
 export async function adminLogin(
   _prev: AdminLoginState | undefined,
   formData: FormData,
 ): Promise<AdminLoginState> {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) {
-    return { error: "El acceso al panel no está disponible. Contacta al soporte técnico." };
-  }
-  const password = formData.get("password");
-  if (typeof password !== "string" || password !== secret) {
-    return { error: "Contraseña incorrecta." };
-  }
+  const result = verifyAdminPassword(formData.get("password"));
+  if (!result.ok) return { error: result.error };
   await setAdminSessionCookie();
   revalidatePath("/admin");
   revalidatePath("/admin/configuracion");
@@ -27,6 +20,7 @@ export async function adminLogin(
   return { success: true };
 }
 
+/** @deprecated Usar POST /api/admin/logout desde el cliente. */
 export async function adminLogout(): Promise<void> {
   await clearAdminSessionCookie();
   revalidatePath("/admin");

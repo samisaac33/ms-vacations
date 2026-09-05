@@ -1,22 +1,45 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
-import { adminLogin, type AdminLoginState } from "./auth-actions";
+import { useState, type FormEvent } from "react";
 import { notifyAdminSessionChanged } from "@/lib/admin-session-events";
 
 export function AdminLoginForm() {
   const router = useRouter();
-  const [state, formAction, pending] = useActionState(adminLogin, {} as AdminLoginState);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-  useEffect(() => {
-    if (!state?.success) return;
-    notifyAdminSessionChanged();
-    router.refresh();
-  }, [state?.success, router]);
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setPending(true);
+
+    const password = new FormData(event.currentTarget).get("password");
+
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+
+      if (!res.ok) {
+        setError(data.error ?? "No se pudo iniciar sesión.");
+        return;
+      }
+
+      notifyAdminSessionChanged();
+      router.refresh();
+    } catch {
+      setError("No se pudo conectar con el servidor. Intenta de nuevo.");
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
-    <form action={formAction} className="mt-8 space-y-4">
+    <form onSubmit={handleSubmit} className="mt-8 space-y-4">
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-ink">
           Contraseña de acceso
@@ -34,9 +57,9 @@ export function AdminLoginForm() {
         />
       </div>
 
-      {state?.error ? (
+      {error ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
-          {state.error}
+          {error}
         </p>
       ) : null}
 

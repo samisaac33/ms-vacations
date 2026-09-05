@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { adminLogout } from "@/app/admin/auth-actions";
 import { notifyAdminSessionChanged } from "@/lib/admin-session-events";
 
 type Props = {
@@ -21,7 +20,11 @@ export function AdminLogoutForm({
 
   function handleLogout() {
     startTransition(async () => {
-      await adminLogout();
+      try {
+        await fetch("/api/admin/logout", { method: "POST" });
+      } catch {
+        // Si falla la red, igual refrescamos para reflejar el estado local.
+      }
       notifyAdminSessionChanged();
       router.refresh();
     });
