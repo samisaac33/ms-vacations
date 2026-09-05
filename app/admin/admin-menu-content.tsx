@@ -109,11 +109,6 @@ export async function AdminMenuContent() {
       modalId: "contenido" as AdminMenuModalId,
     },
     {
-      id: "fotos" as const,
-      label: "Fotos",
-      modalId: "fotos" as AdminMenuModalId,
-    },
-    {
       id: "dev" as const,
       label: "Dev",
       modalId: "dev" as AdminMenuModalId,
