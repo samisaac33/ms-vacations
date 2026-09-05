@@ -154,3 +154,25 @@ export const highSeasonPeriodProperties = pgTable(
     ),
   ],
 );
+
+/** Galería de fotos por propiedad (admin). Sin filas → catálogo estático en lib/properties.ts. */
+export const propertyImages = pgTable(
+  "property_images",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    propertyId: uuid("property_id")
+      .notNull()
+      .references(() => properties.id, { onDelete: "cascade" }),
+    storagePath: text("storage_path").notNull(),
+    src: text("src").notNull(),
+    alt: text("alt").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("property_images_property_storage_path_idx").on(
+      table.propertyId,
+      table.storagePath,
+    ),
+  ],
+);
