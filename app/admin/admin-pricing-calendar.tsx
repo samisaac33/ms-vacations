@@ -14,7 +14,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useCallback, useEffect, useMemo, useState } from "react";
 import {
   clearNightlyRates,
-  fetchAdminPricingMonth,
   saveNightlyRates,
   updatePropertyBasePrice,
   type AdminActionState,
@@ -87,9 +86,19 @@ export function AdminPricingCalendar({
     setLoading(true);
     setFetchError(null);
     try {
-      const result = await fetchAdminPricingMonth(propertyId, from, to);
-      if (!result.ok) {
-        setFetchError(result.error);
+      const params = new URLSearchParams({ propertyId, from, to });
+      const res = await fetch(`/api/admin/property-calendar?${params}`, { cache: "no-store" });
+      const result = (await res.json()) as
+        | {
+            ok: true;
+            baseReferenceCents: number;
+            days: PricingDay[];
+            bars: StayBar[];
+          }
+        | { ok: false; error: string };
+
+      if (!res.ok || !result.ok) {
+        setFetchError("ok" in result && !result.ok ? result.error : "Error de red al cargar precios.");
         return;
       }
       setDays(result.days);

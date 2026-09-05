@@ -13,7 +13,6 @@ import { es } from "date-fns/locale";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseISO } from "date-fns";
-import { fetchAdminMultiCalendar } from "@/app/admin/actions";
 import { CalendarStayBar } from "@/app/admin/calendar-stay-bar";
 import type { AdminCalendarProperty } from "@/lib/admin-calendar-query";
 import {
@@ -98,9 +97,16 @@ export function AdminMultiCalendar({ initialMonth }: { initialMonth?: string }) 
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchAdminMultiCalendar(from, to);
-      if (!result.ok) {
-        setError(result.error);
+      const res = await fetch(
+        `/api/admin/multi-calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+        { cache: "no-store" },
+      );
+      const result = (await res.json()) as
+        | { ok: true; properties: AdminCalendarProperty[] }
+        | { ok: false; error: string };
+
+      if (!res.ok || !result.ok) {
+        setError("ok" in result && !result.ok ? result.error : "Error al cargar el calendario.");
         return;
       }
       setProperties(result.properties ?? []);

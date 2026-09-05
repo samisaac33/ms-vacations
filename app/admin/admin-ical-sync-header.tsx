@@ -1,8 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useCallback, useEffect, useRef, useState } from "react";
-import { triggerIcalSync, type IcalActionState } from "./actions";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 function formatSyncDate(iso: string | null): string {
   if (!iso) return "Nunca";
@@ -38,12 +37,15 @@ type Props = {
   variant?: "site" | "admin";
 };
 
+type SyncState = { error?: string; success?: string };
+
 export function AdminIcalSyncToolbar({ variant = "site" }: Props) {
   const router = useRouter();
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [state, formAction, pending] = useActionState(triggerIcalSync, {} as IcalActionState);
+  const [pending, setPending] = useState(false);
+  const [state, setState] = useState<SyncState>({});
   const rootRef = useRef<HTMLDivElement>(null);
 
   const loadStatus = useCallback(async () => {
@@ -66,13 +68,6 @@ export function AdminIcalSyncToolbar({ variant = "site" }: Props) {
   }, [loadStatus]);
 
   useEffect(() => {
-    if (state?.success && !state?.error) {
-      router.refresh();
-      void loadStatus();
-    }
-  }, [state?.success, state?.error, router, loadStatus]);
-
-  useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -91,6 +86,26 @@ export function AdminIcalSyncToolbar({ variant = "site" }: Props) {
       document.removeEventListener("touchstart", onPointerDown);
     };
   }, [open]);
+
+  async function handleSync() {
+    setPending(true);
+    setState({});
+    try {
+      const res = await fetch("/api/admin/sync-ical", { method: "POST" });
+      const data = (await res.json()) as SyncState;
+      if (!res.ok) {
+        setState({ error: data.error ?? "No se pudo sincronizar." });
+        return;
+      }
+      setState({ success: data.success });
+      router.refresh();
+      void loadStatus();
+    } catch {
+      setState({ error: "No se pudo conectar con el servidor." });
+    } finally {
+      setPending(false);
+    }
+  }
 
   if (authorized === false || authorized === null) {
     return null;
@@ -133,22 +148,23 @@ export function AdminIcalSyncToolbar({ variant = "site" }: Props) {
             <span className="font-medium">{formatSyncDate(lastSyncAt)}</span>
           </p>
 
-          <form action={formAction} className="mt-3">
+          <div className="mt-3">
             <button
-              type="submit"
+              type="button"
               disabled={pending}
+              onClick={() => void handleSync()}
               className="w-full rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
             >
               {pending ? "Sincronizando…" : "Sincronizar ahora"}
             </button>
-          </form>
+          </div>
 
-          {state?.error && (
+          {state.error && (
             <p className="mt-2 text-xs text-red-700" role="alert">
               {state.error}
             </p>
           )}
-          {state?.success && (
+          {state.success && (
             <p className="mt-2 text-xs text-emerald-700" role="status">
               {state.success}
             </p>
