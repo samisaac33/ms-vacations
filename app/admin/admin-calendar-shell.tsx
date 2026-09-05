@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AdminIcalSyncToolbar } from "@/app/admin/admin-ical-sync-header";
-import { adminLogout } from "@/app/admin/actions";
+import { AdminLogoutForm } from "@/components/admin-logout-form";
 
 type Props = {
   children: React.ReactNode;
@@ -55,14 +55,7 @@ export function AdminCalendarShell({
           </nav>
           <div className="hidden items-center gap-2 md:flex">
             <AdminIcalSyncToolbar variant="admin" />
-            <form action={adminLogout}>
-              <button
-                type="submit"
-                className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
-              >
-                Cerrar sesión
-              </button>
-            </form>
+            <AdminLogoutForm />
           </div>
         </div>
         {title && (
