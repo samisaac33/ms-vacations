@@ -12,7 +12,7 @@ import { ensurePropertyRowBySlug } from "@/lib/property-db";
 import { getPropertyStoragePrefix } from "@/lib/property-storage-prefix";
 import { isStorageConfigured } from "@/lib/storage-config";
 import { uploadPropertyImage } from "@/lib/storage";
-import { revalidatePath } from "next/cache";
+import { revalidatePropertyImagePaths } from "@/lib/revalidate-property-images";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,16 +39,6 @@ const VALID_CATEGORIES = new Set<PropertyImageCategory>([
   "otro",
 ]);
 
-function revalidatePropertyImagePaths(slug: string) {
-  revalidatePath("/admin");
-  revalidatePath("/admin/configuracion");
-  revalidatePath(`/admin/propiedades/${slug}/fotos`);
-  revalidatePath("/");
-  revalidatePath("/propiedades");
-  revalidatePath(`/propiedades/${slug}`);
-  revalidatePath("/reservar", "layout");
-  revalidatePath(`/reservar/${slug}`);
-}
 
 export async function POST(request: Request) {
   if (!(await isAdminSession())) {
