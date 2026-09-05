@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  fitImageDimensions,
   PROPERTY_IMAGE_MAX_DIMENSION,
   PROPERTY_IMAGE_MAX_UPLOAD_BYTES,
   PROPERTY_IMAGE_WEBP_QUALITY,
@@ -9,14 +8,13 @@ import {
 
 const QUALITY_STEPS = [
   PROPERTY_IMAGE_WEBP_QUALITY / 100,
-  0.72,
-  0.62,
-  0.52,
-  0.42,
+  0.75,
+  0.68,
+  0.6,
+  0.5,
 ];
-const DIMENSION_STEPS = [PROPERTY_IMAGE_MAX_DIMENSION, 2000, 1600, 1200, 800];
-
-const ORIENTED_PROBE_MAX = 64;
+/** Solo bajar resolución si no cabe en peso; nunca por debajo de 1600 px en el lado largo. */
+const DIMENSION_STEPS = [PROPERTY_IMAGE_MAX_DIMENSION, 2000, 1800, 1600];
 
 export type CompressImageResult =
   | { ok: true; file: File }
@@ -31,47 +29,26 @@ function loadImageElement(url: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Lee proporción ya orientada (EXIF) con una miniatura para no cargar la foto completa. */
-async function readOrientedDimensions(file: File): Promise<{ width: number; height: number }> {
-  const probe = await createImageBitmap(file, {
-    imageOrientation: "from-image",
-    resizeWidth: ORIENTED_PROBE_MAX,
-    resizeHeight: ORIENTED_PROBE_MAX,
-    resizeQuality: "high",
-  });
-  const size = { width: probe.width, height: probe.height };
-  probe.close();
-  return size;
-}
-
 async function decodeToBitmap(file: File, maxDimension: number): Promise<ImageBitmap> {
-  const oriented = await readOrientedDimensions(file);
-  const target = fitImageDimensions(oriented.width, oriented.height, maxDimension);
-
   const resizeOptions = {
-    resizeQuality: "high" as const,
     imageOrientation: "from-image" as const,
+    resizeWidth: maxDimension,
+    resizeHeight: maxDimension,
+    resizeQuality: "high" as const,
   };
 
   try {
-    if (target.width >= target.height) {
-      return await createImageBitmap(file, {
-        ...resizeOptions,
-        resizeWidth: target.width,
-      });
-    }
-    return await createImageBitmap(file, {
-      ...resizeOptions,
-      resizeHeight: target.height,
-    });
+    return await createImageBitmap(file, resizeOptions);
   } catch {
     const url = URL.createObjectURL(file);
     try {
       const img = await loadImageElement(url);
-      const fallback = fitImageDimensions(img.naturalWidth, img.naturalHeight, maxDimension);
+      const scale = Math.min(1, maxDimension / Math.max(img.naturalWidth, img.naturalHeight));
+      const width = Math.max(1, Math.round(img.naturalWidth * scale));
+      const height = Math.max(1, Math.round(img.naturalHeight * scale));
       return await createImageBitmap(img, {
-        resizeWidth: fallback.width,
-        resizeHeight: fallback.height,
+        resizeWidth: width,
+        resizeHeight: height,
         resizeQuality: "high",
         imageOrientation: "from-image",
       });
@@ -89,7 +66,10 @@ function canvasToWebp(bitmap: ImageBitmap, quality: number): Promise<Blob | null
   const ctx = canvas.getContext("2d");
   if (!ctx) return Promise.resolve(null);
 
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height);
+
   return new Promise((resolve) => {
     canvas.toBlob((result) => resolve(result), "image/webp", quality);
   });
@@ -104,7 +84,7 @@ export async function compressPropertyImageClient(file: File): Promise<CompressI
       try {
         bitmap = await decodeToBitmap(file, maxDimension);
         const qualities =
-          maxDimension === PROPERTY_IMAGE_MAX_DIMENSION ? QUALITY_STEPS : QUALITY_STEPS.slice(0, 3);
+          maxDimension === PROPERTY_IMAGE_MAX_DIMENSION ? QUALITY_STEPS : QUALITY_STEPS.slice(0, 4);
 
         for (const quality of qualities) {
           const blob = await canvasToWebp(bitmap, quality);

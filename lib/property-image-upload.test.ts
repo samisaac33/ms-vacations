@@ -4,6 +4,7 @@ import {
   isAllowedPropertyImageUpload,
   propertyImageExtension,
   propertyImageUploadValidationError,
+  scaleRatioToMaxDimension,
 } from "@/lib/property-image-upload";
 
 describe("property-image-upload", () => {
@@ -12,6 +13,15 @@ describe("property-image-upload", () => {
     expect(fitImageDimensions(3000, 4000, 2400)).toEqual({ width: 1800, height: 2400 });
     expect(fitImageDimensions(1200, 800, 2400)).toEqual({ width: 1200, height: 800 });
     expect(fitImageDimensions(1000, 1000, 2400)).toEqual({ width: 1000, height: 1000 });
+  });
+
+  it("scaleRatioToMaxDimension escala miniaturas al tamaño objetivo", () => {
+    expect(scaleRatioToMaxDimension(64, 48, 2400)).toEqual({ width: 2400, height: 1800 });
+    expect(scaleRatioToMaxDimension(48, 64, 2400)).toEqual({ width: 1800, height: 2400 });
+  });
+
+  it("fitImageDimensions no agranda imágenes ya pequeñas", () => {
+    expect(fitImageDimensions(1200, 800, 2400)).toEqual({ width: 1200, height: 800 });
   });
 
   it("acepta HEIC por extensión aunque el MIME venga vacío (iPhone)", () => {
