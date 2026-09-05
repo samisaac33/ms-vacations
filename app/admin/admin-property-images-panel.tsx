@@ -162,14 +162,7 @@ export function AdminPropertyImagesPanel({
         </div>
       ) : null}
 
-<<<<<<< HEAD
       <AdminSectionCard title="Subir foto">
-=======
-      <AdminSectionCard
-        title="Subir foto"
-        description="Las fotos de la cámara se comprimen a WebP conservando su proporción original (ancho/alto)."
-      >
->>>>>>> origin/main
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
             Defina <code className="rounded bg-amber-100 px-1">SUPABASE_SERVICE_ROLE_KEY</code> en el
@@ -236,7 +229,7 @@ export function AdminPropertyImagesPanel({
               </span>
             </button>
             <span className="mt-1.5 block text-xs text-zinc-500">
-              JPG, PNG o WEBP. Se mantiene la proporción original; el lado largo se reduce hasta 2400 px si hace falta.
+              JPG, PNG o WEBP. Máximo 4 MB.
             </span>
           </label>
 
@@ -245,18 +238,14 @@ export function AdminPropertyImagesPanel({
             disabled={!storageConfigured || uploading}
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
           >
-            {uploading ? "Comprimiendo y subiendo…" : "Subir foto"}
+            {uploading ? "Subiendo…" : "Subir foto"}
           </button>
 
           <AdminActionFeedback error={uploadError} success={uploadSuccess} />
         </form>
       </AdminSectionCard>
 
-      <AdminSectionCard
-        title="Galería"
-        description="Arrastre para reordenar o elimine fotos. La primera imagen es la portada en listados."
-        badge={sortedImages.length}
-      >
+      <AdminSectionCard title="Galería" badge={sortedImages.length}>
         {sortedImages.length === 0 ? (
           <p className="text-sm text-zinc-600">Sin fotos en la galería administrada.</p>
         ) : (
