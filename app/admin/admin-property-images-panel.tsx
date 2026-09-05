@@ -162,7 +162,10 @@ export function AdminPropertyImagesPanel({
         </div>
       ) : null}
 
-      <AdminSectionCard title="Subir foto">
+      <AdminSectionCard
+        title="Subir foto"
+        description="Las fotos de alta resolución (p. ej. iPhone) se comprimen automáticamente a WebP en su dispositivo antes de subir."
+      >
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
             Defina <code className="rounded bg-amber-100 px-1">SUPABASE_SERVICE_ROLE_KEY</code> en el
@@ -229,7 +232,7 @@ export function AdminPropertyImagesPanel({
               </span>
             </button>
             <span className="mt-1.5 block text-xs text-zinc-500">
-              JPG, PNG, WEBP o HEIC. Máximo 4 MB.
+              JPG, PNG, WEBP o HEIC. Fotos grandes del iPhone se reducen automáticamente (hasta 2400 px).
             </span>
           </label>
 
@@ -238,7 +241,7 @@ export function AdminPropertyImagesPanel({
             disabled={!storageConfigured || uploading}
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
           >
-            {uploading ? "Subiendo…" : "Subir foto"}
+            {uploading ? "Comprimiendo y subiendo…" : "Subir foto"}
           </button>
 
           <AdminActionFeedback error={uploadError} success={uploadSuccess} />
