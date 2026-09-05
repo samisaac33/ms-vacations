@@ -1,31 +1,57 @@
 "use client";
 
-import { useActionState } from "react";
-import { applyPropertyImagesSchema, type AdminActionState } from "@/app/admin/actions";
+import { useState } from "react";
 import { AdminActionFeedback, AdminSectionCard } from "@/app/admin/admin-section-card";
 
-const initial: AdminActionState = {};
+type Props = {
+  embedded?: boolean;
+  onSuccess?: () => void;
+};
 
-export function AdminMigratePropertyImagesPanel({ embedded = false }: { embedded?: boolean }) {
-  const [state, action, pending] = useActionState(applyPropertyImagesSchema, initial);
+export function AdminMigratePropertyImagesPanel({ embedded = false, onSuccess }: Props) {
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function handleMigrate() {
+    setError(null);
+    setSuccess(null);
+    setPending(true);
+
+    try {
+      const res = await fetch("/api/admin/migrate-property-images", { method: "POST" });
+      const data = (await res.json()) as { success?: string; error?: string };
+
+      if (!res.ok) {
+        setError(data.error ?? "No se pudo aplicar la migración.");
+        return;
+      }
+
+      setSuccess(data.success ?? "Migración aplicada.");
+      onSuccess?.();
+    } catch {
+      setError("No se pudo conectar con el servidor.");
+    } finally {
+      setPending(false);
+    }
+  }
 
   const body = (
     <div className="space-y-3">
-      <AdminActionFeedback error={state.error} success={state.success} />
+      <AdminActionFeedback error={error} success={success} />
       <p className="text-sm text-zinc-600">
-        Crea la tabla <code className="rounded bg-zinc-100 px-1">property_images</code> en PostgreSQL.
-        También puede ejecutar{" "}
-        <code className="rounded bg-zinc-100 px-1">npm run db:migrate:property-images</code>.
+        Es un paso único: crea la tabla <code className="rounded bg-zinc-100 px-1">property_images</code>{" "}
+        en PostgreSQL para poder subir, reordenar y eliminar fotos desde aquí. Después de pulsar el botón,
+        la galería quedará disponible en todas las propiedades.
       </p>
-      <form action={action}>
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
-        >
-          {pending ? "Aplicando…" : "Aplicar migración de fotos"}
-        </button>
-      </form>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => void handleMigrate()}
+        className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
+      >
+        {pending ? "Aplicando…" : "Aplicar migración de fotos"}
+      </button>
     </div>
   );
 
