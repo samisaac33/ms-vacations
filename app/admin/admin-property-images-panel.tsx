@@ -7,6 +7,7 @@ import {
   PROPERTY_IMAGE_CATEGORIES,
   type PropertyImageCategory,
 } from "@/lib/property-image-categories";
+import { PROPERTY_IMAGE_ACCEPT } from "@/lib/property-image-upload";
 import type { PropertyImageDto } from "@/lib/property-images-query";
 
 type Props = {
@@ -134,7 +135,17 @@ export function AdminPropertyImagesPanel({
       }
 
       const res = await fetch("/api/admin/property-images", { method: "POST", body });
-      const data = (await res.json()) as { error?: string; ok?: boolean };
+      let data: { error?: string; ok?: boolean } = {};
+      try {
+        data = (await res.json()) as { error?: string; ok?: boolean };
+      } catch {
+        if (res.status === 413) {
+          setUploadError("La imagen es demasiado pesada (máximo 4 MB). Pruebe con otra foto.");
+          return;
+        }
+        setUploadError("Error del servidor al subir. Intente de nuevo.");
+        return;
+      }
       if (!res.ok) {
         setUploadError(data.error ?? "No se pudo subir la imagen.");
         return;
@@ -194,7 +205,7 @@ export function AdminPropertyImagesPanel({
 
       <AdminSectionCard
         title="Subir foto"
-        description={`Las imágenes se optimizan a WebP y se guardan en Supabase Storage para ${propertyName}.`}
+        description={`Se optimiza automáticamente a WebP (máx. 2400 px, calidad 82 %) y se guarda en Supabase Storage para ${propertyName}.`}
       >
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
@@ -239,11 +250,13 @@ export function AdminPropertyImagesPanel({
             <input
               name="file"
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept={PROPERTY_IMAGE_ACCEPT}
               disabled={!storageConfigured || uploading}
               className="mt-1 block w-full text-sm"
             />
-            <span className="mt-1 block text-xs text-zinc-500">JPG, PNG o WEBP. Máximo 12 MB.</span>
+            <span className="mt-1 block text-xs text-zinc-500">
+              JPG, PNG, WEBP o HEIC. Máximo 4 MB antes de subir (el servidor la comprime a WebP).
+            </span>
           </label>
 
           <button

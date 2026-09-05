@@ -1,4 +1,11 @@
 import sharp from "sharp";
+import {
+  isAllowedPropertyImageUpload,
+  PROPERTY_IMAGE_MAX_DIMENSION,
+  PROPERTY_IMAGE_MAX_UPLOAD_BYTES,
+  PROPERTY_IMAGE_WEBP_QUALITY,
+  propertyImageExtension,
+} from "@/lib/property-image-upload";
 
 export { isStorageConfigured } from "@/lib/storage-config";
 
@@ -19,11 +26,7 @@ const ALLOWED_TYPES = new Set([
   "application/pdf",
 ]);
 
-const PROPERTY_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-
 const MAX_BYTES = 5 * 1024 * 1024;
-const PROPERTY_IMAGE_MAX_BYTES = 12 * 1024 * 1024;
-const PROPERTY_IMAGE_MAX_DIMENSION = 2400;
 
 export async function uploadPaymentProof(
   bookingId: string,
@@ -89,17 +92,20 @@ export async function uploadPropertyImage(
   if (!key) {
     return { ok: false, message: "Almacenamiento de fotos no configurado (SUPABASE_SERVICE_ROLE_KEY)." };
   }
-  if (!PROPERTY_IMAGE_TYPES.has(file.type)) {
-    return { ok: false, message: "Formato no permitido. Use JPG, PNG o WEBP." };
+  if (!isAllowedPropertyImageUpload(file)) {
+    return { ok: false, message: "Formato no permitido. Use JPG, PNG, WEBP o HEIC (fotos de iPhone)." };
   }
-  if (file.size > PROPERTY_IMAGE_MAX_BYTES) {
-    return { ok: false, message: "La imagen supera el límite de 12 MB." };
+  if (file.size > PROPERTY_IMAGE_MAX_UPLOAD_BYTES) {
+    return {
+      ok: false,
+      message: "La imagen supera el límite de 4 MB. Use una foto más ligera o redúzcala antes de subir.",
+    };
   }
 
   const input = Buffer.from(await file.arrayBuffer());
   let webp: Buffer;
   try {
-    webp = await sharp(input)
+    webp = await sharp(input, { failOn: "none" })
       .rotate()
       .resize({
         width: PROPERTY_IMAGE_MAX_DIMENSION,
@@ -107,10 +113,22 @@ export async function uploadPropertyImage(
         fit: "inside",
         withoutEnlargement: true,
       })
-      .webp({ quality: 82 })
+      .webp({ quality: PROPERTY_IMAGE_WEBP_QUALITY })
       .toBuffer();
-  } catch {
-    return { ok: false, message: "No se pudo procesar la imagen." };
+  } catch (e) {
+    const ext = propertyImageExtension(file);
+    if (ext === "heic" || ext === "heif") {
+      return {
+        ok: false,
+        message:
+          "No se pudo procesar HEIC. En Ajustes → Cámara active «Más compatible» (JPG) o exporte la foto a JPG.",
+      };
+    }
+    return { ok: false, message: "No se pudo procesar la imagen. Pruebe con JPG o PNG." };
+  }
+
+  if (webp.length === 0) {
+    return { ok: false, message: "No se pudo procesar la imagen. Pruebe con JPG o PNG." };
   }
 
   const res = await fetch(
