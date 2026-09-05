@@ -95,7 +95,7 @@ export async function adminLogin(
 ): Promise<AdminLoginState> {
   const secret = process.env.ADMIN_SECRET;
   if (!secret) {
-    return { error: "ADMIN_SECRET no está configurado en el servidor." };
+    return { error: "El acceso al panel no está disponible. Contacta al soporte técnico." };
   }
   const password = formData.get("password");
   if (typeof password !== "string" || password !== secret) {
