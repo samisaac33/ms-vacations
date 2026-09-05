@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { AdminEmbeddedProvider } from "@/app/admin/admin-embedded-context";
@@ -69,7 +68,14 @@ function MenuBadge({ count }: { count: number }) {
   );
 }
 
-function AdminFotosModalContent({ properties }: { properties: AdminCalendarPropertyMeta[] }) {
+function AdminFotosModalContent({
+  properties,
+  onNavigate,
+}: {
+  properties: AdminCalendarPropertyMeta[];
+  onNavigate: () => void;
+}) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
 
   const filtered = properties.filter((p) => {
@@ -77,6 +83,11 @@ function AdminFotosModalContent({ properties }: { properties: AdminCalendarPrope
     if (!q) return true;
     return p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q);
   });
+
+  function handleSelect(slug: string) {
+    onNavigate();
+    router.push(`/admin/propiedades/${slug}/fotos`);
+  }
 
   return (
     <div className="space-y-4">
@@ -91,16 +102,17 @@ function AdminFotosModalContent({ properties }: { properties: AdminCalendarPrope
       <ul className="divide-y divide-zinc-100 rounded-xl border border-zinc-200">
         {filtered.map((p) => (
           <li key={p.slug}>
-            <Link
-              href={`/admin/propiedades/${p.slug}/fotos`}
-              className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-zinc-50"
+            <button
+              type="button"
+              onClick={() => handleSelect(p.slug)}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50 active:bg-zinc-100"
             >
               <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-zinc-200">
                 <Image src={p.imageSrc} alt="" fill className="object-cover" sizes="40px" />
               </div>
               <span className="min-w-0 flex-1 text-sm font-medium text-zinc-900">{p.name}</span>
               <span className="text-xs text-zinc-500">Gestionar →</span>
-            </Link>
+            </button>
           </li>
         ))}
         {filtered.length === 0 && (
@@ -256,7 +268,7 @@ export function AdminHamburgerMenu({ menuItems, modals, properties }: Props) {
         >
           <AdminEmbeddedProvider>
             {activeModalConfig.id === "fotos" ? (
-              <AdminFotosModalContent properties={properties} />
+              <AdminFotosModalContent properties={properties} onNavigate={closeModal} />
             ) : (
               activeModalConfig.content
             )}

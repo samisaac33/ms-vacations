@@ -48,7 +48,7 @@ export function AdminModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="admin-modal-title"
-        className={`relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-surface shadow-xl sm:max-h-[90vh] sm:rounded-2xl ${maxWidthClass}`}
+        className={`relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl bg-surface shadow-xl sm:max-h-[90vh] sm:rounded-2xl ${maxWidthClass}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-4 py-4 sm:px-6">
           <h2 id="admin-modal-title" className="text-lg font-semibold text-zinc-900 sm:text-xl">
