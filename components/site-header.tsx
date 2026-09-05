@@ -59,12 +59,35 @@ function NavLink({
 export function SiteHeader() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [adminAuthed, setAdminAuthed] = useState<boolean | null>(null);
   const wa = whatsappHref();
   const isPropertyDetail = /^\/propiedades\/[^/]+$/.test(pathname);
   const isBookingFlow = /^\/reservar\/[^/]+$/.test(pathname);
   const isAdminRoute = pathname.startsWith("/admin");
+  const showAdminChrome = isAdminRoute && adminAuthed === true;
   const hideOnMobile = isPropertyDetail || isBookingFlow;
   const { headerHidden } = useMobileScrollChrome(!hideOnMobile);
+
+  useEffect(() => {
+    if (!isAdminRoute) {
+      setAdminAuthed(null);
+      return;
+    }
+
+    let cancelled = false;
+    fetch("/api/admin/session")
+      .then((res) => (res.ok ? res.json() : { authenticated: false }))
+      .then((data: { authenticated?: boolean }) => {
+        if (!cancelled) setAdminAuthed(Boolean(data.authenticated));
+      })
+      .catch(() => {
+        if (!cancelled) setAdminAuthed(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdminRoute, pathname]);
 
   useEffect(() => {
     setMobileScrollChromeMenuOpen(menuOpen);
@@ -102,13 +125,14 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
-          {navLinks.map(({ href, label }) => (
-            <NavLink key={href} href={href} label={label} />
-          ))}
+          {!isAdminRoute &&
+            navLinks.map(({ href, label }) => (
+              <NavLink key={href} href={href} label={label} />
+            ))}
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
-          {wa && (
+          {wa && !isAdminRoute && (
             <a
               href={wa}
               target="_blank"
@@ -119,7 +143,7 @@ export function SiteHeader() {
             </a>
           )}
 
-          {isAdminRoute && (
+          {showAdminChrome && (
             <form action={adminLogout} className="flex items-center md:hidden">
               <button
                 type="submit"
@@ -130,40 +154,42 @@ export function SiteHeader() {
             </form>
           )}
 
-          {isAdminRoute && (
+          {showAdminChrome && (
             <div className="md:hidden">
               <AdminIcalSyncToolbar />
             </div>
           )}
 
-          <button
-            type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink md:hidden"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-nav"
-            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {menuOpen ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path
-                  d="M6 6l12 12M18 6 6 18"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path
-                  d="M4 7h16M4 12h16M4 17h16"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                />
-              </svg>
-            )}
-          </button>
+          {!isAdminRoute && (
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink md:hidden"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path
+                    d="M6 6l12 12M18 6 6 18"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path
+                    d="M4 7h16M4 12h16M4 17h16"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

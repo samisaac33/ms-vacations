@@ -1,8 +1,7 @@
-import { AdminLoginForm } from "@/app/admin/admin-login-form";
 import { isAdminSession } from "@/lib/admin-auth";
 
 export const metadata = {
-  title: "Calendario",
+  title: "Panel de administración",
   robots: { index: false, follow: false },
 };
 
