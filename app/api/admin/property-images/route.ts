@@ -11,11 +11,12 @@ import { getPropertyBySlug } from "@/lib/properties";
 import { ensurePropertyRowBySlug } from "@/lib/property-db";
 import { getPropertyStoragePrefix } from "@/lib/property-storage-prefix";
 import { isStorageConfigured } from "@/lib/storage-config";
-import { uploadPropertyImage } from "@/lib/storage";
+import { uploadPropertyImage } from "@/lib/property-image-storage";
 import { revalidatePropertyImagePaths } from "@/lib/revalidate-property-images";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const VALID_CATEGORIES = new Set<PropertyImageCategory>([
   "exterior",
