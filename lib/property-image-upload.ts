@@ -23,6 +23,22 @@ export function fitImageDimensions(
   };
 }
 
+/** Escala proporciones al maxDimension del lado largo (p. ej. miniatura de aspecto). */
+export function scaleRatioToMaxDimension(
+  width: number,
+  height: number,
+  maxDimension: number,
+): { width: number; height: number } {
+  if (width <= 0 || height <= 0) {
+    return { width: 1, height: 1 };
+  }
+  const scale = maxDimension / Math.max(width, height);
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
 const MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
