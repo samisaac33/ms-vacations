@@ -47,6 +47,15 @@ export async function bookingStatusHasValue(value: string): Promise<boolean> {
   }
 }
 
+export async function splitPaymentMigrationNeeded(): Promise<boolean> {
+  if (!hasDatabase()) return false;
+  try {
+    return !(await bookingStatusHasValue("pending_balance"));
+  } catch {
+    return true;
+  }
+}
+
 export async function applySplitPaymentMigration(): Promise<SplitPaymentMigrationResult> {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL no configurada.");

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getDb, hasDatabase } from "@/db/index";
 import { properties } from "@/db/schema";
 import { isAdminSession } from "@/lib/admin-auth";
-import { isValidIcalUrl } from "@/lib/admin-dashboard";
+import { updatePropertyIcalUrl, parseIcalUrlUpdate } from "@/lib/admin-ical-url";
 import {
   getAdminMultiCalendar,
   getAdminPropertyCalendar,
@@ -24,7 +24,7 @@ import { syncAllPropertiesIcal } from "@/lib/ical-sync";
 import { applyBeachPricesToDatabase } from "@/lib/apply-beach-prices-db";
 import {
   applySplitPaymentMigration,
-  bookingStatusHasValue,
+  splitPaymentMigrationNeeded as checkSplitPaymentMigrationNeeded,
 } from "@/lib/apply-split-payment-migration";
 import { applyBillingMigration, billingMigrationNeeded as checkBillingMigrationNeeded } from "@/lib/apply-billing-migration";
 import { eachDayIsoInclusive } from "@/lib/dates";
@@ -152,35 +152,26 @@ export async function updateIcalUrl(
   if (!(await isAdminSession())) {
     return { error: "No autorizado." };
   }
-  if (!hasDatabase()) {
-    return { error: "DATABASE_URL no configurada." };
+
+  const parsed = parseIcalUrlUpdate(formData.get("propertyId"), formData.get("icalUrl"));
+  if (!parsed.valid) {
+    return { error: parsed.error };
   }
 
-  const propertyId = formData.get("propertyId");
-  const icalUrl = formData.get("icalUrl");
-  if (typeof propertyId !== "string" || typeof icalUrl !== "string") {
-    return { error: "Datos incompletos." };
+  try {
+    const result = await updatePropertyIcalUrl(parsed.propertyId, parsed.icalUrl);
+    if (!result.ok) {
+      return { error: result.error };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/configuracion");
+    revalidatePath("/admin/dev");
+    return { success: result.message };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { error: message };
   }
-
-  const trimmed = icalUrl.trim();
-  if (!isValidIcalUrl(trimmed)) {
-    return { error: "La URL debe ser https:// y terminar en .ics" };
-  }
-
-  const db = getDb();
-  const updated = await db
-    .update(properties)
-    .set({ icalUrl: trimmed })
-    .where(eq(properties.id, propertyId))
-    .returning({ id: properties.id });
-
-  if (updated.length === 0) {
-    return { error: "Propiedad no encontrada." };
-  }
-
-  revalidatePath("/admin");
-  revalidatePath("/admin/configuracion");
-  return { success: "URL iCal actualizada." };
 }
 
 export async function updatePropertyBasePrice(
@@ -397,12 +388,7 @@ export async function billingMigrationNeeded(): Promise<boolean> {
 }
 
 export async function splitPaymentMigrationNeeded(): Promise<boolean> {
-  if (!hasDatabase()) return false;
-  try {
-    return !(await bookingStatusHasValue("pending_balance"));
-  } catch {
-    return true;
-  }
+  return checkSplitPaymentMigrationNeeded();
 }
 
 export async function triggerIcalSync(
