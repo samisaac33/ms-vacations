@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AdminIcalSyncToolbar } from "@/app/admin/admin-ical-sync-header";
-import { AdminLogoutForm } from "@/components/admin-logout-form";
+import { HamburgerIcon } from "@/app/admin/admin-hamburger-menu";
 import { SiteLogo } from "@/components/site-logo";
 import {
   setMobileScrollChromeMenuOpen,
   useMobileScrollChrome,
 } from "@/hooks/use-mobile-scroll-chrome";
 import { ADMIN_SESSION_CHANGED_EVENT } from "@/lib/admin-session-events";
+import { toggleAdminMenu } from "@/lib/admin-menu-events";
 import { siteConfig } from "@/lib/site";
 
 const navLinks = [
@@ -129,7 +129,7 @@ export function SiteHeader() {
           className="group flex max-h-[var(--header-height)] shrink-0 items-center gap-3 overflow-hidden transition-opacity hover:opacity-90"
           aria-label={isAdminRoute ? "Calendario admin" : siteConfig.name}
         >
-          <SiteLogo height={40} showTagline />
+          <SiteLogo height={40} showTagline={!isAdminRoute} showName={!isAdminRoute} />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
@@ -152,16 +152,14 @@ export function SiteHeader() {
           )}
 
           {showAdminChrome && (
-            <AdminLogoutForm
-              className="flex items-center md:hidden"
-              buttonClassName="inline-flex h-10 items-center whitespace-nowrap rounded-lg border border-sand-dark bg-surface px-3 text-sm font-medium text-ink hover:bg-sand-dark/50"
-            />
-          )}
-
-          {showAdminChrome && (
-            <div className="md:hidden">
-              <AdminIcalSyncToolbar />
-            </div>
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink"
+              aria-label="Abrir menú admin"
+              onClick={() => toggleAdminMenu()}
+            >
+              <HamburgerIcon />
+            </button>
           )}
 
           {!isAdminRoute && (

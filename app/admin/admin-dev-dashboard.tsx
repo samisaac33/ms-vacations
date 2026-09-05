@@ -3,7 +3,7 @@ import { AdminDevView } from "@/app/admin/admin-dev-view";
 
 export async function AdminDevDashboard() {
   return (
-    <AdminCalendarShell activeTab="dev" title="Dev">
+    <AdminCalendarShell title="Dev">
       <AdminDevView />
     </AdminCalendarShell>
   );

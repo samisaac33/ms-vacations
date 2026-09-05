@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useAdminEmbedded } from "@/app/admin/admin-embedded-context";
 
 type Variant = "default" | "alert" | "success";
 
@@ -62,8 +63,13 @@ export function AdminSectionCard({
   defaultOpen = false,
   badge,
 }: Props) {
+  const embedded = useAdminEmbedded();
   const [open, setOpen] = useState(defaultOpen);
-  const isMobileCollapsible = collapsible === "mobile";
+  const isMobileCollapsible = collapsible === "mobile" && !embedded;
+
+  if (embedded) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <section

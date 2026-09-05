@@ -2,6 +2,7 @@ type Props = {
   className?: string;
   height?: number;
   showTagline?: boolean;
+  showName?: boolean;
 };
 
 function textSize(height: number): { name: string; tagline: string } {
@@ -11,7 +12,12 @@ function textSize(height: number): { name: string; tagline: string } {
   return { name: "text-sm sm:text-base", tagline: "text-[10px] sm:text-[11px]" };
 }
 
-export function SiteLogo({ className = "", height = 40, showTagline = true }: Props) {
+export function SiteLogo({
+  className = "",
+  height = 40,
+  showTagline = true,
+  showName = true,
+}: Props) {
   const sizes = textSize(height);
 
   return (
@@ -25,18 +31,20 @@ export function SiteLogo({ className = "", height = 40, showTagline = true }: Pr
         style={{ height, width: "auto", maxHeight: height }}
         className="block shrink-0 object-contain"
       />
-      <span className="min-w-0 leading-tight">
-        <span
-          className={`block font-display font-semibold tracking-wide text-ink ${sizes.name}`}
-        >
-          MS VACATIONS
-        </span>
-        {showTagline ? (
-          <span className={`block font-medium tracking-wide text-muted ${sizes.tagline}`}>
-            Home &amp; Apartments for Rent
+      {showName ? (
+        <span className="min-w-0 leading-tight">
+          <span
+            className={`block font-display font-semibold tracking-wide text-ink ${sizes.name}`}
+          >
+            MS VACATIONS
           </span>
-        ) : null}
-      </span>
+          {showTagline ? (
+            <span className={`block font-medium tracking-wide text-muted ${sizes.tagline}`}>
+              Home &amp; Apartments for Rent
+            </span>
+          ) : null}
+        </span>
+      ) : null}
     </span>
   );
 }

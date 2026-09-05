@@ -20,7 +20,7 @@ export async function AdminPropertyPricingDashboard({ params }: Props) {
 
   if (!row) {
     return (
-      <AdminCalendarShell activeTab="calendario" title="Calendario de precios">
+      <AdminCalendarShell title="Calendario de precios">
         <p className="text-sm text-amber-800">
           Propiedad no encontrada en la base de datos. Ejecute{" "}
           <code className="rounded bg-amber-100 px-1">npm run db:seed</code>.
@@ -30,7 +30,7 @@ export async function AdminPropertyPricingDashboard({ params }: Props) {
   }
 
   return (
-    <AdminCalendarShell activeTab="calendario" title={catalog.name}>
+    <AdminCalendarShell title={catalog.name}>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <AdminPropertyStrip properties={propertyList} activeSlug={slug} activeSection="precios" />
         <div className="min-w-0 flex-1">

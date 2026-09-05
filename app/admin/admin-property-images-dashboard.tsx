@@ -11,7 +11,7 @@ export async function AdminPropertyImagesDashboard({ params }: Props) {
   if (!catalog) notFound();
 
   return (
-    <AdminCalendarShell activeTab="calendario" title={`Fotos · ${catalog.name}`}>
+    <AdminCalendarShell title={`Fotos · ${catalog.name}`}>
       <AdminPropertyImagesView slug={slug} />
     </AdminCalendarShell>
   );
