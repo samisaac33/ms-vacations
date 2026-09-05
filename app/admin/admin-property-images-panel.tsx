@@ -23,6 +23,7 @@ type Props = {
   usesCatalogFallback: boolean;
   catalogImageCount: number;
   storageConfigured: boolean;
+  onDataChange?: () => void;
 };
 
 const initial: AdminActionState = {};
@@ -35,6 +36,7 @@ export function AdminPropertyImagesPanel({
   usesCatalogFallback,
   catalogImageCount,
   storageConfigured,
+  onDataChange,
 }: Props) {
   const router = useRouter();
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -90,6 +92,7 @@ export function AdminPropertyImagesPanel({
 
       setUploadSuccess("Foto subida correctamente.");
       fileInput.value = "";
+      onDataChange?.();
       router.refresh();
     } catch {
       setUploadError("Error de red al subir la imagen.");
