@@ -24,7 +24,7 @@ import { syncAllPropertiesIcal } from "@/lib/ical-sync";
 import { applyBeachPricesToDatabase } from "@/lib/apply-beach-prices-db";
 import {
   applySplitPaymentMigration,
-  bookingStatusHasValue,
+  splitPaymentMigrationNeeded as checkSplitPaymentMigrationNeeded,
 } from "@/lib/apply-split-payment-migration";
 import { applyBillingMigration, billingMigrationNeeded as checkBillingMigrationNeeded } from "@/lib/apply-billing-migration";
 import { eachDayIsoInclusive } from "@/lib/dates";
@@ -397,12 +397,7 @@ export async function billingMigrationNeeded(): Promise<boolean> {
 }
 
 export async function splitPaymentMigrationNeeded(): Promise<boolean> {
-  if (!hasDatabase()) return false;
-  try {
-    return !(await bookingStatusHasValue("pending_balance"));
-  } catch {
-    return true;
-  }
+  return checkSplitPaymentMigrationNeeded();
 }
 
 export async function triggerIcalSync(

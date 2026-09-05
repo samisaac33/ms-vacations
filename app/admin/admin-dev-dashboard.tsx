@@ -1,13 +1,11 @@
 import { AdminCalendarShell } from "@/app/admin/admin-calendar-shell";
 import { AdminIcalPanel } from "@/app/admin/admin-ical-panel";
 import { AdminMaintenanceSection } from "@/app/admin/admin-maintenance-section";
-import {
-  getAdminNotificationSettingsForPanel,
-  billingMigrationNeeded,
-  propertyImagesMigrationNeeded,
-  splitPaymentMigrationNeeded,
-} from "@/app/admin/actions";
 import { getAdminIcalDashboard } from "@/lib/admin-dashboard";
+import { getAdminSettings, getEnvNotificationEmailFallback } from "@/lib/admin-settings";
+import { billingMigrationNeeded } from "@/lib/apply-billing-migration";
+import { propertyImagesMigrationNeeded } from "@/lib/apply-property-images-migration";
+import { splitPaymentMigrationNeeded } from "@/lib/apply-split-payment-migration";
 
 function guestEmailFromEnv(): string {
   const raw = process.env.EMAIL_FROM?.trim();
@@ -17,13 +15,33 @@ function guestEmailFromEnv(): string {
 }
 
 export async function AdminDevDashboard() {
-  const dashboard = await getAdminIcalDashboard();
-  const needsSplitPaymentMigration = await splitPaymentMigrationNeeded();
-  const needsBillingMigration = await billingMigrationNeeded();
-  const needsPropertyImagesMigration = await propertyImagesMigrationNeeded();
+  let dashboard: Awaited<ReturnType<typeof getAdminIcalDashboard>> = null;
+  try {
+    dashboard = await getAdminIcalDashboard();
+  } catch {
+    // DB no disponible
+  }
+
+  let needsSplitPaymentMigration = false;
+  let needsBillingMigration = false;
+  let needsPropertyImagesMigration = false;
+  try {
+    [needsSplitPaymentMigration, needsBillingMigration, needsPropertyImagesMigration] = await Promise.all([
+      splitPaymentMigrationNeeded(),
+      billingMigrationNeeded(),
+      propertyImagesMigrationNeeded(),
+    ]);
+  } catch {
+    // DB no disponible
+  }
+
   let notificationSettings = { notificationEmail: null as string | null, envFallback: null as string | null };
   try {
-    notificationSettings = await getAdminNotificationSettingsForPanel();
+    const settings = await getAdminSettings();
+    notificationSettings = {
+      notificationEmail: settings.notificationEmail,
+      envFallback: getEnvNotificationEmailFallback() ?? null,
+    };
   } catch {
     // DB no disponible
   }
