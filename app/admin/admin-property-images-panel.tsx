@@ -162,10 +162,14 @@ export function AdminPropertyImagesPanel({
         </div>
       ) : null}
 
+<<<<<<< HEAD
+      <AdminSectionCard title="Subir foto">
+=======
       <AdminSectionCard
         title="Subir foto"
         description="Las fotos de la cámara se comprimen a WebP conservando su proporción original (ancho/alto)."
       >
+>>>>>>> origin/main
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
             Defina <code className="rounded bg-amber-100 px-1">SUPABASE_SERVICE_ROLE_KEY</code> en el
@@ -250,7 +254,7 @@ export function AdminPropertyImagesPanel({
 
       <AdminSectionCard
         title="Galería"
-        description="Arrastre para reordenar, edite textos alternativos o elimine fotos. El texto alternativo agrupa el recorrido fotográfico en la ficha pública."
+        description="Arrastre para reordenar o elimine fotos. La primera imagen es la portada en listados."
         badge={sortedImages.length}
       >
         {sortedImages.length === 0 ? (

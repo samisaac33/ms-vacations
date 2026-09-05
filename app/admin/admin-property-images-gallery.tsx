@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState, useTransition, type FormEvent } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { AdminActionFeedback } from "@/app/admin/admin-section-card";
 import type { PropertyImageDto } from "@/lib/property-images-query";
 
@@ -48,16 +48,11 @@ export function AdminPropertyImagesGallery({
   const [dropIndex, setDropIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>({});
   const [isPending, startTransition] = useTransition();
-  const [altPendingId, setAltPendingId] = useState<string | null>(null);
   const [deletePendingId, setDeletePendingId] = useState<string | null>(null);
   const [coverPendingId, setCoverPendingId] = useState<string | null>(null);
 
   const busy =
-    disabled ||
-    isPending ||
-    altPendingId != null ||
-    deletePendingId != null ||
-    coverPendingId != null;
+    disabled || isPending || deletePendingId != null || coverPendingId != null;
 
   function persistOrder(nextOrder: PropertyImageDto[]) {
     const orderedIds = nextOrder.map((i) => i.id);
@@ -98,34 +93,6 @@ export function AdminPropertyImagesGallery({
     setDragIndex(null);
     setDropIndex(null);
     persistOrder(next);
-  }
-
-  async function handleAltSubmit(imageId: string, event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setFeedback({});
-    setAltPendingId(imageId);
-
-    const alt = new FormData(event.currentTarget).get("alt");
-    try {
-      const res = await fetch(`/api/admin/property-images/items/${encodeURIComponent(imageId)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ alt }),
-      });
-      const data = (await res.json()) as { success?: string; error?: string };
-
-      if (!res.ok) {
-        setFeedback({ error: data.error ?? "No se pudo guardar el texto." });
-        return;
-      }
-
-      setFeedback({ success: data.success });
-      onDataChange?.();
-    } catch {
-      setFeedback({ error: "No se pudo conectar con el servidor." });
-    } finally {
-      setAltPendingId(null);
-    }
   }
 
   async function handleSetCover(imageId: string) {
@@ -193,10 +160,7 @@ export function AdminPropertyImagesGallery({
           const isDragging = dragIndex === index;
           const isDropTarget = dropIndex === index && dragIndex !== index;
           const itemBusy =
-            busy ||
-            altPendingId === image.id ||
-            deletePendingId === image.id ||
-            coverPendingId === image.id;
+            busy || deletePendingId === image.id || coverPendingId === image.id;
 
           return (
             <li
@@ -270,26 +234,6 @@ export function AdminPropertyImagesGallery({
 
                 <div className="min-w-0 flex-1 space-y-2">
                   <p className="truncate text-xs text-zinc-500">{image.storagePath}</p>
-                  <form
-                    onSubmit={(e) => void handleAltSubmit(image.id, e)}
-                    className="flex flex-col gap-2 sm:flex-row"
-                  >
-                    <input type="hidden" name="imageId" value={image.id} />
-                    <input
-                      name="alt"
-                      defaultValue={image.alt}
-                      required
-                      disabled={itemBusy}
-                      className="min-w-0 flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm disabled:opacity-60"
-                    />
-                    <button
-                      type="submit"
-                      disabled={itemBusy}
-                      className="shrink-0 rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50 disabled:opacity-60"
-                    >
-                      {altPendingId === image.id ? "Guardando…" : "Guardar texto"}
-                    </button>
-                  </form>
 
                   <div className="flex flex-wrap gap-2">
                     {index > 0 ? (
