@@ -218,82 +218,100 @@ export function AdminPropertyImagesGallery({
                 e.preventDefault();
                 handleDrop(index);
               }}
-              className={`flex flex-col gap-3 rounded-xl border bg-white p-3 transition-shadow sm:flex-row sm:items-start ${
+              className={`overflow-hidden rounded-xl border bg-white p-3 transition-shadow ${
                 isDragging ? "border-zinc-400 opacity-60" : "border-zinc-200"
               } ${isDropTarget ? "ring-2 ring-zinc-900 ring-offset-2" : ""}`}
             >
-              <div className="flex items-start gap-2 sm:flex-col sm:items-center">
-                <button
-                  type="button"
-                  draggable={!itemBusy}
-                  onDragStart={() => setDragIndex(index)}
-                  disabled={itemBusy}
-                  aria-label={`Reordenar ${image.alt}`}
-                  className="mt-1 flex h-9 w-9 shrink-0 cursor-grab items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 active:cursor-grabbing disabled:opacity-50"
-                >
-                  <DragHandle />
-                </button>
-
-                <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-lg bg-zinc-100 sm:h-24 sm:w-36">
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    className="object-cover"
-                    sizes="144px"
-                    draggable={false}
-                  />
-                  {index === 0 ? (
-                    <span className="absolute left-2 top-2 rounded bg-zinc-900/85 px-2 py-0.5 text-xs font-medium text-white">
-                      Portada
-                    </span>
-                  ) : null}
-                </div>
+              <div className="relative mb-3 aspect-[4/3] w-full overflow-hidden rounded-lg bg-zinc-100 sm:hidden">
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 100vw, 144px"
+                  draggable={false}
+                />
+                {index === 0 ? (
+                  <span className="absolute left-2 top-2 rounded bg-zinc-900/85 px-2 py-0.5 text-xs font-medium text-white">
+                    Portada
+                  </span>
+                ) : null}
               </div>
 
-              <div className="min-w-0 flex-1 space-y-2">
-                <p className="text-xs text-zinc-500">{image.storagePath}</p>
-                <form
-                  onSubmit={(e) => void handleAltSubmit(image.id, e)}
-                  className="flex flex-col gap-2 sm:flex-row"
-                >
-                  <input type="hidden" name="imageId" value={image.id} />
-                  <input
-                    name="alt"
-                    defaultValue={image.alt}
-                    required
-                    disabled={itemBusy}
-                    className="min-w-0 flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm disabled:opacity-60"
-                  />
+              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
+                <div className="flex min-w-0 items-start gap-2 sm:w-auto sm:shrink-0 sm:flex-col sm:items-center">
                   <button
-                    type="submit"
+                    type="button"
+                    draggable={!itemBusy}
+                    onDragStart={() => setDragIndex(index)}
                     disabled={itemBusy}
-                    className="rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50 disabled:opacity-60"
+                    aria-label={`Reordenar ${image.alt}`}
+                    className="mt-0.5 flex h-9 w-9 shrink-0 cursor-grab items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 active:cursor-grabbing disabled:opacity-50 sm:mt-1"
                   >
-                    {altPendingId === image.id ? "Guardando…" : "Guardar texto"}
+                    <DragHandle />
                   </button>
-                </form>
 
-                <div className="flex flex-wrap gap-2">
-                  {index > 0 ? (
+                  <div className="relative hidden h-24 w-36 shrink-0 overflow-hidden rounded-lg bg-zinc-100 sm:block">
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      className="object-cover"
+                      sizes="144px"
+                      draggable={false}
+                    />
+                    {index === 0 ? (
+                      <span className="absolute left-2 top-2 rounded bg-zinc-900/85 px-2 py-0.5 text-xs font-medium text-white">
+                        Portada
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="min-w-0 flex-1 space-y-2">
+                  <p className="truncate text-xs text-zinc-500">{image.storagePath}</p>
+                  <form
+                    onSubmit={(e) => void handleAltSubmit(image.id, e)}
+                    className="flex flex-col gap-2 sm:flex-row"
+                  >
+                    <input type="hidden" name="imageId" value={image.id} />
+                    <input
+                      name="alt"
+                      defaultValue={image.alt}
+                      required
+                      disabled={itemBusy}
+                      className="min-w-0 flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm disabled:opacity-60"
+                    />
+                    <button
+                      type="submit"
+                      disabled={itemBusy}
+                      className="shrink-0 rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50 disabled:opacity-60"
+                    >
+                      {altPendingId === image.id ? "Guardando…" : "Guardar texto"}
+                    </button>
+                  </form>
+
+                  <div className="flex flex-wrap gap-2">
+                    {index > 0 ? (
+                      <button
+                        type="button"
+                        disabled={itemBusy}
+                        onClick={() => void handleSetCover(image.id)}
+                        className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium hover:bg-zinc-50 disabled:opacity-60"
+                      >
+                        {coverPendingId === image.id ? "Aplicando…" : "Usar como portada"}
+                      </button>
+                    ) : null}
+
                     <button
                       type="button"
                       disabled={itemBusy}
-                      onClick={() => void handleSetCover(image.id)}
-                      className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium hover:bg-zinc-50 disabled:opacity-60"
+                      onClick={() => void handleDelete(image.id)}
+                      className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
                     >
-                      {coverPendingId === image.id ? "Aplicando…" : "Usar como portada"}
+                      {deletePendingId === image.id ? "Eliminando…" : "Eliminar"}
                     </button>
-                  ) : null}
-
-                  <button
-                    type="button"
-                    disabled={itemBusy}
-                    onClick={() => void handleDelete(image.id)}
-                    className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
-                  >
-                    {deletePendingId === image.id ? "Eliminando…" : "Eliminar"}
-                  </button>
+                  </div>
                 </div>
               </div>
             </li>

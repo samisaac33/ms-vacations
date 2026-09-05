@@ -112,7 +112,6 @@ export function AdminPropertyImagesView({ slug }: Props) {
           <AdminPropertyImagesPanel
             slug={slug}
             propertyId={data.propertyId}
-            propertyName={data.propertyName}
             images={data.images}
             usesCatalogFallback={data.usesCatalogFallback}
             catalogImageCount={data.catalogImageCount}
