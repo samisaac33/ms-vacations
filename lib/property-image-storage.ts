@@ -21,12 +21,13 @@ function propertyImagePublicUrl(storagePath: string): string {
 export async function uploadPropertyImage(
   storagePath: string,
   file: File,
+  options?: { preprocessed?: boolean },
 ): Promise<{ ok: true; publicUrl: string; storagePath: string } | { ok: false; message: string }> {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key) {
     return { ok: false, message: "Almacenamiento de fotos no configurado (SUPABASE_SERVICE_ROLE_KEY)." };
   }
-  if (!isAllowedPropertyImageUpload(file)) {
+  if (!isAllowedPropertyImageUpload(file) && !options?.preprocessed) {
     return { ok: false, message: "Formato no permitido. Use JPG, PNG, WEBP o HEIC (fotos de iPhone)." };
   }
   if (file.size > PROPERTY_IMAGE_MAX_UPLOAD_BYTES) {
@@ -36,10 +37,17 @@ export async function uploadPropertyImage(
     };
   }
 
-  const input = Buffer.from(await file.arrayBuffer());
-  const processed = await processPropertyImageToWebp(input, file);
-  if (!processed.ok) {
-    return { ok: false, message: processed.message };
+  let uploadBody: Uint8Array;
+
+  if (options?.preprocessed || file.type === "image/webp") {
+    uploadBody = new Uint8Array(await file.arrayBuffer());
+  } else {
+    const input = Buffer.from(await file.arrayBuffer());
+    const processed = await processPropertyImageToWebp(input, file);
+    if (!processed.ok) {
+      return { ok: false, message: processed.message };
+    }
+    uploadBody = new Uint8Array(processed.buffer);
   }
 
   const res = await fetch(
@@ -54,7 +62,7 @@ export async function uploadPropertyImage(
         "Content-Type": "image/webp",
         "x-upsert": "true",
       },
-      body: new Uint8Array(processed.buffer),
+      body: new Uint8Array(uploadBody),
     },
   );
 
