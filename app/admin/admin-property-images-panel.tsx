@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { AdminPropertyImagesGallery } from "@/app/admin/admin-property-images-gallery";
 import { AdminActionFeedback, AdminSectionCard } from "@/app/admin/admin-section-card";
 import {
@@ -13,7 +13,6 @@ import type { PropertyImageDto } from "@/lib/property-images-query";
 type Props = {
   slug: string;
   propertyId: string;
-  propertyName: string;
   images: PropertyImageDto[];
   usesCatalogFallback: boolean;
   catalogImageCount: number;
@@ -24,7 +23,6 @@ type Props = {
 export function AdminPropertyImagesPanel({
   slug,
   propertyId,
-  propertyName,
   images,
   usesCatalogFallback,
   catalogImageCount,
@@ -40,12 +38,10 @@ export function AdminPropertyImagesPanel({
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
   const [importPending, setImportPending] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [resetError, setResetError] = useState<string | null>(null);
-  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
-  const [resetPending, setResetPending] = useState(false);
-
-  const busy = uploading || importPending || resetPending;
+  const busy = uploading || importPending;
 
   const sortedImages = useMemo(
     () => [...images].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -76,33 +72,6 @@ export function AdminPropertyImagesPanel({
       setImportError("No se pudo conectar con el servidor.");
     } finally {
       setImportPending(false);
-    }
-  }
-
-  async function handleResetCatalog() {
-    setResetError(null);
-    setResetSuccess(null);
-    setResetPending(true);
-
-    try {
-      const res = await fetch("/api/admin/property-images/reset-catalog", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug }),
-      });
-      const data = (await res.json()) as { success?: string; error?: string };
-
-      if (!res.ok) {
-        setResetError(data.error ?? "No se pudo restablecer el catálogo.");
-        return;
-      }
-
-      setResetSuccess(data.success ?? "Catálogo restablecido.");
-      onDataChange?.();
-    } catch {
-      setResetError("No se pudo conectar con el servidor.");
-    } finally {
-      setResetPending(false);
     }
   }
 
@@ -153,6 +122,7 @@ export function AdminPropertyImagesPanel({
 
       setUploadSuccess("Foto subida correctamente.");
       fileInput.value = "";
+      setSelectedFileName(null);
       onDataChange?.();
     } catch {
       setUploadError("Error de red al subir la imagen.");
@@ -182,31 +152,9 @@ export function AdminPropertyImagesPanel({
           </div>
           <AdminActionFeedback error={importError} success={importSuccess} />
         </div>
-      ) : (
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
-          <p>
-            Galería gestionada en base de datos ({sortedImages.length} foto
-            {sortedImages.length === 1 ? "" : "s"}). La primera imagen es la portada en listados y
-            redes.
-          </p>
-          <div className="mt-3">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void handleResetCatalog()}
-              className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 disabled:opacity-60"
-            >
-              {resetPending ? "Restableciendo…" : "Volver al catálogo estático"}
-            </button>
-          </div>
-          <AdminActionFeedback error={resetError} success={resetSuccess} />
-        </div>
-      )}
+      ) : null}
 
-      <AdminSectionCard
-        title="Subir foto"
-        description={`Se optimiza automáticamente a WebP (máx. 2400 px, calidad 82 %) y se guarda en Supabase Storage para ${propertyName}.`}
-      >
+      <AdminSectionCard title="Subir foto">
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
             Defina <code className="rounded bg-amber-100 px-1">SUPABASE_SERVICE_ROLE_KEY</code> en el
@@ -248,14 +196,32 @@ export function AdminPropertyImagesPanel({
           <label className="block text-sm">
             <span className="font-medium text-zinc-800">Archivo</span>
             <input
+              ref={fileInputRef}
               name="file"
               type="file"
               accept={PROPERTY_IMAGE_ACCEPT}
               disabled={!storageConfigured || uploading}
-              className="mt-1 block w-full text-sm"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                setSelectedFileName(file?.name ?? null);
+              }}
             />
-            <span className="mt-1 block text-xs text-zinc-500">
-              JPG, PNG, WEBP o HEIC. Máximo 4 MB antes de subir (el servidor la comprime a WebP).
+            <button
+              type="button"
+              disabled={!storageConfigured || uploading}
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-1.5 flex w-full items-center justify-between gap-3 rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-3 text-left text-sm transition-colors hover:border-zinc-400 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className={selectedFileName ? "font-medium text-zinc-900" : "text-zinc-500"}>
+                {selectedFileName ?? "Elegir imagen"}
+              </span>
+              <span className="inline-flex h-8 shrink-0 items-center rounded-md bg-white px-2.5 text-xs font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200">
+                Examinar
+              </span>
+            </button>
+            <span className="mt-1.5 block text-xs text-zinc-500">
+              JPG, PNG, WEBP o HEIC. Máximo 4 MB.
             </span>
           </label>
 
