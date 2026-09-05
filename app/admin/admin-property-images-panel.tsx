@@ -164,7 +164,7 @@ export function AdminPropertyImagesPanel({
 
       <AdminSectionCard
         title="Subir foto"
-        description="Las fotos de alta resolución (p. ej. iPhone) se comprimen automáticamente a WebP en su dispositivo antes de subir."
+        description="Las fotos de la cámara del móvil (Android, iPhone, etc.) se comprimen automáticamente a WebP antes de subir, aunque sean de alta resolución."
       >
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
@@ -232,7 +232,7 @@ export function AdminPropertyImagesPanel({
               </span>
             </button>
             <span className="mt-1.5 block text-xs text-zinc-500">
-              JPG, PNG, WEBP o HEIC. Fotos grandes del iPhone se reducen automáticamente (hasta 2400 px).
+              JPG, PNG o WEBP. Las fotos de la cámara se reducen solas (hasta 2400 px).
             </span>
           </label>
 

@@ -48,7 +48,7 @@ export function propertyImageUploadValidationError(file: File): string | null {
     return "La imagen supera el límite de 4 MB. Use una foto más ligera o redúzcala antes de subir.";
   }
   if (!isAllowedPropertyImageUpload(file)) {
-    return "Formato no permitido. Use JPG, PNG, WEBP o HEIC (fotos de iPhone).";
+    return "Formato no permitido. Use JPG, PNG o WEBP.";
   }
   return null;
 }
