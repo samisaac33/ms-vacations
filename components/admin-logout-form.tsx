@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { adminLogout } from "@/app/admin/actions";
+import { adminLogout } from "@/app/admin/auth-actions";
 import { notifyAdminSessionChanged } from "@/lib/admin-session-events";
 
 type Props = {

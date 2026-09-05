@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
-import { adminLogin, type AdminLoginState } from "./actions";
+import { adminLogin, type AdminLoginState } from "./auth-actions";
 import { notifyAdminSessionChanged } from "@/lib/admin-session-events";
 
 export function AdminLoginForm() {

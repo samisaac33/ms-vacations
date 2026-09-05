@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb, hasDatabase } from "@/db/index";
 import { properties } from "@/db/schema";
-import { isAdminSession, clearAdminSessionCookie, setAdminSessionCookie } from "@/lib/admin-auth";
+import { isAdminSession } from "@/lib/admin-auth";
 import { isValidIcalUrl } from "@/lib/admin-dashboard";
 import {
   getAdminMultiCalendar,
@@ -84,35 +84,8 @@ function revalidatePricingPaths(slug?: string) {
   }
 }
 
-export type AdminLoginState = { error?: string; success?: boolean };
 export type AdminActionState = { error?: string; success?: string };
 export type IcalActionState = AdminActionState;
-
-export async function adminLogin(
-  _prev: AdminLoginState | undefined,
-  formData: FormData,
-): Promise<AdminLoginState> {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) {
-    return { error: "El acceso al panel no está disponible. Contacta al soporte técnico." };
-  }
-  const password = formData.get("password");
-  if (typeof password !== "string" || password !== secret) {
-    return { error: "Contraseña incorrecta." };
-  }
-  await setAdminSessionCookie();
-  revalidatePath("/admin");
-  revalidatePath("/admin/configuracion");
-  revalidatePath("/admin/dev");
-  return { success: true };
-}
-
-export async function adminLogout(): Promise<void> {
-  await clearAdminSessionCookie();
-  revalidatePath("/admin");
-  revalidatePath("/admin/configuracion");
-  revalidatePath("/admin/dev");
-}
 
 export type AdminPricingMonthResult =
   | { ok: true; baseReferenceCents: number; days: PricingDay[]; bars: CalendarStayBar[] }
