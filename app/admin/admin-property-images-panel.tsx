@@ -250,7 +250,7 @@ export function AdminPropertyImagesPanel({
 
       <AdminSectionCard
         title="Galería"
-        description="Arrastre para reordenar, edite textos alternativos o elimine fotos. El texto alternativo agrupa el recorrido fotográfico en la ficha pública."
+        description="Arrastre para reordenar o elimine fotos. La primera imagen es la portada en listados."
         badge={sortedImages.length}
       >
         {sortedImages.length === 0 ? (
