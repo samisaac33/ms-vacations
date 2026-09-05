@@ -1,4 +1,3 @@
-import { AdminContenidoPanel } from "@/app/admin/admin-contenido-panel";
 import { AdminBillingPanel } from "@/app/admin/admin-billing-panel";
 import { AdminSectionCard } from "@/app/admin/admin-section-card";
 import { AdminMigrateBillingPanel } from "@/app/admin/admin-migrate-billing";
@@ -128,7 +127,6 @@ export async function AdminConfigDashboard() {
         <div className="mt-3 space-y-3 md:mt-6 md:space-y-6">
           <AdminHighSeasonPanel periods={highSeasonPeriods} properties={adminProperties} />
           <AdminVatPeriodsPanel periods={vatPeriods} />
-          <AdminContenidoPanel />
         </div>
       </div>
     </AdminCalendarShell>
