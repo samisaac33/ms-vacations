@@ -79,24 +79,28 @@ export async function getImagesBySlugs(
   const result = new Map<string, { src: string; alt: string }[]>();
   if (!hasDatabase() || slugs.length === 0) return result;
 
-  const db = getDb();
-  const rows = await db
-    .select({
-      slug: properties.slug,
-      src: propertyImages.src,
-      alt: propertyImages.alt,
-      sortOrder: propertyImages.sortOrder,
-      createdAt: propertyImages.createdAt,
-    })
-    .from(propertyImages)
-    .innerJoin(properties, eq(propertyImages.propertyId, properties.id))
-    .where(inArray(properties.slug, slugs))
-    .orderBy(asc(propertyImages.sortOrder), asc(propertyImages.createdAt));
+  try {
+    const db = getDb();
+    const rows = await db
+      .select({
+        slug: properties.slug,
+        src: propertyImages.src,
+        alt: propertyImages.alt,
+        sortOrder: propertyImages.sortOrder,
+        createdAt: propertyImages.createdAt,
+      })
+      .from(propertyImages)
+      .innerJoin(properties, eq(propertyImages.propertyId, properties.id))
+      .where(inArray(properties.slug, slugs))
+      .orderBy(asc(propertyImages.sortOrder), asc(propertyImages.createdAt));
 
-  for (const row of rows) {
-    const list = result.get(row.slug) ?? [];
-    list.push({ src: row.src, alt: row.alt });
-    result.set(row.slug, list);
+    for (const row of rows) {
+      const list = result.get(row.slug) ?? [];
+      list.push({ src: row.src, alt: row.alt });
+      result.set(row.slug, list);
+    }
+  } catch {
+    // Tabla property_images aún no migrada: usar imágenes del catálogo estático.
   }
   return result;
 }
