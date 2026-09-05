@@ -8,9 +8,7 @@ export const metadata = {
 export default async function AdminDevPage() {
   if (!(await isAdminSession())) {
     const { AdminLoginScreen } = await import("@/app/admin/admin-login-screen");
-    return (
-      <AdminLoginScreen description="Defina la contraseña de administrador en el entorno del servidor." />
-    );
+    return <AdminLoginScreen />;
   }
 
   const { AdminDevDashboard } = await import("@/app/admin/admin-dev-dashboard");
