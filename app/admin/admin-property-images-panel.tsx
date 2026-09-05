@@ -1,12 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useActionState, useMemo, useState } from "react";
-import {
-  importCatalogImagesAction,
-  resetPropertyImagesAction,
-  type AdminActionState,
-} from "@/app/admin/actions";
+import { useMemo, useState, type FormEvent } from "react";
 import { AdminPropertyImagesGallery } from "@/app/admin/admin-property-images-gallery";
 import { AdminActionFeedback, AdminSectionCard } from "@/app/admin/admin-section-card";
 import {
@@ -26,8 +20,6 @@ type Props = {
   onDataChange?: () => void;
 };
 
-const initial: AdminActionState = {};
-
 export function AdminPropertyImagesPanel({
   slug,
   propertyId,
@@ -38,15 +30,19 @@ export function AdminPropertyImagesPanel({
   storageConfigured,
   onDataChange,
 }: Props) {
-  const router = useRouter();
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [category, setCategory] = useState<PropertyImageCategory>("exterior");
   const [customLabel, setCustomLabel] = useState("");
 
-  const [importState, importAction, importPending] = useActionState(importCatalogImagesAction, initial);
-  const [resetState, resetAction, resetPending] = useActionState(resetPropertyImagesAction, initial);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState<string | null>(null);
+  const [importPending, setImportPending] = useState(false);
+
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
+  const [resetPending, setResetPending] = useState(false);
 
   const busy = uploading || importPending || resetPending;
 
@@ -55,7 +51,61 @@ export function AdminPropertyImagesPanel({
     [images],
   );
 
-  async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
+  async function handleImportCatalog() {
+    setImportError(null);
+    setImportSuccess(null);
+    setImportPending(true);
+
+    try {
+      const res = await fetch("/api/admin/property-images/import-catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      });
+      const data = (await res.json()) as { success?: string; error?: string };
+
+      if (!res.ok) {
+        setImportError(data.error ?? "No se pudo importar el catálogo.");
+        return;
+      }
+
+      setImportSuccess(data.success ?? "Catálogo importado.");
+      onDataChange?.();
+    } catch {
+      setImportError("No se pudo conectar con el servidor.");
+    } finally {
+      setImportPending(false);
+    }
+  }
+
+  async function handleResetCatalog() {
+    setResetError(null);
+    setResetSuccess(null);
+    setResetPending(true);
+
+    try {
+      const res = await fetch("/api/admin/property-images/reset-catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      });
+      const data = (await res.json()) as { success?: string; error?: string };
+
+      if (!res.ok) {
+        setResetError(data.error ?? "No se pudo restablecer el catálogo.");
+        return;
+      }
+
+      setResetSuccess(data.success ?? "Catálogo restablecido.");
+      onDataChange?.();
+    } catch {
+      setResetError("No se pudo conectar con el servidor.");
+    } finally {
+      setResetPending(false);
+    }
+  }
+
+  async function handleUpload(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setUploadError(null);
     setUploadSuccess(null);
@@ -93,7 +143,6 @@ export function AdminPropertyImagesPanel({
       setUploadSuccess("Foto subida correctamente.");
       fileInput.value = "";
       onDataChange?.();
-      router.refresh();
     } catch {
       setUploadError("Error de red al subir la imagen.");
     } finally {
@@ -110,17 +159,17 @@ export function AdminPropertyImagesPanel({
             Esta propiedad muestra {catalogImageCount} foto(s) del código fuente. Importe el catálogo
             o suba nuevas fotos para gestionarlas desde aquí.
           </p>
-          <form action={importAction} className="mt-3">
-            <input type="hidden" name="slug" value={slug} />
+          <div className="mt-3">
             <button
-              type="submit"
+              type="button"
               disabled={busy || catalogImageCount === 0}
+              onClick={() => void handleImportCatalog()}
               className="rounded-lg bg-sky-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-900 disabled:opacity-60"
             >
               {importPending ? "Importando…" : `Importar ${catalogImageCount} fotos del catálogo`}
             </button>
-          </form>
-          <AdminActionFeedback error={importState.error} success={importState.success} />
+          </div>
+          <AdminActionFeedback error={importError} success={importSuccess} />
         </div>
       ) : (
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
@@ -129,17 +178,17 @@ export function AdminPropertyImagesPanel({
             {sortedImages.length === 1 ? "" : "s"}). La primera imagen es la portada en listados y
             redes.
           </p>
-          <form action={resetAction} className="mt-3">
-            <input type="hidden" name="slug" value={slug} />
+          <div className="mt-3">
             <button
-              type="submit"
+              type="button"
               disabled={busy}
+              onClick={() => void handleResetCatalog()}
               className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 disabled:opacity-60"
             >
               {resetPending ? "Restableciendo…" : "Volver al catálogo estático"}
             </button>
-          </form>
-          <AdminActionFeedback error={resetState.error} success={resetState.success} />
+          </div>
+          <AdminActionFeedback error={resetError} success={resetSuccess} />
         </div>
       )}
 
@@ -222,6 +271,7 @@ export function AdminPropertyImagesPanel({
             propertyId={propertyId}
             images={sortedImages}
             disabled={busy}
+            onDataChange={onDataChange}
           />
         )}
       </AdminSectionCard>
