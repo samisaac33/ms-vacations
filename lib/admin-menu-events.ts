@@ -8,7 +8,8 @@ export type AdminMenuModalId =
   | "temporadas"
   | "iva"
   | "contenido"
-  | "fotos";
+  | "fotos"
+  | "dev";
 
 export function toggleAdminMenu() {
   window.dispatchEvent(new CustomEvent(ADMIN_MENU_TOGGLE_EVENT));
