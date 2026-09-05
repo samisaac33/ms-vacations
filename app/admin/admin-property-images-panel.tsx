@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, type FormEvent } from "react";
+import { compressPropertyImageClient } from "@/app/admin/compress-property-image-client";
 import { AdminPropertyImagesGallery } from "@/app/admin/admin-property-images-gallery";
 import { AdminActionFeedback, AdminSectionCard } from "@/app/admin/admin-section-card";
 import {
@@ -95,10 +96,17 @@ export function AdminPropertyImagesPanel({
 
     setUploading(true);
     try {
+      const compressed = await compressPropertyImageClient(file);
+      if (!compressed.ok) {
+        setUploadError(compressed.message);
+        return;
+      }
+
       const body = new FormData();
       body.set("slug", slug);
       body.set("category", category);
-      body.set("file", file);
+      body.set("file", compressed.file);
+      body.set("preprocessed", "1");
       if (category === "otro" && customLabel.trim()) {
         body.set("customLabel", customLabel.trim());
       }
@@ -154,7 +162,10 @@ export function AdminPropertyImagesPanel({
         </div>
       ) : null}
 
-      <AdminSectionCard title="Subir foto">
+      <AdminSectionCard
+        title="Subir foto"
+        description="Se comprime a WebP en su dispositivo (máx. 2400 px, calidad 82 %) y se guarda en Supabase Storage."
+      >
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
             Defina <code className="rounded bg-amber-100 px-1">SUPABASE_SERVICE_ROLE_KEY</code> en el
@@ -221,7 +232,7 @@ export function AdminPropertyImagesPanel({
               </span>
             </button>
             <span className="mt-1.5 block text-xs text-zinc-500">
-              JPG, PNG, WEBP o HEIC. Máximo 4 MB.
+              JPG, PNG, WEBP o HEIC. Máximo 4 MB tras comprimir en el navegador.
             </span>
           </label>
 
@@ -230,7 +241,7 @@ export function AdminPropertyImagesPanel({
             disabled={!storageConfigured || uploading}
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
           >
-            {uploading ? "Subiendo…" : "Subir foto"}
+            {uploading ? "Comprimiendo y subiendo…" : "Subir foto"}
           </button>
 
           <AdminActionFeedback error={uploadError} success={uploadSuccess} />

@@ -108,7 +108,9 @@ export async function POST(request: Request) {
     const fileName = nextStorageFileName(existingPaths, storagePrefix, category);
     const storagePath = `${storagePrefix}/${fileName}`;
 
-    const uploaded = await uploadPropertyImage(storagePath, file);
+    const preprocessed = formData.get("preprocessed") === "1";
+
+    const uploaded = await uploadPropertyImage(storagePath, file, { preprocessed });
     if (!uploaded.ok) {
       return Response.json({ error: uploaded.message }, { status: 400 });
     }
