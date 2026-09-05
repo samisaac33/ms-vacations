@@ -9,7 +9,7 @@ import {
   shouldShowAmenitiesMore,
   totalAmenityCount,
 } from "@/lib/property-detail-content";
-import { getAmenityIcon } from "@/lib/property-amenity-icons";
+import { AmenityIcon } from "@/lib/property-amenity-icons";
 import type { Property, PropertyAmenityGroups, PropertyAmenityItem } from "@/lib/properties";
 
 type Props = {
@@ -17,11 +17,10 @@ type Props = {
 };
 
 function AmenityRow({ item }: { item: PropertyAmenityItem }) {
-  const Icon = getAmenityIcon(item.label);
   return (
     <li className="flex items-start gap-4">
       <span className="mt-0.5 shrink-0 text-ink">
-        <Icon />
+        <AmenityIcon label={item.label} />
       </span>
       <div>
         <span className="text-base text-ink">{item.label}</span>
