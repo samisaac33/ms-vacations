@@ -39,7 +39,7 @@ export async function AdminPropertyImagesDashboard({ params }: Props) {
   return (
     <AdminCalendarShell activeTab="calendario" title={`Fotos · ${catalog.name}`}>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <AdminPropertyStrip properties={propertyList} activeSlug={slug} />
+        <AdminPropertyStrip properties={propertyList} activeSlug={slug} activeSection="fotos" />
         <div className="min-w-0 flex-1">
           <AdminPropertySubnav slug={slug} active="fotos" />
 

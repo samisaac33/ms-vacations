@@ -772,6 +772,35 @@ export async function movePropertyImageAction(
   return { success: direction === "up" ? "Imagen movida arriba." : "Imagen movida abajo." };
 }
 
+export async function reorderPropertyImagesAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const propertyId = formData.get("propertyId");
+  const orderedIdsRaw = formData.get("orderedIds");
+  if (typeof propertyId !== "string" || typeof orderedIdsRaw !== "string") {
+    return { error: "Datos incompletos." };
+  }
+
+  let orderedIds: string[];
+  try {
+    orderedIds = JSON.parse(orderedIdsRaw) as string[];
+    if (!Array.isArray(orderedIds) || !orderedIds.every((id) => typeof id === "string")) {
+      return { error: "Orden inválido." };
+    }
+  } catch {
+    return { error: "Orden inválido." };
+  }
+
+  const result = await reorderPropertyImages(propertyId, orderedIds);
+  if (!result.ok) return { error: result.reason };
+
+  const slug = await getSlugByPropertyId(propertyId);
+  if (slug) revalidatePricingPaths(slug);
+  return { success: "Orden actualizado." };
+}
+
 async function getSlugByPropertyId(propertyId: string): Promise<string | null> {
   const db = getDb();
   const [row] = await db

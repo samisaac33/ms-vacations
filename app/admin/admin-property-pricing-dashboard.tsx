@@ -32,7 +32,7 @@ export async function AdminPropertyPricingDashboard({ params }: Props) {
   return (
     <AdminCalendarShell activeTab="calendario" title={catalog.name}>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <AdminPropertyStrip properties={propertyList} activeSlug={slug} />
+        <AdminPropertyStrip properties={propertyList} activeSlug={slug} activeSection="precios" />
         <div className="min-w-0 flex-1">
           <AdminPropertySubnav slug={slug} active="precios" />
           <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-zinc-200" />}>

@@ -1,17 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useActionState, useMemo, useState } from "react";
 import {
-  deletePropertyImageAction,
   importCatalogImagesAction,
-  movePropertyImageAction,
   resetPropertyImagesAction,
-  setPropertyImageCoverAction,
-  updatePropertyImageAltAction,
   type AdminActionState,
 } from "@/app/admin/actions";
+import { AdminPropertyImagesGallery } from "@/app/admin/admin-property-images-gallery";
 import { AdminActionFeedback, AdminSectionCard } from "@/app/admin/admin-section-card";
 import {
   PROPERTY_IMAGE_CATEGORIES,
@@ -49,12 +45,8 @@ export function AdminPropertyImagesPanel({
 
   const [importState, importAction, importPending] = useActionState(importCatalogImagesAction, initial);
   const [resetState, resetAction, resetPending] = useActionState(resetPropertyImagesAction, initial);
-  const [altState, altAction, altPending] = useActionState(updatePropertyImageAltAction, initial);
-  const [deleteState, deleteAction, deletePending] = useActionState(deletePropertyImageAction, initial);
-  const [moveState, moveAction, movePending] = useActionState(movePropertyImageAction, initial);
-  const [coverState, coverAction, coverPending] = useActionState(setPropertyImageCoverAction, initial);
 
-  const busy = uploading || importPending || resetPending || altPending || deletePending || movePending || coverPending;
+  const busy = uploading || importPending || resetPending;
 
   const sortedImages = useMemo(
     () => [...images].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -216,114 +208,18 @@ export function AdminPropertyImagesPanel({
 
       <AdminSectionCard
         title="Galería"
-        description="Reordene, edite textos alternativos o elimine fotos. El texto alternativo agrupa el recorrido fotográfico en la ficha pública."
+        description="Arrastre para reordenar, edite textos alternativos o elimine fotos. El texto alternativo agrupa el recorrido fotográfico en la ficha pública."
         badge={sortedImages.length}
       >
-        <AdminActionFeedback
-          error={altState.error ?? deleteState.error ?? moveState.error ?? coverState.error}
-          success={altState.success ?? deleteState.success ?? moveState.success ?? coverState.success}
-        />
-
         {sortedImages.length === 0 ? (
           <p className="text-sm text-zinc-600">Sin fotos en la galería administrada.</p>
         ) : (
-          <ul className="space-y-4">
-            {sortedImages.map((image, index) => (
-              <li
-                key={image.id}
-                className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 sm:flex-row sm:items-start"
-              >
-                <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-lg bg-zinc-100 sm:h-24 sm:w-36">
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    className="object-cover"
-                    sizes="144px"
-                  />
-                  {index === 0 ? (
-                    <span className="absolute left-2 top-2 rounded bg-zinc-900/85 px-2 py-0.5 text-xs font-medium text-white">
-                      Portada
-                    </span>
-                  ) : null}
-                </div>
-
-                <div className="min-w-0 flex-1 space-y-2">
-                  <p className="text-xs text-zinc-500">{image.storagePath}</p>
-                  <form action={altAction} className="flex flex-col gap-2 sm:flex-row">
-                    <input type="hidden" name="imageId" value={image.id} />
-                    <input
-                      name="alt"
-                      defaultValue={image.alt}
-                      required
-                      className="min-w-0 flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-                    />
-                    <button
-                      type="submit"
-                      disabled={busy}
-                      className="rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50 disabled:opacity-60"
-                    >
-                      Guardar texto
-                    </button>
-                  </form>
-
-                  <div className="flex flex-wrap gap-2">
-                    {index > 0 ? (
-                      <form action={coverAction}>
-                        <input type="hidden" name="propertyId" value={propertyId} />
-                        <input type="hidden" name="imageId" value={image.id} />
-                        <button
-                          type="submit"
-                          disabled={busy}
-                          className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium hover:bg-zinc-50 disabled:opacity-60"
-                        >
-                          Usar como portada
-                        </button>
-                      </form>
-                    ) : null}
-
-                    <form action={moveAction}>
-                      <input type="hidden" name="propertyId" value={propertyId} />
-                      <input type="hidden" name="imageId" value={image.id} />
-                      <input type="hidden" name="direction" value="up" />
-                      <button
-                        type="submit"
-                        disabled={busy || index === 0}
-                        className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium hover:bg-zinc-50 disabled:opacity-60"
-                      >
-                        ↑
-                      </button>
-                    </form>
-
-                    <form action={moveAction}>
-                      <input type="hidden" name="propertyId" value={propertyId} />
-                      <input type="hidden" name="imageId" value={image.id} />
-                      <input type="hidden" name="direction" value="down" />
-                      <button
-                        type="submit"
-                        disabled={busy || index === sortedImages.length - 1}
-                        className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium hover:bg-zinc-50 disabled:opacity-60"
-                      >
-                        ↓
-                      </button>
-                    </form>
-
-                    <form action={deleteAction}>
-                      <input type="hidden" name="imageId" value={image.id} />
-                      <input type="hidden" name="deleteFile" value="1" />
-                      <button
-                        type="submit"
-                        disabled={busy}
-                        className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
-                      >
-                        Eliminar
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <AdminPropertyImagesGallery
+            key={sortedImages.map((i) => `${i.id}:${i.sortOrder}`).join("|")}
+            propertyId={propertyId}
+            images={sortedImages}
+            disabled={busy}
+          />
         )}
       </AdminSectionCard>
     </div>
