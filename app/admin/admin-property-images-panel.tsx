@@ -162,7 +162,14 @@ export function AdminPropertyImagesPanel({
         </div>
       ) : null}
 
+<<<<<<< HEAD
       <AdminSectionCard title="Subir foto">
+=======
+      <AdminSectionCard
+        title="Subir foto"
+        description="Las fotos de la cámara se comprimen a WebP conservando su proporción original (ancho/alto)."
+      >
+>>>>>>> origin/main
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
             Defina <code className="rounded bg-amber-100 px-1">SUPABASE_SERVICE_ROLE_KEY</code> en el
@@ -229,7 +236,7 @@ export function AdminPropertyImagesPanel({
               </span>
             </button>
             <span className="mt-1.5 block text-xs text-zinc-500">
-              JPG, PNG o WEBP. Las fotos de la cámara se reducen solas (hasta 2400 px).
+              JPG, PNG o WEBP. Se mantiene la proporción original; el lado largo se reduce hasta 2400 px si hace falta.
             </span>
           </label>
 

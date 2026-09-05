@@ -4,6 +4,25 @@ export const PROPERTY_IMAGE_MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 export const PROPERTY_IMAGE_MAX_DIMENSION = 2400;
 export const PROPERTY_IMAGE_WEBP_QUALITY = 82;
 
+/** Escala width×height para caber en maxDimension sin deformar (fit inside). */
+export function fitImageDimensions(
+  width: number,
+  height: number,
+  maxDimension: number,
+): { width: number; height: number } {
+  if (width <= 0 || height <= 0) {
+    return { width: 1, height: 1 };
+  }
+  if (width <= maxDimension && height <= maxDimension) {
+    return { width, height };
+  }
+  const scale = maxDimension / Math.max(width, height);
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
 const MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  fitImageDimensions,
   PROPERTY_IMAGE_MAX_DIMENSION,
   PROPERTY_IMAGE_MAX_UPLOAD_BYTES,
   PROPERTY_IMAGE_WEBP_QUALITY,
@@ -15,6 +16,8 @@ const QUALITY_STEPS = [
 ];
 const DIMENSION_STEPS = [PROPERTY_IMAGE_MAX_DIMENSION, 2000, 1600, 1200, 800];
 
+const ORIENTED_PROBE_MAX = 64;
+
 export type CompressImageResult =
   | { ok: true; file: File }
   | { ok: false; message: string };
@@ -28,26 +31,47 @@ function loadImageElement(url: string): Promise<HTMLImageElement> {
   });
 }
 
+/** Lee proporción ya orientada (EXIF) con una miniatura para no cargar la foto completa. */
+async function readOrientedDimensions(file: File): Promise<{ width: number; height: number }> {
+  const probe = await createImageBitmap(file, {
+    imageOrientation: "from-image",
+    resizeWidth: ORIENTED_PROBE_MAX,
+    resizeHeight: ORIENTED_PROBE_MAX,
+    resizeQuality: "high",
+  });
+  const size = { width: probe.width, height: probe.height };
+  probe.close();
+  return size;
+}
+
 async function decodeToBitmap(file: File, maxDimension: number): Promise<ImageBitmap> {
+  const oriented = await readOrientedDimensions(file);
+  const target = fitImageDimensions(oriented.width, oriented.height, maxDimension);
+
   const resizeOptions = {
-    resizeWidth: maxDimension,
-    resizeHeight: maxDimension,
     resizeQuality: "high" as const,
     imageOrientation: "from-image" as const,
   };
 
   try {
-    return await createImageBitmap(file, resizeOptions);
+    if (target.width >= target.height) {
+      return await createImageBitmap(file, {
+        ...resizeOptions,
+        resizeWidth: target.width,
+      });
+    }
+    return await createImageBitmap(file, {
+      ...resizeOptions,
+      resizeHeight: target.height,
+    });
   } catch {
     const url = URL.createObjectURL(file);
     try {
       const img = await loadImageElement(url);
-      const scale = Math.min(1, maxDimension / Math.max(img.naturalWidth, img.naturalHeight));
-      const width = Math.max(1, Math.round(img.naturalWidth * scale));
-      const height = Math.max(1, Math.round(img.naturalHeight * scale));
+      const fallback = fitImageDimensions(img.naturalWidth, img.naturalHeight, maxDimension);
       return await createImageBitmap(img, {
-        resizeWidth: width,
-        resizeHeight: height,
+        resizeWidth: fallback.width,
+        resizeHeight: fallback.height,
         resizeQuality: "high",
         imageOrientation: "from-image",
       });
@@ -65,7 +89,7 @@ function canvasToWebp(bitmap: ImageBitmap, quality: number): Promise<Blob | null
   const ctx = canvas.getContext("2d");
   if (!ctx) return Promise.resolve(null);
 
-  ctx.drawImage(bitmap, 0, 0);
+  ctx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height);
   return new Promise((resolve) => {
     canvas.toBlob((result) => resolve(result), "image/webp", quality);
   });
