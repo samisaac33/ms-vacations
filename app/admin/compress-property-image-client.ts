@@ -13,7 +13,7 @@ const QUALITY_STEPS = [
   0.52,
   0.42,
 ];
-const DIMENSION_STEPS = [PROPERTY_IMAGE_MAX_DIMENSION, 2000, 1600, 1200];
+const DIMENSION_STEPS = [PROPERTY_IMAGE_MAX_DIMENSION, 2000, 1600, 1200, 800];
 
 export type CompressImageResult =
   | { ok: true; file: File }
@@ -29,12 +29,15 @@ function loadImageElement(url: string): Promise<HTMLImageElement> {
 }
 
 async function decodeToBitmap(file: File, maxDimension: number): Promise<ImageBitmap> {
+  const resizeOptions = {
+    resizeWidth: maxDimension,
+    resizeHeight: maxDimension,
+    resizeQuality: "high" as const,
+    imageOrientation: "from-image" as const,
+  };
+
   try {
-    return await createImageBitmap(file, {
-      resizeWidth: maxDimension,
-      resizeHeight: maxDimension,
-      resizeQuality: "high",
-    });
+    return await createImageBitmap(file, resizeOptions);
   } catch {
     const url = URL.createObjectURL(file);
     try {
@@ -46,6 +49,7 @@ async function decodeToBitmap(file: File, maxDimension: number): Promise<ImageBi
         resizeWidth: width,
         resizeHeight: height,
         resizeQuality: "high",
+        imageOrientation: "from-image",
       });
     } finally {
       URL.revokeObjectURL(url);
@@ -100,7 +104,7 @@ export async function compressPropertyImageClient(file: File): Promise<CompressI
       return {
         ok: false,
         message:
-          "La foto sigue siendo muy pesada tras comprimirla automáticamente. Pruebe exportarla a JPG desde Fotos.",
+          "La foto sigue siendo muy pesada tras comprimirla. Pruebe con otra imagen o baje la resolución en la cámara.",
       };
     }
 
@@ -108,8 +112,7 @@ export async function compressPropertyImageClient(file: File): Promise<CompressI
   } catch {
     return {
       ok: false,
-      message:
-        "No se pudo leer la imagen. Si es HEIC, active «Más compatible» en Ajustes → Cámara → Formatos.",
+      message: "No se pudo leer la imagen. Pruebe seleccionarla de nuevo o use formato JPG.",
     };
   }
 }

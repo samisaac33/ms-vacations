@@ -28,7 +28,7 @@ export async function uploadPropertyImage(
     return { ok: false, message: "Almacenamiento de fotos no configurado (SUPABASE_SERVICE_ROLE_KEY)." };
   }
   if (!isAllowedPropertyImageUpload(file) && !options?.preprocessed) {
-    return { ok: false, message: "Formato no permitido. Use JPG, PNG, WEBP o HEIC (fotos de iPhone)." };
+    return { ok: false, message: "Formato no permitido. Use JPG, PNG o WEBP." };
   }
   if (file.size > PROPERTY_IMAGE_MAX_UPLOAD_BYTES) {
     return {
