@@ -162,10 +162,7 @@ export function AdminPropertyImagesPanel({
         </div>
       ) : null}
 
-      <AdminSectionCard
-        title="Subir foto"
-        description="Las fotos de la cámara del móvil (Android, iPhone, etc.) se comprimen automáticamente a WebP antes de subir, aunque sean de alta resolución."
-      >
+      <AdminSectionCard title="Subir foto">
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
             Defina <code className="rounded bg-amber-100 px-1">SUPABASE_SERVICE_ROLE_KEY</code> en el
