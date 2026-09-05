@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AdminIcalSyncToolbar } from "@/app/admin/admin-ical-sync-header";
-import { adminLogout } from "@/app/admin/actions";
+import { AdminLogoutForm } from "@/components/admin-logout-form";
 import { SiteLogo } from "@/components/site-logo";
 import {
   setMobileScrollChromeMenuOpen,
   useMobileScrollChrome,
 } from "@/hooks/use-mobile-scroll-chrome";
+import { ADMIN_SESSION_CHANGED_EVENT } from "@/lib/admin-session-events";
 import { siteConfig } from "@/lib/site";
 
 const navLinks = [
@@ -75,17 +76,24 @@ export function SiteHeader() {
     }
 
     let cancelled = false;
-    fetch("/api/admin/session")
-      .then((res) => (res.ok ? res.json() : { authenticated: false }))
-      .then((data: { authenticated?: boolean }) => {
-        if (!cancelled) setAdminAuthed(Boolean(data.authenticated));
-      })
-      .catch(() => {
-        if (!cancelled) setAdminAuthed(false);
-      });
+
+    const loadSession = () => {
+      fetch("/api/admin/session", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : { authenticated: false }))
+        .then((data: { authenticated?: boolean }) => {
+          if (!cancelled) setAdminAuthed(Boolean(data.authenticated));
+        })
+        .catch(() => {
+          if (!cancelled) setAdminAuthed(false);
+        });
+    };
+
+    loadSession();
+    window.addEventListener(ADMIN_SESSION_CHANGED_EVENT, loadSession);
 
     return () => {
       cancelled = true;
+      window.removeEventListener(ADMIN_SESSION_CHANGED_EVENT, loadSession);
     };
   }, [isAdminRoute, pathname]);
 
@@ -144,14 +152,10 @@ export function SiteHeader() {
           )}
 
           {showAdminChrome && (
-            <form action={adminLogout} className="flex items-center md:hidden">
-              <button
-                type="submit"
-                className="inline-flex h-10 items-center whitespace-nowrap rounded-lg border border-sand-dark bg-surface px-3 text-sm font-medium text-ink hover:bg-sand-dark/50"
-              >
-                Cerrar sesión
-              </button>
-            </form>
+            <AdminLogoutForm
+              className="flex items-center md:hidden"
+              buttonClassName="inline-flex h-10 items-center whitespace-nowrap rounded-lg border border-sand-dark bg-surface px-3 text-sm font-medium text-ink hover:bg-sand-dark/50"
+            />
           )}
 
           {showAdminChrome && (

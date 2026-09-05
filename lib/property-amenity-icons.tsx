@@ -1,5 +1,3 @@
-import type { ComponentType } from "react";
-
 type AmenityIconProps = { className?: string };
 
 function WifiIcon({ className = "h-6 w-6" }: AmenityIconProps) {
@@ -149,18 +147,36 @@ function DefaultIcon({ className = "h-6 w-6" }: AmenityIconProps) {
   );
 }
 
-export function getAmenityIcon(label: string): ComponentType<AmenityIconProps> {
+export function AmenityIcon({ label, className = "h-6 w-6" }: { label: string; className?: string }) {
   const lower = label.toLowerCase();
-  if (lower.includes("wi") || lower.includes("wifi") || lower.includes("internet")) return WifiIcon;
-  if (lower.includes("cocina") || lower.includes("horno") || lower.includes("microondas")) return KitchenIcon;
-  if (lower.includes("piscina")) return PoolIcon;
-  if (lower.includes("estacionamiento") || lower.includes("parqueadero")) return ParkingIcon;
-  if (lower.includes("aire acondicionado") || lower.includes("calefacción")) return AcIcon;
-  if (lower.includes("televisor") || lower.includes("televisión") || lower.includes("tv")) return TvIcon;
-  if (lower.includes("playa")) return BeachIcon;
-  if (lower.includes("parrilla") || lower.includes("bbq") || lower.includes("parrillada")) return GrillIcon;
-  if (lower.includes("cámara") || lower.includes("detector") || lower.includes("seguridad")) return SecurityIcon;
-  if (lower.includes("lavadora") || lower.includes("secadora") || lower.includes("plancha")) return WasherIcon;
-  if (lower.includes("ingreso") || lower.includes("llaves") || lower.includes("cerradura")) return KeyIcon;
-  return DefaultIcon;
+  if (lower.includes("wi") || lower.includes("wifi") || lower.includes("internet")) {
+    return <WifiIcon className={className} />;
+  }
+  if (lower.includes("cocina") || lower.includes("horno") || lower.includes("microondas")) {
+    return <KitchenIcon className={className} />;
+  }
+  if (lower.includes("piscina")) return <PoolIcon className={className} />;
+  if (lower.includes("estacionamiento") || lower.includes("parqueadero")) {
+    return <ParkingIcon className={className} />;
+  }
+  if (lower.includes("aire acondicionado") || lower.includes("calefacción")) {
+    return <AcIcon className={className} />;
+  }
+  if (lower.includes("televisor") || lower.includes("televisión") || lower.includes("tv")) {
+    return <TvIcon className={className} />;
+  }
+  if (lower.includes("playa")) return <BeachIcon className={className} />;
+  if (lower.includes("parrilla") || lower.includes("bbq") || lower.includes("parrillada")) {
+    return <GrillIcon className={className} />;
+  }
+  if (lower.includes("cámara") || lower.includes("detector") || lower.includes("seguridad")) {
+    return <SecurityIcon className={className} />;
+  }
+  if (lower.includes("lavadora") || lower.includes("secadora") || lower.includes("plancha")) {
+    return <WasherIcon className={className} />;
+  }
+  if (lower.includes("ingreso") || lower.includes("llaves") || lower.includes("cerradura")) {
+    return <KeyIcon className={className} />;
+  }
+  return <DefaultIcon className={className} />;
 }

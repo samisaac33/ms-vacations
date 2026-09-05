@@ -1,7 +1,6 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getDb, hasDatabase } from "@/db/index";
 import { properties } from "@/db/schema";
@@ -85,7 +84,7 @@ function revalidatePricingPaths(slug?: string) {
   }
 }
 
-export type AdminLoginState = { error?: string };
+export type AdminLoginState = { error?: string; success?: boolean };
 export type AdminActionState = { error?: string; success?: string };
 export type IcalActionState = AdminActionState;
 
@@ -102,12 +101,17 @@ export async function adminLogin(
     return { error: "Contraseña incorrecta." };
   }
   await setAdminSessionCookie();
-  redirect("/admin");
+  revalidatePath("/admin");
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/admin/dev");
+  return { success: true };
 }
 
-export async function adminLogout() {
+export async function adminLogout(): Promise<void> {
   await clearAdminSessionCookie();
-  redirect("/admin");
+  revalidatePath("/admin");
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/admin/dev");
 }
 
 export type AdminPricingMonthResult =

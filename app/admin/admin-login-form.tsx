@@ -1,10 +1,19 @@
 "use client";
 
-import { useActionState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect } from "react";
 import { adminLogin, type AdminLoginState } from "./actions";
+import { notifyAdminSessionChanged } from "@/lib/admin-session-events";
 
 export function AdminLoginForm() {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState(adminLogin, {} as AdminLoginState);
+
+  useEffect(() => {
+    if (!state?.success) return;
+    notifyAdminSessionChanged();
+    router.refresh();
+  }, [state?.success, router]);
 
   return (
     <form action={formAction} className="mt-8 space-y-4">
