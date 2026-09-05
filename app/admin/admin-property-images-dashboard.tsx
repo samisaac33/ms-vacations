@@ -24,7 +24,7 @@ export async function AdminPropertyImagesDashboard({ params }: Props) {
 
   if (!row) {
     return (
-      <AdminCalendarShell activeTab="calendario" title={`Fotos · ${catalog.name}`}>
+      <AdminCalendarShell title={`Fotos · ${catalog.name}`}>
         <p className="text-sm text-amber-800">
           Propiedad no encontrada en la base de datos. Ejecute{" "}
           <code className="rounded bg-amber-100 px-1">npm run db:seed</code>.
@@ -37,7 +37,7 @@ export async function AdminPropertyImagesDashboard({ params }: Props) {
   const usesCatalogFallback = images.length === 0;
 
   return (
-    <AdminCalendarShell activeTab="calendario" title={`Fotos · ${catalog.name}`}>
+    <AdminCalendarShell title={`Fotos · ${catalog.name}`}>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <AdminPropertyStrip properties={propertyList} activeSlug={slug} activeSection="fotos" />
         <div className="min-w-0 flex-1">

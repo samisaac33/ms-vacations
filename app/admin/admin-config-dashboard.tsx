@@ -68,11 +68,7 @@ export async function AdminConfigDashboard() {
   const missingBillingCount = countBookingsMissingBilling(billingBookings);
 
   return (
-    <AdminCalendarShell
-      activeTab="configuracion"
-      title="Configuración"
-      configPendingCount={pendingPayments.length}
-    >
+    <AdminCalendarShell title="Configuración">
       <div className="mx-auto max-w-5xl">
         <AdminConfigNav />
         <AdminConfigSummary

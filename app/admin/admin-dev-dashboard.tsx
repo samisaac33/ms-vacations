@@ -33,7 +33,7 @@ export async function AdminDevDashboard() {
   const propertyCount = dashboard?.properties.length ?? 0;
 
   return (
-    <AdminCalendarShell activeTab="dev" title="Dev">
+    <AdminCalendarShell title="Dev">
       <div className="mx-auto max-w-5xl space-y-6">
         {dashboard ? (
           <AdminIcalPanel

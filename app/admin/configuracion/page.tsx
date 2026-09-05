@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { isAdminSession } from "@/lib/admin-auth";
 
 export const metadata = {
@@ -11,6 +12,5 @@ export default async function AdminConfiguracionPage() {
     return <AdminLoginScreen />;
   }
 
-  const { AdminConfigDashboard } = await import("@/app/admin/admin-config-dashboard");
-  return <AdminConfigDashboard />;
+  redirect("/admin");
 }
