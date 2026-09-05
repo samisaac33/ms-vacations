@@ -107,7 +107,7 @@ export function AdminPropertyImagesView({ slug }: Props) {
         <AdminPropertySubnav slug={slug} active="fotos" />
 
         {data.needsMigration ? (
-          <AdminMigratePropertyImagesPanel />
+          <AdminMigratePropertyImagesPanel onSuccess={load} />
         ) : data.propertyId ? (
           <AdminPropertyImagesPanel
             slug={slug}
