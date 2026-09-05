@@ -21,7 +21,7 @@ export async function AdminMenuContent() {
   let vatPeriods: Awaited<ReturnType<typeof listPromotionalVatPeriodRows>> = [];
   let highSeasonPeriods: Awaited<ReturnType<typeof listHighSeasonPeriodRows>> = [];
   let adminProperties: { id: string; name: string }[] = [];
-  let propertyList = listAdminCalendarProperties();
+  const propertyList = listAdminCalendarProperties();
 
   try {
     vatPeriods = await listPromotionalVatPeriodRows();
