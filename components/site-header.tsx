@@ -10,7 +10,7 @@ import {
   useMobileScrollChrome,
 } from "@/hooks/use-mobile-scroll-chrome";
 import { ADMIN_SESSION_CHANGED_EVENT } from "@/lib/admin-session-events";
-import { toggleAdminMenu } from "@/lib/admin-menu-events";
+import { openAdminMenuModal, toggleAdminMenu } from "@/lib/admin-menu-events";
 import { siteConfig } from "@/lib/site";
 
 const navLinks = [
@@ -54,6 +54,20 @@ function NavLink({
     >
       {label}
     </Link>
+  );
+}
+
+function PhotosIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 7h3l2-2h6l2 2h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="13" r="3.5" stroke="currentColor" strokeWidth="1.75" />
+    </svg>
   );
 }
 
@@ -152,14 +166,24 @@ export function SiteHeader() {
           )}
 
           {showAdminChrome && (
-            <button
-              type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink"
-              aria-label="Abrir menú admin"
-              onClick={() => toggleAdminMenu()}
-            >
-              <HamburgerIcon />
-            </button>
+            <>
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink"
+                aria-label="Fotos"
+                onClick={() => openAdminMenuModal("fotos")}
+              >
+                <PhotosIcon />
+              </button>
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink"
+                aria-label="Abrir menú admin"
+                onClick={() => toggleAdminMenu()}
+              >
+                <HamburgerIcon />
+              </button>
+            </>
           )}
 
           {!isAdminRoute && (
