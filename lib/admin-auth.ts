@@ -9,6 +9,7 @@ function adminSessionCookieOptions(path: string) {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
     path,
     maxAge: 60 * 60 * 24 * 7,
   };
@@ -23,10 +24,7 @@ export async function isAdminSession(): Promise<boolean> {
 export async function setAdminSessionCookie() {
   const store = await cookies();
   // Limpiar cookie antigua con path /admin (no se enviaba a rutas /api/admin/*).
-  store.set(ADMIN_SESSION_COOKIE, "", {
-    ...adminSessionCookieOptions(LEGACY_ADMIN_COOKIE_PATH),
-    maxAge: 0,
-  });
+  store.delete({ name: ADMIN_SESSION_COOKIE, path: LEGACY_ADMIN_COOKIE_PATH });
   store.set(ADMIN_SESSION_COOKIE, ADMIN_SESSION_VALUE, adminSessionCookieOptions("/"));
 }
 
