@@ -9,7 +9,7 @@ import {
   updatePropertyImageAlt,
 } from "@/lib/property-images-query";
 import { revalidatePropertyImagePaths } from "@/lib/revalidate-property-images";
-import { deletePropertyImageFile } from "@/lib/storage";
+import { deletePropertyImageFile } from "@/lib/property-image-storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
