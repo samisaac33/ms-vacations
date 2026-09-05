@@ -1,5 +1,7 @@
 import sharp from "sharp";
 
+export { isStorageConfigured } from "@/lib/storage-config";
+
 const SUPABASE_URL =
   process.env.SUPABASE_URL ?? "https://srtoqhmjydbpmwhyuurw.supabase.co";
 /** Proyecto actual donde viven las fotos de propiedades. */
@@ -22,10 +24,6 @@ const PROPERTY_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_BYTES = 5 * 1024 * 1024;
 const PROPERTY_IMAGE_MAX_BYTES = 12 * 1024 * 1024;
 const PROPERTY_IMAGE_MAX_DIMENSION = 2400;
-
-export function isStorageConfigured(): boolean {
-  return Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
-}
 
 export async function uploadPaymentProof(
   bookingId: string,

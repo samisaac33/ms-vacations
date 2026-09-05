@@ -10,7 +10,8 @@ import { insertPropertyImage, listPropertyImagesByPropertyId } from "@/lib/prope
 import { getPropertyBySlug } from "@/lib/properties";
 import { ensurePropertyRowBySlug } from "@/lib/property-db";
 import { getPropertyStoragePrefix } from "@/lib/property-storage-prefix";
-import { isStorageConfigured, uploadPropertyImage } from "@/lib/storage";
+import { isStorageConfigured } from "@/lib/storage-config";
+import { uploadPropertyImage } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 
 export const runtime = "nodejs";
