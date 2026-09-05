@@ -51,6 +51,23 @@ import {
   addHighSeasonPeriod,
   deleteHighSeasonPeriod,
 } from "@/lib/high-season-query";
+import {
+  applyPropertyImagesMigration,
+  propertyImagesMigrationNeeded as checkPropertyImagesMigrationNeeded,
+} from "@/lib/apply-property-images-migration";
+import {
+  deletePropertyImage,
+  getPropertyImageById,
+  importCatalogImagesForProperty,
+  listPropertyImagesByPropertyId,
+  reorderPropertyImages,
+  resetPropertyImagesToCatalog,
+  setPropertyImageAsCover,
+  updatePropertyImageAlt,
+} from "@/lib/property-images-query";
+import { ensurePropertyRowBySlug } from "@/lib/property-db";
+import { getPropertyBySlug } from "@/lib/properties";
+import { deletePropertyImageFile } from "@/lib/storage";
 
 function revalidatePricingPaths(slug?: string) {
   revalidatePath("/admin");
@@ -62,6 +79,9 @@ function revalidatePricingPaths(slug?: string) {
   revalidatePath("/reservar", "layout");
   if (slug) {
     revalidatePath(`/admin/propiedades/${slug}/precios`);
+    revalidatePath(`/admin/propiedades/${slug}/fotos`);
+    revalidatePath(`/propiedades/${slug}`);
+    revalidatePath(`/reservar/${slug}`);
   }
 }
 
@@ -635,5 +655,192 @@ export async function getAdminNotificationSettingsForPanel() {
   return {
     notificationEmail: settings.notificationEmail,
     envFallback: getEnvNotificationEmailFallback() ?? null,
+  };
+}
+
+export async function propertyImagesMigrationNeeded(): Promise<boolean> {
+  return checkPropertyImagesMigrationNeeded();
+}
+
+export async function applyPropertyImagesSchema(
+  _prev: AdminActionState | undefined,
+  _formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  if (!hasDatabase()) return { error: "DATABASE_URL no configurada." };
+
+  try {
+    const result = await applyPropertyImagesMigration();
+    revalidatePath("/admin/configuracion");
+    revalidatePath("/admin/dev");
+    return {
+      success: result.tableCreated
+        ? "Tabla property_images creada."
+        : "Tabla property_images ya existía.",
+    };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { error: `No se pudo aplicar la migración: ${message}` };
+  }
+}
+
+export async function updatePropertyImageAltAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const imageId = formData.get("imageId");
+  const alt = formData.get("alt");
+  if (typeof imageId !== "string" || typeof alt !== "string" || !alt.trim()) {
+    return { error: "Datos incompletos." };
+  }
+
+  const image = await getPropertyImageById(imageId);
+  if (!image) return { error: "Imagen no encontrada." };
+
+  const result = await updatePropertyImageAlt(imageId, alt);
+  if (!result.ok) return { error: result.reason };
+
+  revalidatePricingPaths(image.slug);
+  return { success: "Texto alternativo actualizado." };
+}
+
+export async function deletePropertyImageAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const imageId = formData.get("imageId");
+  const deleteFile = formData.get("deleteFile") === "1";
+  if (typeof imageId !== "string" || !imageId) return { error: "Imagen no indicada." };
+
+  const before = await getPropertyImageById(imageId);
+  if (!before) return { error: "Imagen no encontrada." };
+
+  const result = await deletePropertyImage(imageId);
+  if (!result.ok) return { error: result.reason };
+
+  if (deleteFile) {
+    const removed = await deletePropertyImageFile(result.storagePath);
+    if (!removed.ok) {
+      revalidatePricingPaths(before.slug);
+      return {
+        success: "Imagen eliminada del catálogo. No se pudo borrar el archivo en storage.",
+      };
+    }
+  }
+
+  revalidatePricingPaths(before.slug);
+  return { success: deleteFile ? "Imagen y archivo eliminados." : "Imagen eliminada del catálogo." };
+}
+
+export async function movePropertyImageAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const propertyId = formData.get("propertyId");
+  const imageId = formData.get("imageId");
+  const direction = formData.get("direction");
+  if (
+    typeof propertyId !== "string" ||
+    typeof imageId !== "string" ||
+    (direction !== "up" && direction !== "down")
+  ) {
+    return { error: "Datos incompletos." };
+  }
+
+  const images = await listPropertyImagesByPropertyId(propertyId);
+  const idx = images.findIndex((i) => i.id === imageId);
+  if (idx === -1) return { error: "Imagen no encontrada." };
+
+  const swapWith = direction === "up" ? idx - 1 : idx + 1;
+  if (swapWith < 0 || swapWith >= images.length) {
+    return { error: "No se puede mover más en esa dirección." };
+  }
+
+  const ordered = images.map((i) => i.id);
+  [ordered[idx], ordered[swapWith]] = [ordered[swapWith]!, ordered[idx]!];
+
+  const result = await reorderPropertyImages(propertyId, ordered);
+  if (!result.ok) return { error: result.reason };
+
+  const slug = await getSlugByPropertyId(propertyId);
+  if (slug) revalidatePricingPaths(slug);
+  else revalidatePath("/admin");
+
+  return { success: direction === "up" ? "Imagen movida arriba." : "Imagen movida abajo." };
+}
+
+async function getSlugByPropertyId(propertyId: string): Promise<string | null> {
+  const db = getDb();
+  const [row] = await db
+    .select({ slug: properties.slug })
+    .from(properties)
+    .where(eq(properties.id, propertyId))
+    .limit(1);
+  return row?.slug ?? null;
+}
+
+export async function setPropertyImageCoverAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const propertyId = formData.get("propertyId");
+  const imageId = formData.get("imageId");
+  if (typeof propertyId !== "string" || typeof imageId !== "string") {
+    return { error: "Datos incompletos." };
+  }
+
+  const result = await setPropertyImageAsCover(propertyId, imageId);
+  if (!result.ok) return { error: result.reason };
+
+  const slug = await getSlugByPropertyId(propertyId);
+  if (slug) revalidatePricingPaths(slug);
+  return { success: "Imagen establecida como portada." };
+}
+
+export async function importCatalogImagesAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const slug = formData.get("slug");
+  if (typeof slug !== "string" || !slug) return { error: "Propiedad no indicada." };
+
+  const catalog = getPropertyBySlug(slug);
+  if (!catalog) return { error: "Propiedad no encontrada." };
+
+  const row = await ensurePropertyRowBySlug(slug);
+  if (!row) return { error: "Propiedad no encontrada en la base de datos." };
+
+  const result = await importCatalogImagesForProperty(row.id, catalog.images);
+  if (!result.ok) return { error: result.reason };
+
+  revalidatePricingPaths(slug);
+  return { success: `${result.count} fotos importadas del catálogo.` };
+}
+
+export async function resetPropertyImagesAction(
+  _prev: AdminActionState | undefined,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (!(await isAdminSession())) return { error: "No autorizado." };
+  const slug = formData.get("slug");
+  if (typeof slug !== "string" || !slug) return { error: "Propiedad no indicada." };
+
+  const row = await ensurePropertyRowBySlug(slug);
+  if (!row) return { error: "Propiedad no encontrada en la base de datos." };
+
+  const result = await resetPropertyImagesToCatalog(row.id);
+  if (!result.ok) return { error: result.reason };
+
+  revalidatePricingPaths(slug);
+  return {
+    success:
+      result.deleted > 0
+        ? `${result.deleted} foto(s) eliminadas. El sitio usa el catálogo estático.`
+        : "Sin fotos en base de datos; el catálogo estático ya estaba activo.",
   };
 }

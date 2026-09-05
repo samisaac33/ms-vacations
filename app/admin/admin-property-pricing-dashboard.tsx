@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { AdminCalendarShell } from "@/app/admin/admin-calendar-shell";
 import { AdminPricingCalendar } from "@/app/admin/admin-pricing-calendar";
 import { AdminPropertyStrip } from "@/app/admin/admin-property-strip";
+import { AdminPropertySubnav } from "@/app/admin/admin-property-subnav";
 import { listAdminCalendarProperties } from "@/lib/admin-calendar-query";
 import { getPropertyBySlug } from "@/lib/properties";
 import { getPropertyRowBySlug } from "@/lib/property-db";
@@ -33,6 +34,7 @@ export async function AdminPropertyPricingDashboard({ params }: Props) {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <AdminPropertyStrip properties={propertyList} activeSlug={slug} />
         <div className="min-w-0 flex-1">
+          <AdminPropertySubnav slug={slug} active="precios" />
           <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-zinc-200" />}>
             <AdminPricingCalendar
               propertyId={row.id}

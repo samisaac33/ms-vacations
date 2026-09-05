@@ -4,6 +4,7 @@ import { AdminMaintenanceSection } from "@/app/admin/admin-maintenance-section";
 import {
   getAdminNotificationSettingsForPanel,
   billingMigrationNeeded,
+  propertyImagesMigrationNeeded,
   splitPaymentMigrationNeeded,
 } from "@/app/admin/actions";
 import { getAdminIcalDashboard } from "@/lib/admin-dashboard";
@@ -19,6 +20,7 @@ export async function AdminDevDashboard() {
   const dashboard = await getAdminIcalDashboard();
   const needsSplitPaymentMigration = await splitPaymentMigrationNeeded();
   const needsBillingMigration = await billingMigrationNeeded();
+  const needsPropertyImagesMigration = await propertyImagesMigrationNeeded();
   let notificationSettings = { notificationEmail: null as string | null, envFallback: null as string | null };
   try {
     notificationSettings = await getAdminNotificationSettingsForPanel();
@@ -54,6 +56,7 @@ export async function AdminDevDashboard() {
         <AdminMaintenanceSection
           needsSplitPaymentMigration={needsSplitPaymentMigration}
           needsBillingMigration={needsBillingMigration}
+          needsPropertyImagesMigration={needsPropertyImagesMigration}
           notificationEmail={notificationSettings.notificationEmail}
           envFallback={notificationSettings.envFallback}
           guestEmailFrom={guestEmailFromEnv()}

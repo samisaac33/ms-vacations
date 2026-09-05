@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDb, hasDatabase } from "@/db/index";
 import { properties } from "@/db/schema";
+import { getImagesBySlugs } from "@/lib/property-images-query";
 import {
   getPropertyBySlug,
   groupPropertiesByDestination,
@@ -52,17 +53,27 @@ export async function getReferencePriceCentsBySlug(): Promise<Map<string, number
 export function mergeCatalogWithDbPrices(
   catalog: Property[],
   centsBySlug: Map<string, number>,
+  imagesBySlug?: Map<string, { src: string; alt: string }[]>,
 ): Property[] {
   return catalog.map((p) => {
     const cents = centsBySlug.get(p.slug);
-    if (cents === undefined) return p;
-    return { ...p, basePricePerNightUsd: cents / 100 };
+    const dbImages = imagesBySlug?.get(p.slug);
+    let next = p;
+    if (cents !== undefined) {
+      next = { ...next, basePricePerNightUsd: cents / 100 };
+    }
+    if (dbImages && dbImages.length > 0) {
+      next = { ...next, images: dbImages };
+    }
+    return next;
   });
 }
 
 export async function getCatalogWithDbPrices(): Promise<Property[]> {
   const centsBySlug = await getReferencePriceCentsBySlug();
-  return mergeCatalogWithDbPrices(PROPERTIES, centsBySlug);
+  const slugs = PROPERTIES.map((p) => p.slug);
+  const imagesBySlug = await getImagesBySlugs(slugs);
+  return mergeCatalogWithDbPrices(PROPERTIES, centsBySlug, imagesBySlug);
 }
 
 export async function getCatalogGroupedWithDbPrices(): Promise<{
@@ -77,8 +88,16 @@ export async function getPropertyBySlugWithDbPrice(slug: string): Promise<Proper
   const catalog = getPropertyBySlug(slug);
   if (!catalog) return undefined;
   const row = await getPropertyRowBySlug(slug);
-  if (!row) return catalog;
-  return { ...catalog, basePricePerNightUsd: row.basePricePerNightCents / 100 };
+  const dbImages = await getImagesBySlugs([slug]);
+  const images = dbImages.get(slug);
+  let next = catalog;
+  if (row) {
+    next = { ...next, basePricePerNightUsd: row.basePricePerNightCents / 100 };
+  }
+  if (images && images.length > 0) {
+    next = { ...next, images };
+  }
+  return next;
 }
 
 export { getAllPropertySlugs } from "@/lib/properties";
