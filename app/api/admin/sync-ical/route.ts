@@ -18,6 +18,7 @@ export async function POST() {
     const result = await syncAllPropertiesIcal();
     revalidatePath("/admin");
     revalidatePath("/admin/configuracion");
+    revalidatePath("/admin/dev");
 
     if (result.failed > 0) {
       return Response.json({

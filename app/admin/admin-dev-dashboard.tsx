@@ -1,12 +1,10 @@
 import { AdminCalendarShell } from "@/app/admin/admin-calendar-shell";
-import { AdminDevPanel } from "@/app/admin/admin-dev-panel";
+import { AdminDevView } from "@/app/admin/admin-dev-view";
 
 export async function AdminDevDashboard() {
   return (
     <AdminCalendarShell title="Dev">
-      <div className="mx-auto max-w-5xl">
-        <AdminDevPanel />
-      </div>
+      <AdminDevView />
     </AdminCalendarShell>
   );
 }

@@ -1,6 +1,6 @@
 import { AdminContenidoPanel } from "@/app/admin/admin-contenido-panel";
 import { AdminBillingPanel } from "@/app/admin/admin-billing-panel";
-import { AdminDevPanel } from "@/app/admin/admin-dev-panel";
+import { AdminDevView } from "@/app/admin/admin-dev-view";
 import { AdminHamburgerMenu } from "@/app/admin/admin-hamburger-menu";
 import { AdminHighSeasonPanel } from "@/app/admin/admin-high-season-panel";
 import { AdminMigrateBillingPanel } from "@/app/admin/admin-migrate-billing";
@@ -203,7 +203,7 @@ export async function AdminMenuContent() {
       id: "dev" as AdminMenuModalId,
       title: "Dev",
       maxWidthClass: "max-w-5xl",
-      content: <AdminDevPanel />,
+      content: <AdminDevView />,
     },
   ];
 
