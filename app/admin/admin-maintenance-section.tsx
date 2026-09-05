@@ -5,11 +5,13 @@ import { AdminApplyBeachPricesPanel } from "@/app/admin/admin-apply-beach-prices
 import { SummaryCard } from "@/app/admin/admin-config-summary";
 import { AdminMigrateSplitPaymentPanel } from "@/app/admin/admin-migrate-split-payment";
 import { AdminMigrateBillingPanel } from "@/app/admin/admin-migrate-billing";
+import { AdminMigratePropertyImagesPanel } from "@/app/admin/admin-migrate-property-images";
 import { AdminNotificationSettingsPanel } from "@/app/admin/admin-notification-settings";
 
 type Props = {
   needsSplitPaymentMigration: boolean;
   needsBillingMigration: boolean;
+  needsPropertyImagesMigration: boolean;
   notificationEmail: string | null;
   envFallback: string | null;
   guestEmailFrom: string;
@@ -24,6 +26,7 @@ function shouldOpenForHash(hash: string) {
 export function AdminMaintenanceSection({
   needsSplitPaymentMigration,
   needsBillingMigration,
+  needsPropertyImagesMigration,
   notificationEmail,
   envFallback,
   guestEmailFrom,
@@ -79,6 +82,7 @@ export function AdminMaintenanceSection({
         />
         {needsSplitPaymentMigration && <AdminMigrateSplitPaymentPanel embedded />}
         {needsBillingMigration && <AdminMigrateBillingPanel embedded />}
+        {needsPropertyImagesMigration && <AdminMigratePropertyImagesPanel embedded />}
         <AdminApplyBeachPricesPanel embedded />
       </div>
     </details>

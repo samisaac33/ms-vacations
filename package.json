@@ -18,6 +18,7 @@
     "db:migrate:admin-settings-vat": "tsx scripts/migrate-admin-settings-vat.ts",
     "db:migrate:high-season": "tsx scripts/migrate-high-season-periods.ts",
     "db:migrate:billing": "tsx scripts/migrate-billing.ts",
+    "db:migrate:property-images": "tsx scripts/migrate-property-images.ts",
     "db:update-beach-prices": "tsx scripts/update-beach-prices.ts",
     "db:clear-stale-pricing-overrides": "tsx scripts/clear-stale-pricing-overrides.ts",
     "screenshots:booking": "node scripts/capture-booking-screenshots.mjs",
