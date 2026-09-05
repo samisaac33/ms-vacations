@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getDb, hasDatabase } from "@/db/index";
 import { properties } from "@/db/schema";
 import { isAdminSession } from "@/lib/admin-auth";
-import { isValidIcalUrl } from "@/lib/admin-dashboard";
+import { updatePropertyIcalUrl, parseIcalUrlUpdate } from "@/lib/admin-ical-url";
 import {
   getAdminMultiCalendar,
   getAdminPropertyCalendar,
@@ -152,35 +152,26 @@ export async function updateIcalUrl(
   if (!(await isAdminSession())) {
     return { error: "No autorizado." };
   }
-  if (!hasDatabase()) {
-    return { error: "DATABASE_URL no configurada." };
+
+  const parsed = parseIcalUrlUpdate(formData.get("propertyId"), formData.get("icalUrl"));
+  if (!parsed.valid) {
+    return { error: parsed.error };
   }
 
-  const propertyId = formData.get("propertyId");
-  const icalUrl = formData.get("icalUrl");
-  if (typeof propertyId !== "string" || typeof icalUrl !== "string") {
-    return { error: "Datos incompletos." };
+  try {
+    const result = await updatePropertyIcalUrl(parsed.propertyId, parsed.icalUrl);
+    if (!result.ok) {
+      return { error: result.error };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/configuracion");
+    revalidatePath("/admin/dev");
+    return { success: result.message };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { error: message };
   }
-
-  const trimmed = icalUrl.trim();
-  if (!isValidIcalUrl(trimmed)) {
-    return { error: "La URL debe ser https:// y terminar en .ics" };
-  }
-
-  const db = getDb();
-  const updated = await db
-    .update(properties)
-    .set({ icalUrl: trimmed })
-    .where(eq(properties.id, propertyId))
-    .returning({ id: properties.id });
-
-  if (updated.length === 0) {
-    return { error: "Propiedad no encontrada." };
-  }
-
-  revalidatePath("/admin");
-  revalidatePath("/admin/configuracion");
-  return { success: "URL iCal actualizada." };
 }
 
 export async function updatePropertyBasePrice(
