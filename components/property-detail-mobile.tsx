@@ -5,7 +5,6 @@ import { PropertyAboutPanel } from "@/components/property-about-panel";
 import { PropertyAmenitiesPanel } from "@/components/property-amenities-panel";
 import { PropertyBedroomsCarousel } from "@/components/property-bedrooms-carousel";
 import { PropertyStaySearchSheet } from "@/components/property-booking-widget";
-import { PropertyHighlights } from "@/components/property-highlights";
 import { PropertyLocationMap } from "@/components/property-location-map";
 import { PropertyMobileBookingBar } from "@/components/property-mobile-booking-bar";
 import { PropertyPhotoGallery } from "@/components/property-photo-gallery";
@@ -96,8 +95,6 @@ export function PropertyDetailMobile({
               bedrooms={bedrooms}
               onOpenPhoto={(index) => setTour({ index })}
             />
-
-            <PropertyHighlights highlights={property.highlights} />
 
             <PropertyAboutPanel property={property} />
 
