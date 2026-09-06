@@ -5,7 +5,6 @@ import { PropertyAboutPanel } from "@/components/property-about-panel";
 import { PropertyAmenitiesPanel } from "@/components/property-amenities-panel";
 import { PropertyDetailMobile } from "@/components/property-detail-mobile";
 import { PropertyDetailStayShell } from "@/components/property-detail-stay-shell";
-import { PropertyHighlights } from "@/components/property-highlights";
 import { PropertyLocationMap } from "@/components/property-location-map";
 import { PropertyPhotoGallery } from "@/components/property-photo-gallery";
 import { PropertySummaryStats } from "@/components/property-summary-stats";
@@ -138,7 +137,6 @@ export default async function PropertyDetailPage(props: Props) {
           highSeasonPeriods={highSeasonPeriods}
           afterThingsToKnow={<PropertyLocationMap property={p} />}
         >
-          <PropertyHighlights highlights={p.highlights} />
           <PropertyAboutPanel property={p} />
           <PropertyAmenitiesPanel property={p} />
         </PropertyDetailStayShell>
