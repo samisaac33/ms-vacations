@@ -514,6 +514,7 @@ function BasePriceForm({
       <p className="mt-1 text-sm text-zinc-700">Tarifa base (USD/noche)</p>
       <div className="mt-3 flex items-end gap-2">
         <input
+          key={baseReferenceUsd}
           name="referencePriceUsd"
           type="number"
           min={1}

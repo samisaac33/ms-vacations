@@ -101,13 +101,16 @@ export function quoteNightlyForDate(params: {
   date: string;
   slug: string;
   catalogReferenceCents: number;
+  /** Tarifa base operativa (DB). Si se omite, usa catalogReferenceCents. */
+  baseReferenceCents?: number;
   overrides: Map<string, number>;
   vatPeriods?: VatPeriod[];
 }): StayQuoteNightly {
   const { date, slug, catalogReferenceCents, overrides, vatPeriods = [] } = params;
+  const baseReferenceCents = params.baseReferenceCents ?? catalogReferenceCents;
   const { referenceCents, isOverride } = referenceCentsForNight(
     date,
-    catalogReferenceCents,
+    baseReferenceCents,
     overrides,
   );
   const guestCents = guestDirectCentsFromReference(referenceCents, slug, catalogReferenceCents);
@@ -156,6 +159,7 @@ export async function getStayQuoteByPropertyId(
       date,
       slug: prop.slug,
       catalogReferenceCents,
+      baseReferenceCents: prop.basePricePerNightCents,
       overrides,
       vatPeriods,
     }),
@@ -272,11 +276,12 @@ export async function getAdminPricingDays(
   const overrides = new Map(overrideRows.map((r) => [r.date, r.referencePriceCents]));
   const vatPeriods = await loadPromotionalVatPeriods();
   const catalogReferenceCents = catalogReferenceCentsForSlug(prop.slug);
+  const baseReferenceCents = prop.basePricePerNightCents;
 
   const days: PricingDay[] = eachDayIsoInclusive(from, to).map((date) => {
     const { referenceCents, isOverride } = referenceCentsForNight(
       date,
-      catalogReferenceCents,
+      baseReferenceCents,
       overrides,
     );
     const blockSource = blockSourceForNight(date, blocks);
@@ -300,7 +305,7 @@ export async function getAdminPricingDays(
     };
   });
 
-  return { baseReferenceCents: catalogReferenceCents, days };
+  return { baseReferenceCents, days };
 }
 
 export async function upsertNightlyRates(
