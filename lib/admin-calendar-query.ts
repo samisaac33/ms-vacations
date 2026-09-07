@@ -100,6 +100,7 @@ function buildPricingDays(
   from: string,
   to: string,
   slug: string,
+  baseReferenceCents: number,
   catalogReferenceCents: number,
   overrides: Map<string, number>,
   blocks: AvailabilityBlock[],
@@ -107,7 +108,7 @@ function buildPricingDays(
   return eachDayIsoInclusive(from, to).map((date) => {
     const { referenceCents, isOverride } = referenceCentsForNight(
       date,
-      catalogReferenceCents,
+      baseReferenceCents,
       overrides,
     );
     const guestCents = guestDirectCentsFromReference(referenceCents, slug, catalogReferenceCents);
@@ -222,7 +223,16 @@ async function loadCalendarBatch(from: string, to: string, propertyIds?: string[
 
       const overrides = overridesByProperty.get(prop.id) ?? new Map();
       const catalogReferenceCents = catalogReferenceCentsForSlug(prop.slug);
-      const days = buildPricingDays(from, to, prop.slug, catalogReferenceCents, overrides, blocks);
+      const baseReferenceCents = prop.basePricePerNightCents;
+      const days = buildPricingDays(
+        from,
+        to,
+        prop.slug,
+        baseReferenceCents,
+        catalogReferenceCents,
+        overrides,
+        blocks,
+      );
 
       const bars = buildBarsForProperty(
         from,
@@ -236,7 +246,7 @@ async function loadCalendarBatch(from: string, to: string, propertyIds?: string[
         slug: prop.slug,
         name: nameBySlug.get(prop.slug) ?? prop.slug,
         imageSrc: imageBySlug.get(prop.slug) ?? "/properties/placeholder-1.svg",
-        baseReferenceCents: catalogReferenceCents,
+        baseReferenceCents,
         days,
         bars,
       } satisfies AdminCalendarProperty;

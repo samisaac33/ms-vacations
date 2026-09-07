@@ -81,6 +81,18 @@ describe("quoteNightlyForDate", () => {
     expect(night.directCents).toBeLessThan(100_000);
     expect(night.isNewYearsEve).toBe(true);
   });
+
+  it("usa baseReferenceCents de DB cuando difiere del catálogo", () => {
+    const night = quoteNightlyForDate({
+      date: "2026-09-01",
+      slug: "porto-norte",
+      catalogReferenceCents: 37_200,
+      baseReferenceCents: 37_700,
+      overrides: new Map(),
+    });
+    expect(night.referenceCents).toBe(37_700);
+    expect(night.isOverride).toBe(false);
+  });
 });
 
 describe("fallbackCatalogCardQuote", () => {
