@@ -5,7 +5,9 @@ import {
   bookingTotalCentsForPaymentMethod,
   cardPaymentTotalCents,
   catalogDirectPriceUsd,
+  catalogDisplayPriceForProperty,
   catalogDisplayPriceUsd,
+  catalogDisplayReferenceForProperty,
   catalogDisplayReferenceUsd,
   catalogSavingsPercentVsAirbnb,
   formatUsd,
@@ -77,6 +79,17 @@ describe("catalogSavingsPercentVsAirbnb", () => {
   it("calcula el ahorro redondeado vs precio referencia", () => {
     expect(catalogSavingsPercentVsAirbnb(LA_PUNTA)).toBe(14);
     expect(catalogSavingsPercentVsAirbnb(ARRECIFE)).toBe(14);
+  });
+});
+
+describe("catalogDisplayPriceForProperty", () => {
+  it("usa la tarifa base operativa de la propiedad", () => {
+    expect(
+      catalogDisplayPriceForProperty({ basePricePerNightUsd: 379 }),
+    ).toBe(326);
+    expect(
+      catalogDisplayReferenceForProperty({ basePricePerNightUsd: 379 }),
+    ).toBe(379);
   });
 });
 

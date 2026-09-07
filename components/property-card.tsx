@@ -10,8 +10,8 @@ import type { Property } from "@/lib/properties";
 import { getPropertyBadges } from "@/lib/property-badges";
 import {
   CATALOG_CARD_SAVINGS_PERCENT,
-  catalogDisplayPriceUsd,
-  catalogDisplayReferenceUsd,
+  catalogDisplayPriceForProperty,
+  catalogDisplayReferenceForProperty,
   formatUsd,
 } from "@/lib/pricing";
 
@@ -53,8 +53,8 @@ export function PropertyCard({
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const badges = getPropertyBadges(p);
-  const referenceUsd = catalogDisplayReferenceUsd(p.slug);
-  const displayUsd = catalogDisplayPriceUsd(p.slug);
+  const referenceUsd = catalogDisplayReferenceForProperty(p);
+  const displayUsd = catalogDisplayPriceForProperty(p);
   const detailHref = `/propiedades/${p.slug}${stayQuery}`;
   const showStayPricing = hasStay && quote != null;
   const nights = quote?.nights;

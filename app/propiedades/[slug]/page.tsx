@@ -11,7 +11,7 @@ import { PropertySummaryStats } from "@/components/property-summary-stats";
 import { getPropertyBySlugWithDbPrice, getAllPropertySlugs } from "@/lib/property-db";
 import { loadHighSeasonPeriodsForPropertySlug } from "@/lib/high-season-query";
 import { getStayQuoteBySlug } from "@/lib/pricing-query";
-import { directPricePerNightUsd } from "@/lib/pricing";
+import { directPricePerNightUsdForProperty } from "@/lib/pricing";
 import { buildCatalogHref, buildStaySearchQuery, parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
 import { siteConfig } from "@/lib/site";
 
@@ -98,7 +98,7 @@ export default async function PropertyDetailPage(props: Props) {
     : null;
 
   const shareLink = `${siteConfig.url}/propiedades/${slug}${stayQuery}`;
-  const pricePerNightUsd = directPricePerNightUsd(p.slug);
+  const pricePerNightUsd = directPricePerNightUsdForProperty(p);
 
   return (
     <article className="mx-auto w-full max-w-7xl lg:px-6 lg:py-8">

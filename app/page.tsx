@@ -23,12 +23,14 @@ import {
   type Property,
 } from "@/lib/properties";
 import { getCatalogGroupedWithDbPrices } from "@/lib/property-db";
-import { catalogDisplayPriceUsd } from "@/lib/pricing";
+import { catalogDisplayPriceForProperty } from "@/lib/pricing";
 import { siteConfig } from "@/lib/site";
+
+export const dynamic = "force-dynamic";
 
 function minPriceUsd(properties: Property[]): number {
   if (properties.length === 0) return 0;
-  return Math.min(...properties.map((p) => catalogDisplayPriceUsd(p.slug)));
+  return Math.min(...properties.map((p) => catalogDisplayPriceForProperty(p)));
 }
 
 function buildDestinationCard(
