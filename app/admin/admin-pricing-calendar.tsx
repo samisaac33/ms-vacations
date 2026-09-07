@@ -11,13 +11,7 @@ import {
 import { es } from "date-fns/locale";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useActionState, useCallback, useEffect, useMemo, useState } from "react";
-import {
-  clearNightlyRates,
-  saveNightlyRates,
-  updatePropertyBasePrice,
-  type AdminActionState,
-} from "@/app/admin/actions";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { CalendarStayBar } from "@/app/admin/calendar-stay-bar";
 import { buildMonthGrid, toIsoDate } from "@/lib/calendar-utils";
 import {
@@ -37,6 +31,8 @@ type Props = {
   minNights?: number;
   maxNights?: number;
 };
+
+type ActionState = { error?: string; success?: string };
 
 function formatShortDate(iso: string): string {
   return new Intl.DateTimeFormat("es-EC", {
@@ -479,14 +475,41 @@ function BasePriceForm({
   baseReferenceUsd: number;
   onSaved: () => void;
 }) {
-  const [state, formAction, pending] = useActionState(updatePropertyBasePrice, {} as AdminActionState);
+  const [state, setState] = useState<ActionState>({});
+  const [pending, setPending] = useState(false);
 
-  useEffect(() => {
-    if (state?.success) onSaved();
-  }, [state?.success, onSaved]);
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setState({});
+
+    const formData = new FormData(event.currentTarget);
+    const referencePriceUsd = formData.get("referencePriceUsd");
+
+    try {
+      const res = await fetch("/api/admin/pricing/base", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId, referencePriceUsd }),
+      });
+      const data = (await res.json()) as ActionState;
+
+      if (!res.ok) {
+        setState({ error: data.error ?? "No se pudo guardar la tarifa base." });
+        return;
+      }
+
+      setState({ success: data.success });
+      onSaved();
+    } catch {
+      setState({ error: "No se pudo conectar con el servidor." });
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
-    <form action={formAction} className="px-4 py-4">
+    <form onSubmit={handleSubmit} className="px-4 py-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Precios</p>
       <p className="mt-1 text-sm text-zinc-700">Tarifa base (USD/noche)</p>
       <div className="mt-3 flex items-end gap-2">
@@ -529,45 +552,64 @@ function RangeActions({
   referencePriceUsd: string;
   onSuccess: () => void;
 }) {
-  const [saveState, saveAction, savePending] = useActionState(saveNightlyRates, {} as AdminActionState);
-  const [clearState, clearAction, clearPending] = useActionState(clearNightlyRates, {} as AdminActionState);
+  const [state, setState] = useState<ActionState>({});
+  const [pendingMode, setPendingMode] = useState<"save" | "clear" | null>(null);
 
-  useEffect(() => {
-    if (saveState?.success || clearState?.success) onSuccess();
-  }, [saveState?.success, clearState?.success, onSuccess]);
+  async function submitNightly(mode: "save" | "clear") {
+    setPendingMode(mode);
+    setState({});
 
-  const pending = savePending || clearPending;
-  const feedback = saveState?.error ?? saveState?.success ?? clearState?.error ?? clearState?.success;
+    try {
+      const res = await fetch("/api/admin/pricing/nightly", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode,
+          propertyId,
+          startDate,
+          endDate,
+          referencePriceUsd,
+        }),
+      });
+      const data = (await res.json()) as ActionState;
+
+      if (!res.ok) {
+        setState({ error: data.error ?? "No se pudo actualizar el precio." });
+        return;
+      }
+
+      setState({ success: data.success });
+      onSuccess();
+    } catch {
+      setState({ error: "No se pudo conectar con el servidor." });
+    } finally {
+      setPendingMode(null);
+    }
+  }
+
+  const pending = pendingMode !== null;
+  const feedback = state.error ?? state.success;
 
   return (
     <>
-      <form action={saveAction}>
-        <input type="hidden" name="propertyId" value={propertyId} />
-        <input type="hidden" name="startDate" value={startDate} />
-        <input type="hidden" name="endDate" value={endDate} />
-        <input type="hidden" name="referencePriceUsd" value={referencePriceUsd} />
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full rounded-xl bg-surface px-3 py-2.5 text-sm font-semibold text-zinc-900 disabled:opacity-50"
-        >
-          {savePending ? "Guardando…" : "Guardar"}
-        </button>
-      </form>
-      <form action={clearAction}>
-        <input type="hidden" name="propertyId" value={propertyId} />
-        <input type="hidden" name="startDate" value={startDate} />
-        <input type="hidden" name="endDate" value={endDate} />
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full rounded-xl border border-zinc-600 px-3 py-2.5 text-sm font-medium text-zinc-200 disabled:opacity-50"
-        >
-          {clearPending ? "Restableciendo…" : "Restablecer a base"}
-        </button>
-      </form>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => void submitNightly("save")}
+        className="w-full rounded-xl bg-surface px-3 py-2.5 text-sm font-semibold text-zinc-900 disabled:opacity-50"
+      >
+        {pendingMode === "save" ? "Guardando…" : "Guardar"}
+      </button>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => void submitNightly("clear")}
+        className="w-full rounded-xl border border-zinc-600 px-3 py-2.5 text-sm font-medium text-zinc-200 disabled:opacity-50"
+      >
+        {pendingMode === "clear" ? "Restableciendo…" : "Restablecer a base"}
+      </button>
       {feedback && (
-        <p className={`text-xs ${saveState?.error || clearState?.error ? "text-red-300" : "text-emerald-300"}`}>
+        <p className={`text-xs ${state.error ? "text-red-300" : "text-emerald-300"}`}>
           {feedback}
         </p>
       )}

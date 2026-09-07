@@ -11,15 +11,13 @@ import {
   getAdminPropertyCalendar,
   type CalendarStayBar,
 } from "@/lib/admin-calendar-query";
-import { getAvailabilityBySlug } from "@/lib/availability-query";
 import {
-  blockedNightsInRange,
-  clearNightlyRatesForDates,
-  getPropertyById,
-  parseReferenceUsd,
-  type PricingDay,
-  upsertNightlyRates,
-} from "@/lib/pricing-query";
+  clearNightlyRatesMutation,
+  revalidatePricingPaths,
+  saveNightlyRatesMutation,
+  updatePropertyBasePriceMutation,
+} from "@/lib/admin-pricing-mutations";
+import { type PricingDay } from "@/lib/pricing-query";
 import { syncAllPropertiesIcal } from "@/lib/ical-sync";
 import { applyBeachPricesToDatabase } from "@/lib/apply-beach-prices-db";
 import {
@@ -27,7 +25,6 @@ import {
   splitPaymentMigrationNeeded as checkSplitPaymentMigrationNeeded,
 } from "@/lib/apply-split-payment-migration";
 import { applyBillingMigration, billingMigrationNeeded as checkBillingMigrationNeeded } from "@/lib/apply-billing-migration";
-import { eachDayIsoInclusive } from "@/lib/dates";
 import {
   isVerificationMode,
   parsePartialAmountUsd,
@@ -67,22 +64,6 @@ import {
 import { ensurePropertyRowBySlug } from "@/lib/property-db";
 import { getPropertyBySlug } from "@/lib/properties";
 import { deletePropertyImageFile } from "@/lib/storage";
-
-function revalidatePricingPaths(slug?: string) {
-  revalidatePath("/admin");
-  revalidatePath("/admin/configuracion");
-  revalidatePath("/");
-  revalidatePath("/propiedades");
-  revalidatePath("/guia");
-  revalidatePath("/propiedades", "layout");
-  revalidatePath("/reservar", "layout");
-  if (slug) {
-    revalidatePath(`/admin/propiedades/${slug}/precios`);
-    revalidatePath(`/admin/propiedades/${slug}/fotos`);
-    revalidatePath(`/propiedades/${slug}`);
-    revalidatePath(`/reservar/${slug}`);
-  }
-}
 
 export type AdminActionState = { error?: string; success?: string };
 export type IcalActionState = AdminActionState;
@@ -188,38 +169,13 @@ export async function updatePropertyPrice(
   if (!(await isAdminSession())) {
     return { error: "No autorizado." };
   }
-  if (!hasDatabase()) {
-    return { error: "DATABASE_URL no configurada." };
-  }
 
-  const propertyId = formData.get("propertyId");
-  const raw = formData.get("referencePriceUsd");
-  if (typeof propertyId !== "string" || typeof raw !== "string") {
-    return { error: "Datos incompletos." };
-  }
-
-  const referencePriceUsd = Number.parseFloat(raw.replace(",", "."));
-  if (!Number.isFinite(referencePriceUsd) || referencePriceUsd < 1 || referencePriceUsd > 10_000) {
-    return { error: "Ingrese un precio válido (1–10000 USD)." };
-  }
-
-  const basePricePerNightCents = Math.round(referencePriceUsd * 100);
-  const db = getDb();
-  const updated = await db
-    .update(properties)
-    .set({ basePricePerNightCents })
-    .where(eq(properties.id, propertyId))
-    .returning({ slug: properties.slug });
-
-  if (updated.length === 0) {
-    return { error: "Propiedad no encontrada." };
-  }
-
-  revalidatePricingPaths(updated[0]!.slug);
-
-  return {
-    success: `Tarifa base actualizada ($${referencePriceUsd.toFixed(2)}/noche).`,
-  };
+  const result = await updatePropertyBasePriceMutation(
+    formData.get("propertyId"),
+    formData.get("referencePriceUsd"),
+  );
+  if (!result.ok) return { error: result.error };
+  return { success: result.success };
 }
 
 export async function saveNightlyRates(
@@ -229,51 +185,15 @@ export async function saveNightlyRates(
   if (!(await isAdminSession())) {
     return { error: "No autorizado." };
   }
-  if (!hasDatabase()) {
-    return { error: "DATABASE_URL no configurada." };
-  }
 
-  const propertyId = formData.get("propertyId");
-  const startDate = formData.get("startDate");
-  const endDate = formData.get("endDate");
-  const raw = formData.get("referencePriceUsd");
-
-  if (
-    typeof propertyId !== "string" ||
-    typeof startDate !== "string" ||
-    typeof endDate !== "string" ||
-    typeof raw !== "string"
-  ) {
-    return { error: "Datos incompletos." };
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
-    return { error: "Fechas inválidas." };
-  }
-
-  const referencePriceUsd = parseReferenceUsd(raw);
-  if (referencePriceUsd === null) {
-    return { error: "Ingrese un precio válido (1–10000 USD)." };
-  }
-
-  const prop = await getPropertyById(propertyId);
-  if (!prop) return { error: "Propiedad no encontrada." };
-
-  const dates = eachDayIsoInclusive(startDate, endDate);
-  const availability = await getAvailabilityBySlug(prop.slug);
-  const blocked = blockedNightsInRange(dates, availability?.blocks ?? []);
-  if (blocked.length > 0) {
-    return {
-      error: `No se puede editar precio en ${blocked.length} noche(s) bloqueada(s) (Airbnb o reserva).`,
-    };
-  }
-
-  await upsertNightlyRates(propertyId, dates, Math.round(referencePriceUsd * 100));
-  revalidatePricingPaths(prop.slug);
-
-  return {
-    success: `Precio guardado en ${dates.length} noche(s): $${referencePriceUsd.toFixed(2)}/noche.`,
-  };
+  const result = await saveNightlyRatesMutation({
+    propertyId: formData.get("propertyId"),
+    startDate: formData.get("startDate"),
+    endDate: formData.get("endDate"),
+    referencePriceUsdRaw: formData.get("referencePriceUsd"),
+  });
+  if (!result.ok) return { error: result.error };
+  return { success: result.success };
 }
 
 export async function clearNightlyRates(
@@ -283,30 +203,14 @@ export async function clearNightlyRates(
   if (!(await isAdminSession())) {
     return { error: "No autorizado." };
   }
-  if (!hasDatabase()) {
-    return { error: "DATABASE_URL no configurada." };
-  }
 
-  const propertyId = formData.get("propertyId");
-  const startDate = formData.get("startDate");
-  const endDate = formData.get("endDate");
-
-  if (typeof propertyId !== "string" || typeof startDate !== "string" || typeof endDate !== "string") {
-    return { error: "Datos incompletos." };
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
-    return { error: "Fechas inválidas." };
-  }
-
-  const prop = await getPropertyById(propertyId);
-  if (!prop) return { error: "Propiedad no encontrada." };
-
-  const dates = eachDayIsoInclusive(startDate, endDate);
-  await clearNightlyRatesForDates(propertyId, dates);
-  revalidatePricingPaths(prop.slug);
-
-  return { success: `${dates.length} noche(s) restablecidas a la tarifa base.` };
+  const result = await clearNightlyRatesMutation({
+    propertyId: formData.get("propertyId"),
+    startDate: formData.get("startDate"),
+    endDate: formData.get("endDate"),
+  });
+  if (!result.ok) return { error: result.error };
+  return { success: result.success };
 }
 
 export async function applyBeachBasePrices(
