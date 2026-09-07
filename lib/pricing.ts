@@ -1,6 +1,7 @@
 import type { PaymentMethod } from "@/lib/payments/types";
 import {
   catalogReferencePriceUsd,
+  guestDirectFromReferenceUsd,
   guestDirectPriceUsd,
   SLUGS_WITHOUT_REFUNDABLE_GUARANTEE,
 } from "@/lib/property-pricing";
@@ -38,7 +39,18 @@ export function directPricePerNightCents(slug: string): number {
   return Math.round(guestDirectPriceUsd(slug) * 100);
 }
 
-/** Precio huésped por noche en USD (transferencia). */
+/** Precio huésped por noche en USD (transferencia) a partir de tarifa base operativa. */
+export function directPricePerNightUsdFromBase(baseReferenceUsd: number): number {
+  return guestDirectFromReferenceUsd(baseReferenceUsd);
+}
+
+export function directPricePerNightUsdForProperty(property: {
+  basePricePerNightUsd: number;
+}): number {
+  return directPricePerNightUsdFromBase(property.basePricePerNightUsd);
+}
+
+/** Precio huésped por noche en USD (transferencia). Fallback al catálogo estático por slug. */
 export function directPricePerNightUsd(slug: string): number {
   return guestDirectPriceUsd(slug);
 }
@@ -152,7 +164,19 @@ export function catalogDisplayPriceUsd(slug: string): number {
   return Math.round(guestDirectPriceUsd(slug));
 }
 
+export function catalogDisplayPriceForProperty(property: {
+  basePricePerNightUsd: number;
+}): number {
+  return Math.round(directPricePerNightUsdFromBase(property.basePricePerNightUsd));
+}
+
 /** Referencia sin descuento en ficha (para tachado). */
 export function catalogDisplayReferenceUsd(slug: string): number {
   return Math.round(catalogReferencePriceUsd(slug));
+}
+
+export function catalogDisplayReferenceForProperty(property: {
+  basePricePerNightUsd: number;
+}): number {
+  return Math.round(property.basePricePerNightUsd);
 }

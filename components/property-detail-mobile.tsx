@@ -14,7 +14,7 @@ import { PropertyThingsToKnow } from "@/components/property-things-to-know";
 import type { GalleryImage } from "@/lib/property-photo-groups";
 import { getBedroomCards } from "@/lib/property-photo-groups";
 import type { Property } from "@/lib/properties";
-import { directPricePerNightUsd } from "@/lib/pricing";
+import { directPricePerNightUsdForProperty } from "@/lib/pricing";
 import type { StayDestination } from "@/lib/stay-search";
 import type { HighSeasonPeriod } from "@/lib/stay-rules";
 
@@ -115,7 +115,7 @@ export function PropertyDetailMobile({
 
         <PropertyMobileBookingBar
           slug={property.slug}
-          pricePerNightUsd={directPricePerNightUsd(property.slug)}
+          pricePerNightUsd={directPricePerNightUsdForProperty(property)}
           stayQuery={stayQuery}
           quote={quote}
           hasStay={hasStay}

@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { hasDatabase } from "@/db/index";
 import { getAllPropertySlugs, getPropertyBySlugWithDbPrice } from "@/lib/property-db";
 import { loadHighSeasonPeriodsForPropertySlug } from "@/lib/high-season-query";
-import { directPricePerNightUsd } from "@/lib/pricing";
+import { directPricePerNightUsdForProperty } from "@/lib/pricing";
 import { parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
 import { siteConfig } from "@/lib/site";
 import { getBankAccountDetails } from "@/lib/payments/bank-transfer";
@@ -84,7 +84,7 @@ export default async function ReservarPage(props: Props) {
           area: p.location.area,
           guests: p.capacity.guests,
           bedrooms: p.capacity.bedrooms,
-          baseDirectUsd: directPricePerNightUsd(p.slug),
+          baseDirectUsd: directPricePerNightUsdForProperty(p),
           image: image ? { src: image.src, alt: image.alt } : undefined,
         }}
       />
