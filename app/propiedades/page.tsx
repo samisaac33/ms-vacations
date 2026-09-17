@@ -14,6 +14,8 @@ import {
   type StaySearch,
 } from "@/lib/stay-search";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: siteConfig.copy.catalogTitle,
   description: siteConfig.description,

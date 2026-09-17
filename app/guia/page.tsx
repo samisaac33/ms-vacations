@@ -15,6 +15,8 @@ import {
   TOURISM_GUIDE_PATH,
 } from "@/lib/tourism-guide";
 
+export const dynamic = "force-dynamic";
+
 const meta = getTourismGuideMeta();
 const sections = getTourismGuideSections();
 const faqs = getTourismGuideFaqs();

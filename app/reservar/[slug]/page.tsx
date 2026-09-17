@@ -11,6 +11,8 @@ import { getBankAccountDetails } from "@/lib/payments/bank-transfer";
 import { isContentCaptureParam } from "@/lib/booking-screenshot-demo";
 import { BookingReserveLayout } from "./booking-reserve-layout";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;

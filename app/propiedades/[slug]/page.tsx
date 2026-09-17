@@ -15,6 +15,8 @@ import { directPricePerNightUsdForProperty } from "@/lib/pricing";
 import { buildCatalogHref, buildStaySearchQuery, parseStaySearchFromParams, validateStaySearch } from "@/lib/stay-search";
 import { siteConfig } from "@/lib/site";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
