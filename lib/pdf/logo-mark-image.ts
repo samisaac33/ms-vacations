@@ -1,6 +1,5 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import sharp from "sharp";
 
 const LOGO_SVG_PATH = path.join(process.cwd(), "public", "logo-mark.svg");
 const BRAND_TEAL = { r: 0, g: 157, b: 173 };
@@ -12,6 +11,12 @@ export type LogoImageAsset = {
   width: number;
   height: number;
 };
+
+type SharpModule = typeof import("sharp")["default"];
+
+async function loadSharp(): Promise<SharpModule> {
+  return (await import("sharp")).default;
+}
 
 function readLogoSvg(): string {
   return readFileSync(LOGO_SVG_PATH, "utf8");
@@ -25,6 +30,7 @@ async function renderSquareLogo(
   size: number,
   variant: "header" | "watermark",
 ): Promise<LogoImageAsset> {
+  const sharp = await loadSharp();
   const cacheKey = `${variant}-${size}`;
   const cached = cache.get(cacheKey);
   if (cached) {

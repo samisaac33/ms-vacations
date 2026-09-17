@@ -9,8 +9,6 @@ import {
   guestBookingVoucherEmail,
   guestDepositReceivedEmail,
 } from "@/lib/email/templates";
-import { generateBookingVoucherPdf } from "@/lib/pdf/booking-voucher";
-
 async function sendGuestEmail(
   bookingId: string,
   build: (ctx: NonNullable<Awaited<ReturnType<typeof loadBookingEmailContext>>>) => {
@@ -64,6 +62,7 @@ export async function notifyGuestBookingVoucher(bookingId: string): Promise<bool
     return false;
   }
 
+  const { generateBookingVoucherPdf } = await import("@/lib/pdf/booking-voucher");
   const pdf = await generateBookingVoucherPdf(bookingId);
   if (!pdf.ok) {
     await logEmailEvent(null, "error", `PDF comprobante fallo (${bookingId}): ${pdf.reason}`);
