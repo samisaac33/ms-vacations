@@ -1,4 +1,5 @@
 ﻿import { hasDatabase } from "@/db/index";
+import { bookingApiErrorMessage } from "@/lib/api-error-message";
 import { createPendingBookingAndCheckout } from "@/lib/booking-service";
 import { isValidDateOrder } from "@/lib/dates";
 import { loadHighSeasonPeriodsForPropertySlug } from "@/lib/high-season-query";
@@ -74,29 +75,35 @@ export async function POST(r: Request) {
   }
   const guestNotes =
     typeof b.guestNotes === "string" && b.guestNotes.trim() ? b.guestNotes.trim().slice(0, 2000) : undefined;
-  const o = await createPendingBookingAndCheckout({
-    slug: b.slug,
-    checkIn: b.checkIn,
-    checkOut: b.checkOut,
-    guests: b.guests,
-    guestEmail: b.guestEmail,
-    paymentMethod: b.paymentMethod,
-    paymentTiming,
-    termsAccepted: true,
-    termsVersion: b.termsVersion.trim(),
-    bankTransferInit,
-    guestNotes,
-  });
-  if (!o.ok) {
-    const st =
-      o.code === "property_not_found" ? 404 : o.code === "payment_error" ? 502 : 409;
-    return Response.json({ error: o.message }, { status: st });
+
+  try {
+    const o = await createPendingBookingAndCheckout({
+      slug: b.slug,
+      checkIn: b.checkIn,
+      checkOut: b.checkOut,
+      guests: b.guests,
+      guestEmail: b.guestEmail,
+      paymentMethod: b.paymentMethod,
+      paymentTiming,
+      termsAccepted: true,
+      termsVersion: b.termsVersion.trim(),
+      bankTransferInit,
+      guestNotes,
+    });
+    if (!o.ok) {
+      const st =
+        o.code === "property_not_found" ? 404 : o.code === "payment_error" ? 502 : 409;
+      return Response.json({ error: o.message }, { status: st });
+    }
+    return Response.json({
+      bookingId: o.bookingId,
+      totalCents: o.totalCents,
+      paymentMethod: o.paymentMethod,
+      next: o.next,
+      redirectUrl: o.redirectUrl,
+    });
+  } catch (e) {
+    console.error("[bookings]", e);
+    return Response.json({ error: bookingApiErrorMessage(e) }, { status: 500 });
   }
-  return Response.json({
-    bookingId: o.bookingId,
-    totalCents: o.totalCents,
-    paymentMethod: o.paymentMethod,
-    next: o.next,
-    redirectUrl: o.redirectUrl,
-  });
 }

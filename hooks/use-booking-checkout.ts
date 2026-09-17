@@ -274,15 +274,25 @@ export function useBookingCheckout({
           ...(options?.guestNotes ? { guestNotes: options.guestNotes } : {}),
         }),
       });
-      const data = (await res.json()) as {
+      let data: {
         error?: string;
         bookingId?: string;
         redirectUrl?: string;
         next?: string;
-      };
+      } = {};
+      try {
+        data = (await res.json()) as typeof data;
+      } catch {
+        const message =
+          res.status >= 500
+            ? "Error del servidor. Intente de nuevo en unos minutos."
+            : "No se pudo completar la reserva";
+        if (!options?.skipRedirect) setError(message);
+        return { ok: false as const, error: message };
+      }
       if (!res.ok) {
         const message = data.error ?? "No se pudo completar la reserva";
-        setError(message);
+        if (!options?.skipRedirect) setError(message);
         return { ok: false as const, error: message };
       }
       if (data.next === "payphone_box" && data.bookingId) {
@@ -314,11 +324,11 @@ export function useBookingCheckout({
         return { ok: true as const, bookingId: data.bookingId, redirectUrl: data.redirectUrl };
       }
       const message = "No se recibió la URL del siguiente paso.";
-      setError(message);
+      if (!options?.skipRedirect) setError(message);
       return { ok: false as const, error: message };
     } catch {
       const message = "Error de red. Intente de nuevo.";
-      setError(message);
+      if (!options?.skipRedirect) setError(message);
       return { ok: false as const, error: message };
     } finally {
       setLoading(false);
