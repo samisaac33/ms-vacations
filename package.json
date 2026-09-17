@@ -18,6 +18,7 @@
     "db:migrate:admin-settings-vat": "tsx scripts/migrate-admin-settings-vat.ts",
     "db:migrate:high-season": "tsx scripts/migrate-high-season-periods.ts",
     "db:migrate:payphone": "tsx scripts/migrate-payphone.ts",
+    "db:verify:bookings-schema": "tsx scripts/verify-bookings-schema.ts",
     "db:migrate:billing": "tsx scripts/migrate-billing.ts",
     "db:migrate:property-images": "tsx scripts/migrate-property-images.ts",
     "db:update-beach-prices": "tsx scripts/update-beach-prices.ts",
