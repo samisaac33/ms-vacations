@@ -3,12 +3,7 @@ import { addMinutes } from "date-fns";
 import { getDb } from "@/db/index";
 import { bookings, properties, syncLogs } from "@/db/schema";
 import { assertRangeAvailable, AvailabilityError, expireStalePendingBookings } from "@/lib/availability";
-import { trySendVoucherIfReady } from "@/lib/booking-billing-service";
 import { notifyAdminPendingVerification } from "@/lib/notifications/admin";
-import {
-  notifyGuestBookingConfirmed,
-  notifyGuestDepositReceived,
-} from "@/lib/notifications/guest";
 import {
   calculateSplitSchedule,
   isSplitPaymentEligible,
@@ -296,6 +291,22 @@ export async function createPendingBookingAndCheckout(
 
 type BookingConfirmationEmailKind = "confirmed" | "deposit";
 
+async function sendConfirmationGuestEmails(
+  bookingId: string,
+  kind: BookingConfirmationEmailKind,
+): Promise<boolean> {
+  const { notifyGuestBookingConfirmed, notifyGuestDepositReceived } = await import(
+    "@/lib/notifications/guest"
+  );
+  const { trySendVoucherIfReady } = await import("@/lib/booking-billing-service");
+  const emailSent =
+    kind === "deposit"
+      ? await notifyGuestDepositReceived(bookingId)
+      : await notifyGuestBookingConfirmed(bookingId);
+  await trySendVoucherIfReady(bookingId);
+  return emailSent;
+}
+
 type BookingConfirmationResult =
   | {
       ok: true;
@@ -357,14 +368,8 @@ export async function confirmBookingAfterPayment(params: {
     };
   });
 
-  if (result.ok && result.emailKind === "confirmed") {
-    const emailSent = await notifyGuestBookingConfirmed(params.bookingId);
-    await trySendVoucherIfReady(params.bookingId);
-    return { ...result, emailSent };
-  }
-  if (result.ok && result.emailKind === "deposit") {
-    const emailSent = await notifyGuestDepositReceived(params.bookingId);
-    await trySendVoucherIfReady(params.bookingId);
+  if (result.ok && result.emailKind) {
+    const emailSent = await sendConfirmationGuestEmails(params.bookingId, result.emailKind);
     return { ...result, emailSent };
   }
 
@@ -464,14 +469,8 @@ export async function confirmBankTransferBooking(
     };
   });
 
-  if (result.ok && result.emailKind === "confirmed") {
-    const emailSent = await notifyGuestBookingConfirmed(bookingId);
-    await trySendVoucherIfReady(bookingId);
-    return { ...result, emailSent };
-  }
-  if (result.ok && result.emailKind === "deposit") {
-    const emailSent = await notifyGuestDepositReceived(bookingId);
-    await trySendVoucherIfReady(bookingId);
+  if (result.ok && result.emailKind) {
+    const emailSent = await sendConfirmationGuestEmails(bookingId, result.emailKind);
     return { ...result, emailSent };
   }
 
