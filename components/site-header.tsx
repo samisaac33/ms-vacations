@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AdminIcalSyncToolbar } from "@/app/admin/admin-ical-sync-header";
 import { HamburgerIcon } from "@/app/admin/admin-hamburger-menu";
 import { SiteLogo } from "@/components/site-logo";
 import {
@@ -167,6 +168,7 @@ export function SiteHeader() {
 
           {showAdminChrome && (
             <>
+              <AdminIcalSyncToolbar variant="site" />
               <button
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink"
