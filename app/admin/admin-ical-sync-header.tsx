@@ -115,7 +115,7 @@ export function AdminIcalSyncToolbar({ variant = "site" }: Props) {
   const isAdmin = variant === "admin";
   const triggerClass = isAdmin
     ? "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
-    : "inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-white text-ink disabled:opacity-60";
+    : "inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sand-dark bg-surface text-ink disabled:opacity-60";
   const popoverClass = isAdmin
     ? "absolute right-0 top-full z-[60] mt-1 w-64 rounded-xl border border-zinc-200 bg-white p-4 shadow-lg"
     : "absolute right-0 top-full z-[60] mt-1 w-64 rounded-xl border border-sand-dark bg-white p-4 shadow-lg";
