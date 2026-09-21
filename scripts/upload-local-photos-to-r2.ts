@@ -150,6 +150,29 @@ async function uploadOne(storagePath: string, body: Buffer) {
   );
 }
 
+async function findAllWebp(root: string): Promise<string[]> {
+  const all = await walkImages(root);
+  return webpOnly ? all : all.filter((p) => extname(p).toLowerCase() === ".webp");
+}
+
+async function describeSourceDir(): Promise<string> {
+  const entries = await readdir(SOURCE_DIR, { withFileTypes: true });
+  const dirs = entries.filter((e) => e.isDirectory()).map((e) => e.name);
+  const webpFiles = await findAllWebp(SOURCE_DIR);
+  const sample = webpFiles.slice(0, 3).map((p) => relative(SOURCE_DIR, p));
+  return [
+    `Carpetas directas: ${dirs.length ? dirs.join(", ") : "(ninguna)"}`,
+    `Archivos .webp encontrados: ${webpFiles.length}`,
+    sample.length ? `Ejemplos: ${sample.join(" | ")}` : "",
+    "",
+    "Estructura esperada:",
+    "  MS VACATIONS/arrecife/webp/exterior-01.webp",
+    "  MS VACATIONS/home-one/webp/piscina-01.webp",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 async function main() {
   if (!isR2Configured()) {
     throw new Error("Configure R2_* en .env.local");
@@ -162,9 +185,15 @@ async function main() {
     );
   }
 
-  const images = dedupeByStoragePath(await walkImages(SOURCE_DIR));
+  const rawImages = await walkImages(SOURCE_DIR);
+  const images = dedupeByStoragePath(rawImages);
   if (images.length === 0) {
-    throw new Error(`No hay imágenes JPG/PNG/WebP/AVIF en ${SOURCE_DIR}`);
+    const hint = await describeSourceDir();
+    throw new Error(
+      `No se encontraron imágenes válidas en:\n${SOURCE_DIR}\n\n${hint}\n\n` +
+        "Compruebe en PowerShell:\n" +
+        `  Get-ChildItem -Path "${SOURCE_DIR}" -Recurse -Filter *.webp | Select-Object -First 5 FullName`,
+    );
   }
 
   console.log(`Origen: ${SOURCE_DIR}`);
