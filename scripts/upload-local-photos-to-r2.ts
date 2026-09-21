@@ -51,7 +51,7 @@ function loadEnvFile(name: string) {
 loadEnvFile(".env.local");
 loadEnvFile(".env");
 
-const IMAGE_EXT = new Set([".jpg", ".jpeg", ".png", ".webp"]);
+const IMAGE_EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
 const VALID_PREFIXES = new Set(Object.values(PROPERTY_STORAGE_PREFIX));
 
 const args = process.argv.slice(2);
@@ -73,9 +73,41 @@ async function walkImages(dir: string): Promise<string[]> {
   return files;
 }
 
-function storagePathForLocalFile(absPath: string): string | { error: string } {
+function normalizeRelativePath(rel: string): string[] {
+  let parts = rel.replace(/\\/g, "/").split("/");
+  if (parts.length > 2 && parts[1] === "webp") {
+    parts = [parts[0]!, ...parts.slice(2)];
+  }
+  return parts;
+}
+
+/** Prefer webp/ subcarpeta, luego .webp, luego .avif. */
+function filePriority(absPath: string): number {
   const rel = relative(SOURCE_DIR, absPath).replace(/\\/g, "/");
-  const parts = rel.split("/");
+  const ext = extname(absPath).toLowerCase();
+  if (rel.includes("/webp/") && ext === ".webp") return 4;
+  if (ext === ".webp") return 3;
+  if (ext === ".avif") return 2;
+  return 1;
+}
+
+function dedupeByStoragePath(files: string[]): string[] {
+  const best = new Map<string, { absPath: string; priority: number }>();
+  for (const absPath of files) {
+    const mapped = storagePathForLocalFile(absPath);
+    if (typeof mapped === "object") continue;
+    const priority = filePriority(absPath);
+    const current = best.get(mapped);
+    if (!current || priority > current.priority) {
+      best.set(mapped, { absPath, priority });
+    }
+  }
+  return [...best.values()].map((v) => v.absPath).sort();
+}
+
+function storagePathForLocalFile(absPath: string): string | { error: string } {
+  const rel = relative(SOURCE_DIR, absPath);
+  const parts = normalizeRelativePath(rel);
   if (parts.length < 2) {
     return { error: `Ruta inválida (use carpeta/propiedad/archivo): ${rel}` };
   }
@@ -123,9 +155,9 @@ async function main() {
     );
   }
 
-  const images = (await walkImages(SOURCE_DIR)).sort();
+  const images = dedupeByStoragePath(await walkImages(SOURCE_DIR));
   if (images.length === 0) {
-    throw new Error(`No hay imágenes JPG/PNG/WebP en ${SOURCE_DIR}`);
+    throw new Error(`No hay imágenes JPG/PNG/WebP/AVIF en ${SOURCE_DIR}`);
   }
 
   console.log(`Origen: ${SOURCE_DIR}`);
