@@ -13,8 +13,8 @@
  *   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL
  *
  * Uso:
- *   npm run storage:upload-local-to-r2 -- --dry-run
- *   npm run storage:upload-local-to-r2
+ *   npm run storage:upload-local-to-r2 -- --webp-only --dry-run
+ *   npm run storage:upload-local-to-r2 -- --webp-only
  *   npm run storage:upload-local-to-r2 -- --source=C:\fotos-ms-vacations
  */
 import { existsSync, readFileSync, readdir, stat } from "node:fs";
@@ -56,17 +56,23 @@ const VALID_PREFIXES = new Set(Object.values(PROPERTY_STORAGE_PREFIX));
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
+const webpOnly = args.includes("--webp-only");
 const sourceArg = args.find((a) => a.startsWith("--source="));
 const SOURCE_DIR = resolve(process.cwd(), sourceArg?.slice("--source=".length) ?? "property-photos");
 
+function allowedExtensions(): Set<string> {
+  return webpOnly ? new Set([".webp"]) : IMAGE_EXT;
+}
+
 async function walkImages(dir: string): Promise<string[]> {
+  const exts = allowedExtensions();
   const files: string[] = [];
   const entries = await readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
     const full = resolve(dir, entry.name);
     if (entry.isDirectory()) {
       files.push(...(await walkImages(full)));
-    } else if (entry.isFile() && IMAGE_EXT.has(extname(entry.name).toLowerCase())) {
+    } else if (entry.isFile() && exts.has(extname(entry.name).toLowerCase())) {
       files.push(full);
     }
   }
@@ -162,7 +168,7 @@ async function main() {
 
   console.log(`Origen: ${SOURCE_DIR}`);
   console.log(`Destino R2: ${getR2PublicUrlBase()}`);
-  console.log(`Modo: ${dryRun ? "dry-run" : "subida real"}`);
+  console.log(`Modo: ${dryRun ? "dry-run" : "subida real"}${webpOnly ? " (solo .webp)" : ""}`);
   console.log(`Encontradas ${images.length} imágenes locales.`);
 
   let ok = 0;
