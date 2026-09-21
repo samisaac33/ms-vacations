@@ -7,10 +7,36 @@
  *   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL
  *
  * Uso:
- *   npx tsx scripts/migrate-supabase-to-r2.ts           # copia archivos + actualiza BD
- *   npx tsx scripts/migrate-supabase-to-r2.ts --dry-run # solo lista qué haría
- *   npx tsx scripts/migrate-supabase-to-r2.ts --db-only # solo reescribe URLs en BD (archivos ya en R2)
+ *   npm run storage:migrate-to-r2 -- --dry-run
+ *   npm run storage:migrate-to-r2
+ *   npm run storage:migrate-to-r2 -- --db-only
  */
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+function loadEnvFile(name: string) {
+  const path = resolve(process.cwd(), name);
+  if (!existsSync(path)) return;
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined) process.env[key] = value;
+  }
+}
+
+loadEnvFile(".env.local");
+loadEnvFile(".env");
+
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db/index";
