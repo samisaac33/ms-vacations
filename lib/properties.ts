@@ -1,3 +1,5 @@
+import { getR2PublicUrlBase } from "@/lib/r2-config";
+
 export type PropertyDestination = "beach" | "city";
 
 export type PropertyAboutSection = {
@@ -101,17 +103,24 @@ const SUPABASE_STORAGE_HOST = {
   current: "tikrziworaajjatulzsg",
 } as const;
 
+function propertyImageUrl(file: string, host: keyof typeof SUPABASE_STORAGE_HOST = "legacy") {
+  const encoded = file.split("/").map(encodeURIComponent).join("/");
+  const r2Base = getR2PublicUrlBase();
+  if (r2Base) {
+    return `${r2Base}/${encoded}`;
+  }
+  return `https://${SUPABASE_STORAGE_HOST[host]}.supabase.co/storage/v1/object/public/MS_VACATIONS/${encoded}`;
+}
+
+/** @deprecated Prefer propertyImageUrl */
 function supabaseStorageUrl(
   file: string,
   host: keyof typeof SUPABASE_STORAGE_HOST = "legacy",
 ) {
-  return `https://${SUPABASE_STORAGE_HOST[host]}.supabase.co/storage/v1/object/public/MS_VACATIONS/${file
-    .split("/")
-    .map(encodeURIComponent)
-    .join("/")}`;
+  return propertyImageUrl(file, host);
 }
 
-const supabase = (file: string) => supabaseStorageUrl(file);
+const supabase = (file: string) => propertyImageUrl(file);
 
 function villaPalmeraImage(file: string, alt: string) {
   return {

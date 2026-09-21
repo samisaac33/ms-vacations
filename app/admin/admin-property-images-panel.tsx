@@ -82,7 +82,7 @@ export function AdminPropertyImagesPanel({
     setUploadSuccess(null);
 
     if (!storageConfigured) {
-      setUploadError("Configure SUPABASE_SERVICE_ROLE_KEY para subir fotos.");
+      setUploadError("Configure las variables R2_* en el servidor para subir fotos.");
       return;
     }
 
@@ -168,8 +168,12 @@ export function AdminPropertyImagesPanel({
       >
         {!storageConfigured ? (
           <p className="text-sm text-amber-800">
-            Defina <code className="rounded bg-amber-100 px-1">SUPABASE_SERVICE_ROLE_KEY</code> en el
-            servidor para habilitar subidas.
+            Defina{" "}
+            <code className="rounded bg-amber-100 px-1">R2_ACCOUNT_ID</code>,{" "}
+            <code className="rounded bg-amber-100 px-1">R2_ACCESS_KEY_ID</code>,{" "}
+            <code className="rounded bg-amber-100 px-1">R2_SECRET_ACCESS_KEY</code> y{" "}
+            <code className="rounded bg-amber-100 px-1">R2_PUBLIC_URL</code> en el servidor para
+            habilitar subidas.
           </p>
         ) : null}
 
