@@ -30,7 +30,9 @@ function loadEnvFile(name: string) {
     ) {
       value = value.slice(1, -1);
     }
-    if (process.env[key] === undefined) process.env[key] = value;
+    if (process.env[key] === undefined || process.env[key] === "") {
+      process.env[key] = value;
+    }
   }
 }
 
@@ -227,9 +229,11 @@ async function updateDatabaseUrls() {
 }
 
 async function main() {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (!serviceKey) {
-    throw new Error("Defina SUPABASE_SERVICE_ROLE_KEY para leer Supabase Storage.");
+    throw new Error(
+      "Defina SUPABASE_SERVICE_ROLE_KEY para leer Supabase Storage (en .env.local, sin comillas vacías).",
+    );
   }
   if (!process.env.DATABASE_URL) {
     throw new Error("Defina DATABASE_URL para actualizar property_images.");
