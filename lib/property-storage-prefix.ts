@@ -1,4 +1,4 @@
-/** Carpeta en Supabase Storage (MS_VACATIONS/{prefix}/) por slug de propiedad. */
+/** Carpeta en storage ({prefix}/) por slug de propiedad. */
 export const PROPERTY_STORAGE_PREFIX: Record<string, string> = {
   "alojamiento-en-arrecife": "arrecife",
   "casa-vacacional-home-one-18-personas-max": "home-one",
@@ -13,17 +13,33 @@ export const PROPERTY_STORAGE_PREFIX: Record<string, string> = {
   "container-stay-2-san-clemente": "container-stay-2",
 };
 
+const SUPABASE_PUBLIC_MARKER = "/storage/v1/object/public/MS_VACATIONS/";
+
 export function getPropertyStoragePrefix(slug: string): string | undefined {
   return PROPERTY_STORAGE_PREFIX[slug];
 }
 
+/** Extrae `{prefix}/{file}.webp` desde una URL pública (Supabase legacy o R2). */
 export function parseStoragePathFromPublicUrl(src: string): string | null {
-  const marker = "/storage/v1/object/public/MS_VACATIONS/";
-  const idx = src.indexOf(marker);
-  if (idx === -1) return null;
+  const supabaseIdx = src.indexOf(SUPABASE_PUBLIC_MARKER);
+  if (supabaseIdx !== -1) {
+    try {
+      return decodeURIComponent(src.slice(supabaseIdx + SUPABASE_PUBLIC_MARKER.length));
+    } catch {
+      return null;
+    }
+  }
+
   try {
-    return decodeURIComponent(src.slice(idx + marker.length));
+    const url = new URL(src);
+    const path = url.pathname.replace(/^\/+/, "");
+    if (!path || path.includes("..")) return null;
+    return decodeURIComponent(path);
   } catch {
     return null;
   }
+}
+
+export function isSupabasePropertyImageUrl(src: string): boolean {
+  return src.includes(SUPABASE_PUBLIC_MARKER);
 }

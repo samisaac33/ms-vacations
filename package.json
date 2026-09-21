@@ -21,12 +21,14 @@
     "db:verify:bookings-schema": "tsx scripts/verify-bookings-schema.ts",
     "db:migrate:billing": "tsx scripts/migrate-billing.ts",
     "db:migrate:property-images": "tsx scripts/migrate-property-images.ts",
+    "storage:migrate-to-r2": "tsx scripts/migrate-supabase-to-r2.ts",
     "db:update-beach-prices": "tsx scripts/update-beach-prices.ts",
     "db:clear-stale-pricing-overrides": "tsx scripts/clear-stale-pricing-overrides.ts",
     "screenshots:booking": "node scripts/capture-booking-screenshots.mjs",
     "content:export-booking": "node scripts/export-booking-content.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1136.0",
     "axios": "^1.18.1",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.41.0",

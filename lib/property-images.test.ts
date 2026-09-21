@@ -12,6 +12,14 @@ describe("property-storage-prefix", () => {
       "https://tikrziworaajjatulzsg.supabase.co/storage/v1/object/public/MS_VACATIONS/arrecife/exterior-01.webp";
     expect(parseStoragePathFromPublicUrl(src)).toBe("arrecife/exterior-01.webp");
   });
+
+  it("extrae storage path desde URL pública de R2", () => {
+    const prev = process.env.R2_PUBLIC_URL;
+    process.env.R2_PUBLIC_URL = "https://pub-example.r2.dev";
+    const src = "https://pub-example.r2.dev/arrecife/exterior-01.webp";
+    expect(parseStoragePathFromPublicUrl(src)).toBe("arrecife/exterior-01.webp");
+    process.env.R2_PUBLIC_URL = prev;
+  });
 });
 
 describe("property-image-categories", () => {

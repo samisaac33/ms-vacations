@@ -1,31 +1,23 @@
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import {
   isAllowedPropertyImageUpload,
   PROPERTY_IMAGE_MAX_UPLOAD_BYTES,
 } from "@/lib/property-image-upload";
 import { processPropertyImageToWebp } from "@/lib/process-property-image";
-
-const SUPABASE_PROPERTY_IMAGES_URL =
-  process.env.SUPABASE_PROPERTY_IMAGES_URL ??
-  process.env.SUPABASE_URL ??
-  "https://tikrziworaajjatulzsg.supabase.co";
-const BUCKET = "MS_VACATIONS";
-
-function propertyImagePublicUrl(storagePath: string): string {
-  const encoded = storagePath
-    .split("/")
-    .map(encodeURIComponent)
-    .join("/");
-  return `${SUPABASE_PROPERTY_IMAGES_URL}/storage/v1/object/public/${BUCKET}/${encoded}`;
-}
+import { getR2Client, getR2BucketName } from "@/lib/r2-client";
+import { isR2Configured, propertyImagePublicUrl } from "@/lib/r2-config";
 
 export async function uploadPropertyImage(
   storagePath: string,
   file: File,
   options?: { preprocessed?: boolean },
 ): Promise<{ ok: true; publicUrl: string; storagePath: string } | { ok: false; message: string }> {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) {
-    return { ok: false, message: "Almacenamiento de fotos no configurado (SUPABASE_SERVICE_ROLE_KEY)." };
+  if (!isR2Configured()) {
+    return {
+      ok: false,
+      message:
+        "Almacenamiento de fotos no configurado (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_PUBLIC_URL).",
+    };
   }
   if (!isAllowedPropertyImageUpload(file) && !options?.preprocessed) {
     return { ok: false, message: "Formato no permitido. Use JPG, PNG o WEBP." };
@@ -50,25 +42,20 @@ export async function uploadPropertyImage(
     uploadBody = new Uint8Array(processed.buffer);
   }
 
-  const res = await fetch(
-    `${SUPABASE_PROPERTY_IMAGES_URL}/storage/v1/object/${BUCKET}/${storagePath
-      .split("/")
-      .map(encodeURIComponent)
-      .join("/")}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "image/webp",
-        "x-upsert": "true",
-      },
-      body: new Uint8Array(uploadBody),
-    },
-  );
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    return { ok: false, message: `No se pudo subir la foto (${res.status}). ${text}` };
+  try {
+    const client = getR2Client();
+    await client.send(
+      new PutObjectCommand({
+        Bucket: getR2BucketName(),
+        Key: storagePath,
+        Body: uploadBody,
+        ContentType: "image/webp",
+        CacheControl: "public, max-age=31536000, immutable",
+      }),
+    );
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { ok: false, message: `No se pudo subir la foto a R2. ${message}` };
   }
 
   return { ok: true, publicUrl: propertyImagePublicUrl(storagePath), storagePath };
@@ -77,25 +64,21 @@ export async function uploadPropertyImage(
 export async function deletePropertyImageFile(
   storagePath: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) {
-    return { ok: false, message: "Almacenamiento no configurado." };
+  if (!isR2Configured()) {
+    return { ok: false, message: "Almacenamiento R2 no configurado." };
   }
 
-  const res = await fetch(
-    `${SUPABASE_PROPERTY_IMAGES_URL}/storage/v1/object/${BUCKET}/${storagePath
-      .split("/")
-      .map(encodeURIComponent)
-      .join("/")}`,
-    {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${key}` },
-    },
-  );
-
-  if (!res.ok && res.status !== 404) {
-    const text = await res.text().catch(() => "");
-    return { ok: false, message: `No se pudo eliminar el archivo (${res.status}). ${text}` };
+  try {
+    const client = getR2Client();
+    await client.send(
+      new DeleteObjectCommand({
+        Bucket: getR2BucketName(),
+        Key: storagePath,
+      }),
+    );
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { ok: false, message: `No se pudo eliminar el archivo (${message}).` };
   }
 
   return { ok: true };

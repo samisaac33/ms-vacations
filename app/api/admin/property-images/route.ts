@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     }
     if (!isStorageConfigured()) {
       return Response.json(
-        { error: "Almacenamiento no configurado (SUPABASE_SERVICE_ROLE_KEY)." },
+        { error: "Almacenamiento no configurado (variables R2_*)." },
         { status: 503 },
       );
     }
