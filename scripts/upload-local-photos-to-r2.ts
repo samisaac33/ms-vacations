@@ -17,7 +17,8 @@
  *   npm run storage:upload-local-to-r2 -- --webp-only
  *   npm run storage:upload-local-to-r2 -- --source=C:\fotos-ms-vacations
  */
-import { existsSync, readFileSync, readdir, stat } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { readdir, stat } from "node:fs/promises";
 import { readFile } from "node:fs/promises";
 import { resolve, relative, extname, basename } from "node:path";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
