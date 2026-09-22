@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function POST(request: Request, context: RouteContext) {
+  console.log("[bookings/proof] POST start", new Date().toISOString());
   if (!hasDatabase()) {
     return Response.json({ error: "Base de datos no configurada" }, { status: 503 });
   }

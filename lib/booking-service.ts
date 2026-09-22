@@ -384,19 +384,19 @@ export async function submitBankTransferProof(params: {
   proofUrl: string;
 }): Promise<{ ok: true } | { ok: false; reason: string }> {
   const db = getDb();
-  return await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT 1 FROM bookings WHERE id = ${params.bookingId}::uuid FOR UPDATE`);
     const [row] = await tx
       .select()
       .from(bookings)
       .where(eq(bookings.id, params.bookingId))
       .limit(1);
-    if (!row) return { ok: false, reason: "Reserva no encontrada" };
+    if (!row) return { ok: false as const, reason: "Reserva no encontrada" };
     if (row.paymentMethod !== "bank_transfer") {
-      return { ok: false, reason: "Esta reserva no es por transferencia bancaria" };
+      return { ok: false as const, reason: "Esta reserva no es por transferencia bancaria" };
     }
     if (row.status === "pending_verification") {
-      if (row.paymentProofUrl) return { ok: true };
+      if (row.paymentProofUrl) return { ok: true as const, notifyAdmin: false as const };
       await tx
         .update(bookings)
         .set({
@@ -404,15 +404,14 @@ export async function submitBankTransferProof(params: {
           paymentProofUploadedAt: new Date(),
         })
         .where(eq(bookings.id, params.bookingId));
-      await notifyAdminPendingVerification(params.bookingId);
-      return { ok: true };
+      return { ok: true as const, notifyAdmin: true as const };
     }
     if (row.status !== "pending_payment") {
-      return { ok: false, reason: "La reserva ya no acepta comprobantes" };
+      return { ok: false as const, reason: "La reserva ya no acepta comprobantes" };
     }
     if (row.pendingExpiresAt && row.pendingExpiresAt < new Date()) {
       await tx.update(bookings).set({ status: "expired" }).where(eq(bookings.id, params.bookingId));
-      return { ok: false, reason: "La reserva expiró" };
+      return { ok: false as const, reason: "La reserva expiró" };
     }
     await tx
       .update(bookings)
@@ -422,9 +421,14 @@ export async function submitBankTransferProof(params: {
         paymentProofUploadedAt: new Date(),
       })
       .where(eq(bookings.id, params.bookingId));
-    await notifyAdminPendingVerification(params.bookingId);
-    return { ok: true };
+    return { ok: true as const, notifyAdmin: true as const };
   });
+
+  if (!result.ok) return result;
+  if (result.notifyAdmin) {
+    await notifyAdminPendingVerification(params.bookingId);
+  }
+  return { ok: true };
 }
 
 export async function confirmBankTransferBooking(
