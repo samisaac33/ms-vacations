@@ -209,7 +209,10 @@ export function BookingMobileWizard({
     setWhatsAppLoading(true);
     try {
       const result = await submitBooking({ skipRedirect: true, bankTransferInit: "whatsapp" });
-      if (!result.ok || !result.bookingId) return;
+      if (!result.ok || !result.bookingId) {
+        if (result.error) setError(result.error);
+        return;
+      }
 
       const reference = formatBookingReference(result.bookingId);
       const url = buildBankTransferProofWhatsAppUrl(
@@ -263,7 +266,10 @@ export function BookingMobileWizard({
       }
 
       const result = await submitBooking({ skipRedirect: true, bankTransferInit: "standard" });
-      if (!result.ok || !result.bookingId) return;
+      if (!result.ok || !result.bookingId) {
+        if (result.error) setError(result.error);
+        return;
+      }
 
       const upload = await uploadProof(result.bookingId, proofFile);
       if (!upload.ok) {
