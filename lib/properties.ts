@@ -68,15 +68,19 @@ const regionMapEmbedUrl =
 const mapsHomeOneTwo = "https://maps.app.goo.gl/GYGPf5TnSTMtAUkR9";
 const coordsHomeOneTwo = { lat: -0.7688396, lng: -80.5107063 };
 
-/** Centro urbano de Portoviejo (referencia para mapa destacado). */
+/** Centro urbano de Portoviejo (referencia genérica). */
 const coordsPortoviejoCenter = { lat: -1.0544, lng: -80.4545 };
 const mapsPortoviejo = "https://maps.app.goo.gl/?q=Portoviejo,Manab%C3%AD,Ecuador";
+
+/** Las Hamacas — norte de Portoviejo (Av. Reales Tamarindos). */
+const coordsLasHamacas = { lat: -1.048987, lng: -80.459889 };
+const mapsLasHamacas = "https://maps.app.goo.gl/?q=-1.048987,-80.459889";
 
 export const REGION_MAP_EMBED_URL = regionMapEmbedUrl;
 
 /** Pin en home: listing Google «MS Vacations Home One - Home Two» (~73 reseñas). */
 export const HOME_FEATURED_MAP_SLUG = "casa-vacacional-home-one-18-personas-max";
-export const HOME_CITY_MAP_SLUG = "los-pinos-portoviejo";
+export const HOME_CITY_MAP_SLUG = "las-hamacas-portoviejo";
 
 export function getHomeFeaturedMapLocation() {
   const p = PROPERTIES.find((x) => x.slug === HOME_FEATURED_MAP_SLUG);
@@ -1788,8 +1792,8 @@ export const PROPERTIES: Property[] = [
       area: "Portoviejo",
       province: "Manabí",
       country: "Ecuador",
-      googleMapsUrl: mapsPortoviejo,
-      coordinates: coordsPortoviejoCenter,
+      googleMapsUrl: mapsLasHamacas,
+      coordinates: coordsLasHamacas,
     },
     basePricePerNightUsd: 174,
     icalUrl:
