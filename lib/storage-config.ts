@@ -5,9 +5,9 @@ export function isPropertyImageStorageConfigured(): boolean {
   return isR2Configured();
 }
 
-/** Comprobantes de transferencia (Supabase Storage). */
+/** Comprobantes de transferencia (Cloudflare R2). */
 export function isPaymentProofStorageConfigured(): boolean {
-  return Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return isR2Configured();
 }
 
 /** @deprecated Use isPropertyImageStorageConfigured */

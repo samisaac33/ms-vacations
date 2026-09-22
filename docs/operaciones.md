@@ -84,7 +84,7 @@ Las URLs completas (con token `t=...`) viven en `properties.ical_url` (seed desd
 
 - Variables: `BANK_ACCOUNT_HOLDER`, `BANK_NAME`, `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_TYPE`, `BANK_ID_TYPE`, `BANK_ID_NUMBER`, `BANK_EMAIL` (opcional).
 - Plazo para transferir y subir comprobante: **72 h** (`pending_payment` → `pending_verification`).
-- Comprobantes: bucket Supabase `MS_VACATIONS/payment-proofs/` — requiere `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`.
+- Comprobantes: Cloudflare R2, prefijo `payment-proofs/` — mismas variables `R2_*` que las fotos (`R2_PUBLIC_URL`, etc.).
 - Confirmación manual en `/admin` (sección «Transferencias pendientes»).
 
 ### PayPal
