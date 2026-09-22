@@ -87,6 +87,7 @@ export function BookingMobileWizard({
   const [sheet, setSheet] = useState<SheetMode>(null);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [transferSuccess, setTransferSuccess] = useState<BankTransferSuccess | null>(null);
+  const [whatsAppLoading, setWhatsAppLoading] = useState(false);
   const [transferSubmitting, setTransferSubmitting] = useState(false);
 
   const checkout = useBookingCheckout({
@@ -254,8 +255,6 @@ export function BookingMobileWizard({
     }
 
     if (step === 4 && isBankTransfer) {
-      if (!canAdvance()) return;
-
       if (!canAdvance()) return;
 
       if (!termsAccepted) {
