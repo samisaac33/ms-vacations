@@ -24,6 +24,7 @@ import { getStayQuoteByPropertyId } from "@/lib/pricing-query";
 import { bookingTotalCentsForPaymentMethod } from "@/lib/pricing";
 import { getPropertyBySlug } from "@/lib/properties";
 import { ensurePropertyRowBySlug } from "@/lib/property-db";
+import { loadPromotionalVatPeriods } from "@/lib/vat-periods-query";
 
 const ONLINE_PENDING_MINUTES = 30;
 const BANK_TRANSFER_HOLD_MINUTES = 30;
@@ -95,6 +96,8 @@ export async function createPendingBookingAndCheckout(
   }
 
   const db = getDb();
+  // Precarga IVA antes de la transacción (evita segunda conexión con pool max: 1 en Vercel).
+  await loadPromotionalVatPeriods();
 
   const propRow = await ensurePropertyRowBySlug(input.slug);
   if (!propRow) {

@@ -1,5 +1,5 @@
 import { asc, eq } from "drizzle-orm";
-import { getDb, hasDatabase } from "@/db/index";
+import { getDb, hasDatabase, type Db } from "@/db/index";
 import { promotionalVatPeriods } from "@/db/schema";
 import { type VatPeriod, vatPeriodOverlaps } from "@/lib/legal/hospitality-vat";
 
@@ -35,11 +35,8 @@ function isMissingDbRelationError(e: unknown): boolean {
   return msg.includes("does not exist") || msg.includes("42P01");
 }
 
-export async function listPromotionalVatPeriodRows(): Promise<PromotionalVatPeriodRow[]> {
-  if (!hasDatabase()) return [];
-  try {
-    const db = getDb();
-    const rows = await db
+async function queryPromotionalVatPeriodRows(db: Db): Promise<PromotionalVatPeriodRow[]> {
+  const rows = await db
       .select({
         id: promotionalVatPeriods.id,
         label: promotionalVatPeriods.label,
@@ -48,22 +45,32 @@ export async function listPromotionalVatPeriodRows(): Promise<PromotionalVatPeri
       })
       .from(promotionalVatPeriods)
       .orderBy(asc(promotionalVatPeriods.startDate));
-    return rows;
+  return rows;
+}
+
+export async function listPromotionalVatPeriodRows(db: Db = getDb()): Promise<PromotionalVatPeriodRow[]> {
+  if (!hasDatabase()) return [];
+  try {
+    return await queryPromotionalVatPeriodRows(db);
   } catch (e) {
     if (isMissingDbRelationError(e)) return [];
     throw e;
   }
 }
 
-export async function loadPromotionalVatPeriods(): Promise<VatPeriod[]> {
+/** Pasar `db` (p. ej. el cliente de transacción) evita bloqueo con max: 1 en serverless. */
+export async function loadPromotionalVatPeriods(db?: Db): Promise<VatPeriod[]> {
   if (!hasDatabase()) return [];
-  if (cachedPeriods && Date.now() - cacheAt < CACHE_TTL_MS) {
+  if (!db && cachedPeriods && Date.now() - cacheAt < CACHE_TTL_MS) {
     return cachedPeriods;
   }
-  const rows = await listPromotionalVatPeriodRows();
-  cachedPeriods = rows.map(rowToVatPeriod);
-  cacheAt = Date.now();
-  return cachedPeriods;
+  const rows = await listPromotionalVatPeriodRows(db ?? getDb());
+  const periods = rows.map(rowToVatPeriod);
+  if (!db) {
+    cachedPeriods = periods;
+    cacheAt = Date.now();
+  }
+  return periods;
 }
 
 export async function addPromotionalVatPeriod(params: {

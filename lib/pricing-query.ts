@@ -151,7 +151,7 @@ export async function getStayQuoteByPropertyId(
 
   const nights = eachNightIso(checkIn, checkOut);
   const overrides = await getOverridesMapForDates(propertyId, nights, db);
-  const vatPeriods = await loadPromotionalVatPeriods();
+  const vatPeriods = await loadPromotionalVatPeriods(db);
   const catalogReferenceCents = catalogReferenceCentsForSlug(prop.slug);
 
   const nightly = nights.map((date) =>
