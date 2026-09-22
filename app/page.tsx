@@ -15,10 +15,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { toGoogleMapsEmbedUrl } from "@/lib/google-maps";
 import {
+  getHomeCityDestinationImage,
   getHomeCityMapLocation,
   getHomeFeaturedMapLocation,
   HOME_BEACH_DESTINATION_IMAGE,
-  HOME_CITY_DESTINATION_IMAGE,
   HOME_HERO_IMAGE,
   type Property,
 } from "@/lib/properties";
@@ -75,7 +75,7 @@ export default async function Home() {
       siteConfig.destinations.city.area,
       siteConfig.destinations.city.subtitle,
       "#ciudad",
-      HOME_CITY_DESTINATION_IMAGE,
+      getHomeCityDestinationImage(city),
     ),
   ].filter((card): card is DestinationCard => card !== null);
 

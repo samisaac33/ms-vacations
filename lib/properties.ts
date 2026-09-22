@@ -398,9 +398,19 @@ function losPinosImage(file: string, alt: string) {
   };
 }
 
-export const HOME_CITY_DESTINATION_IMAGE = losPinosImage("piscina-01.webp", "piscina");
+export const HOME_CITY_DESTINATION_PROPERTY_SLUG = "los-pinos-portoviejo";
+
+export const HOME_CITY_DESTINATION_IMAGE = losPinosImage("exterior-05.webp", "exterior vista 5");
+
+export function getHomeCityDestinationImage(
+  cityProperties: Pick<Property, "slug" | "images">[],
+): { src: string; alt: string } {
+  const losPinos = cityProperties.find((p) => p.slug === HOME_CITY_DESTINATION_PROPERTY_SLUG);
+  return losPinos?.images[0] ?? HOME_CITY_DESTINATION_IMAGE;
+}
 
 const LOS_PINOS_IMAGES = [
+  losPinosImage("exterior-05.webp", "exterior vista 5"),
   losPinosImage("exterior-01.webp", "exterior"),
   losPinosImage("exterior-02.webp", "exterior vista 2"),
   losPinosImage("piscina-01.webp", "piscina"),
