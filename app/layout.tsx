@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Fraunces } from "next/font/google";
+import { DM_Sans, Fraunces, Montserrat } from "next/font/google";
 import "./globals.css";
 import { SiteFooterGate } from "@/components/site-footer-gate";
 import { SiteHeader } from "@/components/site-header";
@@ -15,6 +15,12 @@ const dmSans = DM_Sans({
 const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 const ogImage = PROPERTIES[0]?.images[0]?.src ?? "/properties/placeholder-1.svg";
@@ -50,7 +56,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}>
+    <html
+      lang="es"
+      className={`${dmSans.variable} ${fraunces.variable} ${montserrat.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col bg-sand text-ink font-sans">
         <SiteHeader />
         <div className="min-w-0 flex-1">{children}</div>
