@@ -87,7 +87,7 @@ export function BookingMobileWizard({
   const [sheet, setSheet] = useState<SheetMode>(null);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [transferSuccess, setTransferSuccess] = useState<BankTransferSuccess | null>(null);
-  const [whatsAppLoading, setWhatsAppLoading] = useState(false);
+  const [transferSubmitting, setTransferSubmitting] = useState(false);
 
   const checkout = useBookingCheckout({
     slug,
@@ -256,6 +256,8 @@ export function BookingMobileWizard({
     if (step === 4 && isBankTransfer) {
       if (!canAdvance()) return;
 
+      if (!canAdvance()) return;
+
       if (!termsAccepted) {
         setError("Debes aceptar los términos y condiciones para continuar.");
         return;
@@ -265,23 +267,30 @@ export function BookingMobileWizard({
         return;
       }
 
-      const result = await submitBooking({ skipRedirect: true, bankTransferInit: "standard" });
-      if (!result.ok || !result.bookingId) {
-        if (result.error) setError(result.error);
-        return;
-      }
+      setTransferSubmitting(true);
+      try {
+        const result = await submitBooking({ skipRedirect: true, bankTransferInit: "standard" });
+        if (!result.ok || !result.bookingId) {
+          if (result.error) setError(result.error);
+          return;
+        }
 
-      const upload = await uploadProof(result.bookingId, proofFile);
-      if (!upload.ok) {
-        setError(upload.error);
-        return;
-      }
+        const upload = await uploadProof(result.bookingId, proofFile);
+        if (!upload.ok) {
+          setError(
+            `${upload.error} La reserva ya está registrada (ref. ${formatBookingReference(result.bookingId)}). Puedes pulsar «Confirmar y enviar» otra vez para reintentar la subida.`,
+          );
+          return;
+        }
 
-      setTransferSuccess({
-        reference: formatBookingReference(result.bookingId),
-        via: "upload",
-        bookingId: result.bookingId,
-      });
+        setTransferSuccess({
+          reference: formatBookingReference(result.bookingId),
+          via: "upload",
+          bookingId: result.bookingId,
+        });
+      } finally {
+        setTransferSubmitting(false);
+      }
     }
   }
 
@@ -292,8 +301,10 @@ export function BookingMobileWizard({
       ? "Siguiente"
       : isOnlinePaymentStep || bankTransferComplete
         ? null
-        : loading
-          ? "Procesando…"
+        : loading || transferSubmitting
+          ? transferSubmitting
+            ? "Enviando comprobante…"
+            : "Procesando…"
           : step === 3
             ? "Siguiente"
             : isBankTransfer
@@ -402,7 +413,7 @@ export function BookingMobileWizard({
               onProofReady: setProofFile,
               onWhatsApp: handleWhatsAppTransfer,
               whatsAppLoading,
-              disabled: loading || whatsAppLoading || bankTransferComplete,
+              disabled: loading || whatsAppLoading || transferSubmitting || bankTransferComplete,
               success: transferSuccess,
             }}
           />
@@ -461,7 +472,7 @@ export function BookingMobileWizard({
         {showPrimaryButton && primaryLabel && (
           <button
             type="button"
-            disabled={!canAdvance() || loading}
+            disabled={!canAdvance() || loading || transferSubmitting}
             onClick={handlePrimaryAction}
             className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-ocean text-base font-semibold text-white transition-colors hover:bg-ocean-dark disabled:opacity-50"
           >

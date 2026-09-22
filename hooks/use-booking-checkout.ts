@@ -22,6 +22,25 @@ import { bookingTotalCentsForPaymentMethod, formatUsd } from "@/lib/pricing";
 import { bookingScreenshotDemoQuote } from "@/lib/booking-screenshot-demo";
 import type { StayQuote } from "@/lib/pricing-query";
 
+async function readProofErrorResponse(res: Response): Promise<string> {
+  let text = "";
+  try {
+    text = await res.text();
+  } catch {
+    text = "";
+  }
+  if (text) {
+    try {
+      const data = JSON.parse(text) as { error?: string };
+      if (data.error?.trim()) return data.error;
+    } catch {
+      return text.slice(0, 300);
+    }
+  }
+  if (res.status >= 500) return "Error del servidor. Intente de nuevo en unos minutos.";
+  return "No se pudo subir el comprobante";
+}
+
 export type BookingPricingState = {
   quote: StayQuote | null;
   quoteLoading: boolean;
@@ -358,15 +377,18 @@ export function useBookingCheckout({
       const res = await fetch(`/api/bookings/${bookingId}/proof`, {
         method: "POST",
         body,
-        signal: AbortSignal.timeout(60_000),
+        signal: AbortSignal.timeout(120_000),
       });
-      const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        return { ok: false as const, error: data.error ?? "No se pudo subir el comprobante" };
+        return { ok: false as const, error: await readProofErrorResponse(res) };
       }
       return { ok: true as const };
-    } catch {
-      return { ok: false as const, error: "Error de red. Intente de nuevo." };
+    } catch (e) {
+      const message =
+        e instanceof Error && e.name === "TimeoutError"
+          ? "La subida tardó demasiado. Comprueba tu conexión e intenta de nuevo."
+          : "Error de red. Intente de nuevo.";
+      return { ok: false as const, error: message };
     }
   }, []);
 
