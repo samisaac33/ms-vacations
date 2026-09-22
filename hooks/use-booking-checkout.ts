@@ -260,6 +260,7 @@ export function useBookingCheckout({
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(45_000),
         body: JSON.stringify({
           slug,
           checkIn,
@@ -287,12 +288,12 @@ export function useBookingCheckout({
           res.status >= 500
             ? "Error del servidor. Intente de nuevo en unos minutos."
             : "No se pudo completar la reserva";
-        if (!options?.skipRedirect) setError(message);
+        setError(message);
         return { ok: false as const, error: message };
       }
       if (!res.ok) {
         const message = data.error ?? "No se pudo completar la reserva";
-        if (!options?.skipRedirect) setError(message);
+        setError(message);
         return { ok: false as const, error: message };
       }
       if (data.next === "payphone_box" && data.bookingId) {
@@ -324,11 +325,14 @@ export function useBookingCheckout({
         return { ok: true as const, bookingId: data.bookingId, redirectUrl: data.redirectUrl };
       }
       const message = "No se recibió la URL del siguiente paso.";
-      if (!options?.skipRedirect) setError(message);
+      setError(message);
       return { ok: false as const, error: message };
-    } catch {
-      const message = "Error de red. Intente de nuevo.";
-      if (!options?.skipRedirect) setError(message);
+    } catch (e) {
+      const message =
+        e instanceof Error && e.name === "TimeoutError"
+          ? "El servidor tardó demasiado. Comprueba tu conexión e intenta de nuevo."
+          : "Error de red. Intente de nuevo.";
+      setError(message);
       return { ok: false as const, error: message };
     } finally {
       setLoading(false);
@@ -354,6 +358,7 @@ export function useBookingCheckout({
       const res = await fetch(`/api/bookings/${bookingId}/proof`, {
         method: "POST",
         body,
+        signal: AbortSignal.timeout(60_000),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {

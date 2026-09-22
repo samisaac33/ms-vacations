@@ -199,7 +199,7 @@ export function PayphonePaymentBox({
       ppbRef.current.startProcessPayment();
       setStatus("ready");
     } catch (error) {
-      setStatus("error");
+      setStatus("ready");
       setErrorMessage(error instanceof Error ? error.message : "No se pudo iniciar el pago");
     }
   }

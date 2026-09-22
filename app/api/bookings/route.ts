@@ -11,6 +11,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(r: Request) {
+  console.log("[bookings] POST start", new Date().toISOString());
   if (!hasDatabase()) {
     return Response.json({ error: "Base de datos no configurada" }, { status: 503 });
   }
