@@ -188,7 +188,7 @@ export default async function Home() {
             </div>
             <div className="min-h-[240px]">
               <iframe
-                title="Ubicación Portoviejo MS Vacations en Google Maps"
+                title="Ubicación Las Hamacas (Portoviejo) en Google Maps"
                 src={cityMapEmbedUrl}
                 className="h-full min-h-[240px] w-full"
                 loading="lazy"
