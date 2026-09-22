@@ -47,7 +47,7 @@ export function BookingFlowExportCard({ step: stepId }: Props) {
         {step.description}
       </p>
 
-      <p className="absolute bottom-10 text-lg font-semibold tracking-wide text-[#009dad]">
+      <p className="font-logo absolute bottom-10 text-lg font-bold uppercase tracking-[0.14em] text-[#009dad]">
         MS VACATIONS
       </p>
     </div>
