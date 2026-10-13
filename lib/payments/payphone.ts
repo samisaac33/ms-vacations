@@ -1,4 +1,6 @@
 import axios, { isAxiosError } from "axios";
+import { HOSPITALITY_VAT_STANDARD_RATE } from "@/lib/legal/hospitality-vat";
+import type { StayPriceBreakdown } from "@/lib/pricing-breakdown";
 import { siteConfig } from "@/lib/site";
 
 const PAYPHONE_BASE = "https://pay.payphonetodoesposible.com/api";
@@ -53,18 +55,46 @@ export type PayPhoneBoxAmounts = {
   tip: number;
 };
 
-export function buildPayPhoneBoxAmounts(params: {
-  totalCents: number;
-  subtotalBaseCents: number;
-  vatCents: number;
+function vatFromInclusiveCents(totalCents: number, rate: number) {
+  const baseCents = Math.round(totalCents / (1 + rate));
+  const vatCents = totalCents - baseCents;
+  return { baseCents, vatCents };
+}
+
+/** Desglose exigido por PayPhone: amount = amountWithoutTax + amountWithTax + tax + service + tip. */
+export function buildPayPhoneBoxAmountsForCharge(params: {
+  breakdown: StayPriceBreakdown;
+  cleaningFeeCents: number;
+  guaranteeCents: number;
+  chargeCents: number;
 }): PayPhoneBoxAmounts {
-  const amount = Math.round(params.totalCents);
-  const amountWithoutTax = Math.round(params.subtotalBaseCents);
-  const tax = Math.round(params.vatCents);
+  const { breakdown, cleaningFeeCents, guaranteeCents, chargeCents } = params;
+  const fullTotal = breakdown.totalCents;
+  if (fullTotal <= 0 || chargeCents <= 0) {
+    throw new Error("Monto PayPhone inválido");
+  }
+
+  const { baseCents: cleaningBaseCents, vatCents: cleaningVatCents } = vatFromInclusiveCents(
+    cleaningFeeCents,
+    HOSPITALITY_VAT_STANDARD_RATE,
+  );
+  const lodgingVatCents = breakdown.vatByRate.reduce((sum, row) => sum + row.cents, 0);
+  const exemptCents = breakdown.markupCents + guaranteeCents;
+  const taxableBaseCents = breakdown.subtotalBaseCents + cleaningBaseCents;
+  const taxCents = lodgingVatCents + cleaningVatCents;
+
+  const ratio = chargeCents / fullTotal;
+  const amountWithoutTax = Math.round(exemptCents * ratio);
+  const amountWithTax = Math.round(taxableBaseCents * ratio);
+  let tax = Math.round(taxCents * ratio);
+
+  const drift = chargeCents - (amountWithoutTax + amountWithTax + tax);
+  tax += drift;
+
   return {
-    amount,
+    amount: chargeCents,
     amountWithoutTax,
-    amountWithTax: 0,
+    amountWithTax,
     tax,
     service: 0,
     tip: 0,
