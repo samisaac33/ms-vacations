@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buildStayPriceBreakdown } from "@/lib/pricing-breakdown";
-import { buildPayPhoneBoxAmounts } from "@/lib/payments/payphone";
+import { buildPayPhoneBoxAmountsForCharge } from "@/lib/payments/payphone";
+import { refundableGuaranteeCents } from "@/lib/pricing";
 import { formatUsd } from "@/lib/pricing";
 import type { StayQuote } from "@/lib/pricing-query";
 
@@ -137,13 +138,11 @@ export function PayphonePaymentBox({
       if (container) container.innerHTML = "";
 
       const breakdown = buildStayPriceBreakdown(quote, "payphone");
-      const ratio = chargeCents / breakdown.totalCents;
-      const scaledSubtotal = Math.round(breakdown.subtotalBaseCents * ratio);
-      const scaledVat = chargeCents - scaledSubtotal;
-      const amounts = buildPayPhoneBoxAmounts({
-        totalCents: chargeCents,
-        subtotalBaseCents: scaledSubtotal,
-        vatCents: scaledVat,
+      const amounts = buildPayPhoneBoxAmountsForCharge({
+        breakdown,
+        cleaningFeeCents: quote.cleaningFeeCents,
+        guaranteeCents: refundableGuaranteeCents(quote.slug),
+        chargeCents,
       });
 
       ppbRef.current = new BoxCtor({
