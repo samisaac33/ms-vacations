@@ -150,7 +150,7 @@ const PORTO_NORTE_IMAGES = [
   portoNorteImage("habitacion-1-bano-01.webp", "habitación 1 — baño"),
   portoNorteImage("habitacion-02.webp", "habitación 2"),
   portoNorteImage("habitacion-03.webp", "habitación 3"),
-  portoNorteImage("habitacion-04.webp", "habitación 4"),
+  portoNorteImage("habitacion-04.webp", "habitación 4 — 2 camas individuales"),
 ];
 
 const VILLA_PALMERA_IMAGES = [
@@ -1597,7 +1597,7 @@ export const PROPERTIES: Property[] = [
     destination: "beach",
     beachfront: true,
     shortDescription:
-      "Villa frente al mar con piscina privada, BBQ y vistas al océano. Hasta 10 huéspedes.",
+      "Villa frente al mar con piscina privada, BBQ y vistas al océano. 4 habitaciones, hasta 10 huéspedes.",
     description:
       "Porto Norte es una exclusiva villa frente al mar en San Clemente, diseñada para quienes buscan privacidad, comodidad y una experiencia premium. Disfruta de piscina privada, zona de BBQ, cocina totalmente equipada, amplios espacios y espectaculares vistas al mar. El lugar perfecto para descansar en familia o con amigos y crear recuerdos inolvidables junto al mar. San Clemente, Manabí.",
     capacity: { guests: 10, bedrooms: 4, beds: 6, bathrooms: 3.5 },

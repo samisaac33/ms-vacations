@@ -85,6 +85,7 @@ Las URLs completas (con token `t=...`) viven en `properties.ical_url` (seed desd
 - Variables: `BANK_ACCOUNT_HOLDER`, `BANK_NAME`, `BANK_ACCOUNT_NUMBER`, `BANK_ACCOUNT_TYPE`, `BANK_ID_TYPE`, `BANK_ID_NUMBER`, `BANK_EMAIL` (opcional).
 - Plazo para transferir y subir comprobante: **72 h** (`pending_payment` → `pending_verification`).
 - Comprobantes: Cloudflare R2, prefijo `payment-proofs/` — mismas variables `R2_*` que las fotos (`R2_PUBLIC_URL`, etc.).
+- Porto Norte habitación 4 (reclasificar «Otra» en galería DB): `npm run storage:fix-porto-norte-habitacion-4` (requiere `DATABASE_URL` y `R2_*`; fuente en `property-photos/porto-norte/habitacion-04.jpg`).
 - Confirmación manual en `/admin` (sección «Transferencias pendientes»).
 
 ### PayPal

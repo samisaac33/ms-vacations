@@ -314,3 +314,15 @@ describe("Container Stay 2 capacity", () => {
     });
   });
 });
+
+describe("Porto Norte capacity e imágenes", () => {
+  it("expone 4 habitaciones y carrusel con habitación 4", () => {
+    const property = PROPERTIES.find((p) => p.slug === PORTO_NORTE)!;
+    expect(property.capacity.bedrooms).toBe(4);
+    const bedrooms = getBedroomCards(property.images);
+    expect(bedrooms).toHaveLength(4);
+    expect(bedrooms[3]?.title).toBe("Habitación 4");
+    expect(bedrooms[3]?.subtitle).toContain("2 camas individuales");
+    expect(property.images.some((img) => img.alt.toLowerCase().includes("otra"))).toBe(false);
+  });
+});
