@@ -8,6 +8,13 @@ import {
   setPropertyImageAsCover,
   updatePropertyImageAlt,
 } from "@/lib/property-images-query";
+import {
+  buildPropertyImageAlt,
+  categoryToAltSuffix,
+  isPropertyImageCategory,
+  type PropertyImageCategory,
+} from "@/lib/property-image-categories";
+import { getPropertyBySlug } from "@/lib/properties";
 import { revalidatePropertyImagePaths } from "@/lib/revalidate-property-images";
 import { deletePropertyImageFile } from "@/lib/property-image-storage";
 
@@ -35,21 +42,47 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const { imageId } = await context.params;
-  let alt: unknown;
+  let alt: string | undefined;
+  let category: PropertyImageCategory | undefined;
+  let customLabel: string | undefined;
   try {
-    const body = (await request.json()) as { alt?: unknown };
-    alt = body.alt;
+    const body = (await request.json()) as {
+      alt?: unknown;
+      category?: unknown;
+      customLabel?: unknown;
+    };
+    if (typeof body.alt === "string" && body.alt.trim()) {
+      alt = body.alt.trim();
+    }
+    if (typeof body.category === "string" && isPropertyImageCategory(body.category)) {
+      category = body.category;
+    }
+    if (typeof body.customLabel === "string") {
+      customLabel = body.customLabel;
+    }
   } catch {
     return Response.json({ error: "Solicitud inválida." }, { status: 400 });
-  }
-
-  if (typeof alt !== "string" || !alt.trim()) {
-    return Response.json({ error: "Datos incompletos." }, { status: 400 });
   }
 
   const image = await getPropertyImageById(imageId);
   if (!image) {
     return Response.json({ error: "Imagen no encontrada." }, { status: 404 });
+  }
+
+  if (category) {
+    const catalog = getPropertyBySlug(image.slug);
+    if (!catalog) {
+      return Response.json({ error: "Propiedad no encontrada." }, { status: 404 });
+    }
+    if (category === "otro" && customLabel?.trim()) {
+      alt = buildPropertyImageAlt(catalog.name, category, customLabel);
+    } else {
+      alt = buildPropertyImageAlt(catalog.name, category, categoryToAltSuffix(category));
+    }
+  }
+
+  if (!alt) {
+    return Response.json({ error: "Datos incompletos." }, { status: 400 });
   }
 
   try {
@@ -59,7 +92,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     revalidatePropertyImagePaths(image.slug);
-    return Response.json({ success: "Texto alternativo actualizado." });
+    return Response.json({
+      success: category ? "Categoría actualizada." : "Texto alternativo actualizado.",
+      alt,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return Response.json({ error: message }, { status: 500 });

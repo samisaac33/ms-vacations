@@ -2,11 +2,14 @@
 
 import Image from "next/image";
 import { useMemo, useState, useTransition } from "react";
+import { AdminPropertyImageCategoryForm } from "@/app/admin/admin-property-image-category-form";
 import { AdminActionFeedback } from "@/app/admin/admin-section-card";
+import { displayCategoryLabelFromAlt } from "@/lib/property-image-categories";
 import type { PropertyImageDto } from "@/lib/property-images-query";
 
 type Props = {
   propertyId: string;
+  propertyName: string;
   images: PropertyImageDto[];
   disabled?: boolean;
   onDataChange?: () => void;
@@ -35,6 +38,7 @@ function reorderList<T>(items: T[], fromIndex: number, toIndex: number): T[] {
 
 export function AdminPropertyImagesGallery({
   propertyId,
+  propertyName,
   images,
   disabled = false,
   onDataChange,
@@ -50,6 +54,7 @@ export function AdminPropertyImagesGallery({
   const [isPending, startTransition] = useTransition();
   const [deletePendingId, setDeletePendingId] = useState<string | null>(null);
   const [coverPendingId, setCoverPendingId] = useState<string | null>(null);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 
   const busy =
     disabled || isPending || deletePendingId != null || coverPendingId != null;
@@ -233,13 +238,16 @@ export function AdminPropertyImagesGallery({
                 </div>
 
                 <div className="min-w-0 flex-1 space-y-2">
+                  <p className="text-sm font-medium text-zinc-900">
+                    {displayCategoryLabelFromAlt(propertyName, image.alt)}
+                  </p>
                   <p className="truncate text-xs text-zinc-500">{image.storagePath}</p>
 
                   <div className="flex flex-wrap gap-2">
                     {index > 0 ? (
                       <button
                         type="button"
-                        disabled={itemBusy}
+                        disabled={itemBusy || editingCategoryId != null}
                         onClick={() => void handleSetCover(image.id)}
                         className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium hover:bg-zinc-50 disabled:opacity-60"
                       >
@@ -249,13 +257,41 @@ export function AdminPropertyImagesGallery({
 
                     <button
                       type="button"
-                      disabled={itemBusy}
+                      disabled={itemBusy || editingCategoryId != null}
+                      onClick={() => {
+                        setFeedback({});
+                        setEditingCategoryId(image.id);
+                      }}
+                      className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium hover:bg-zinc-50 disabled:opacity-60"
+                    >
+                      Cambiar categoría
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={itemBusy || editingCategoryId != null}
                       onClick={() => void handleDelete(image.id)}
                       className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
                     >
                       {deletePendingId === image.id ? "Eliminando…" : "Eliminar"}
                     </button>
                   </div>
+
+                  {editingCategoryId === image.id ? (
+                    <AdminPropertyImageCategoryForm
+                      imageId={image.id}
+                      propertyName={propertyName}
+                      currentAlt={image.alt}
+                      disabled={itemBusy}
+                      onCancel={() => setEditingCategoryId(null)}
+                      onSaved={() => {
+                        setEditingCategoryId(null);
+                        setFeedback({ success: "Categoría actualizada." });
+                        onDataChange?.();
+                      }}
+                      onError={(message) => setFeedback({ error: message })}
+                    />
+                  ) : null}
                 </div>
               </div>
             </li>

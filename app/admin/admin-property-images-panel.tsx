@@ -13,6 +13,7 @@ import type { PropertyImageDto } from "@/lib/property-images-query";
 
 type Props = {
   slug: string;
+  propertyName: string;
   propertyId: string;
   images: PropertyImageDto[];
   usesCatalogFallback: boolean;
@@ -23,6 +24,7 @@ type Props = {
 
 export function AdminPropertyImagesPanel({
   slug,
+  propertyName,
   propertyId,
   images,
   usesCatalogFallback,
@@ -259,6 +261,7 @@ export function AdminPropertyImagesPanel({
           <AdminPropertyImagesGallery
             key={sortedImages.map((i) => `${i.id}:${i.sortOrder}`).join("|")}
             propertyId={propertyId}
+            propertyName={propertyName}
             images={sortedImages}
             disabled={busy}
             onDataChange={onDataChange}
