@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   buildPropertyImageAlt,
   categoryToAltSuffix,
+  displayCategoryLabelFromAlt,
+  inferPropertyImageCategoryFromAlt,
   nextStorageFileName,
 } from "@/lib/property-image-categories";
 import { parseStoragePathFromPublicUrl } from "@/lib/property-storage-prefix";
@@ -34,5 +36,21 @@ describe("property-image-categories", () => {
   it("incrementa el sufijo numérico por categoría", () => {
     const existing = ["arrecife/exterior-01.webp", "arrecife/exterior-02.webp"];
     expect(nextStorageFileName(existing, "arrecife", "exterior")).toBe("exterior-03.webp");
+  });
+
+  it("infiere habitación 4 desde alt y etiqueta «Otra»", () => {
+    expect(
+      inferPropertyImageCategoryFromAlt("Porto Norte", "Porto Norte — otra"),
+    ).toEqual({ category: "otro", customLabel: "" });
+    expect(displayCategoryLabelFromAlt("Porto Norte", "Porto Norte — otra")).toBe("Otra");
+    expect(
+      inferPropertyImageCategoryFromAlt(
+        "Porto Norte",
+        "Porto Norte — habitación 4 — 2 camas individuales",
+      ),
+    ).toEqual({ category: "otro", customLabel: "habitación 4 — 2 camas individuales" });
+    expect(buildPropertyImageAlt("Porto Norte", "habitacion-4")).toBe(
+      "Porto Norte — habitación 4",
+    );
   });
 });

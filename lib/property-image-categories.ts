@@ -23,6 +23,18 @@ export const PROPERTY_IMAGE_CATEGORIES = [
 
 export type PropertyImageCategory = (typeof PROPERTY_IMAGE_CATEGORIES)[number]["value"];
 
+export const PROPERTY_IMAGE_CATEGORY_VALUES = new Set<PropertyImageCategory>(
+  PROPERTY_IMAGE_CATEGORIES.map((c) => c.value),
+);
+
+export function isPropertyImageCategory(value: string): value is PropertyImageCategory {
+  return PROPERTY_IMAGE_CATEGORY_VALUES.has(value as PropertyImageCategory);
+}
+
+export function categoryLabelForValue(category: PropertyImageCategory): string {
+  return PROPERTY_IMAGE_CATEGORIES.find((c) => c.value === category)?.label ?? category;
+}
+
 export function categoryToAltSuffix(category: PropertyImageCategory, customLabel?: string): string {
   if (category === "otro" && customLabel?.trim()) {
     return customLabel.trim();
@@ -42,6 +54,55 @@ export function categoryToAltSuffix(category: PropertyImageCategory, customLabel
 
 export function buildPropertyImageAlt(propertyName: string, category: PropertyImageCategory, customLabel?: string): string {
   return `${propertyName} — ${categoryToAltSuffix(category, customLabel)}`;
+}
+
+/** Etiqueta legible para admin a partir del alt guardado en BD. */
+export function displayCategoryLabelFromAlt(propertyName: string, alt: string): string {
+  const inferred = inferPropertyImageCategoryFromAlt(propertyName, alt);
+  if (!inferred) return alt;
+  if (inferred.category === "otro" && inferred.customLabel.trim()) {
+    return inferred.customLabel.trim();
+  }
+  return categoryLabelForValue(inferred.category);
+}
+
+/**
+ * Deduce categoría (y etiqueta custom si es «Otra») desde el alt de una foto existente.
+ */
+export function inferPropertyImageCategoryFromAlt(
+  propertyName: string,
+  alt: string,
+): { category: PropertyImageCategory; customLabel: string } | null {
+  const prefix = `${propertyName} — `;
+  if (!alt.startsWith(prefix)) return null;
+  const suffix = alt.slice(prefix.length).trim();
+  const suffixLower = suffix.toLowerCase();
+
+  const bedroomBano = suffix.match(/^habitación\s+(\d+)\s+—\s+baño$/i);
+  if (bedroomBano) {
+    const num = bedroomBano[1];
+    if (num && isPropertyImageCategory(`habitacion-${num}`)) {
+      return { category: `habitacion-${num}` as PropertyImageCategory, customLabel: "" };
+    }
+  }
+
+  const bedroom = suffix.match(/^habitación\s+(\d+)$/i);
+  if (bedroom?.[1] && isPropertyImageCategory(`habitacion-${bedroom[1]}`)) {
+    return { category: `habitacion-${bedroom[1]}` as PropertyImageCategory, customLabel: "" };
+  }
+
+  for (const entry of PROPERTY_IMAGE_CATEGORIES) {
+    if (entry.value === "otro") continue;
+    if (categoryToAltSuffix(entry.value).toLowerCase() === suffixLower) {
+      return { category: entry.value, customLabel: "" };
+    }
+  }
+
+  if (suffixLower === "otra") {
+    return { category: "otro", customLabel: "" };
+  }
+
+  return { category: "otro", customLabel: suffix };
 }
 
 export function nextStorageFileName(
