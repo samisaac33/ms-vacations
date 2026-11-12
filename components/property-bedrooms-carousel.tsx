@@ -38,7 +38,9 @@ function BedroomCardButton({
         />
       </div>
       <p className="mt-2 text-sm font-semibold text-ink">{bedroom.title}</p>
-      <p className="mt-0.5 text-sm text-muted">{bedroom.subtitle}</p>
+      {bedroom.subtitle ? (
+        <p className="mt-0.5 text-sm text-muted">{bedroom.subtitle}</p>
+      ) : null}
     </button>
   );
 }

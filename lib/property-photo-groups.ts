@@ -89,6 +89,24 @@ function sectionSortKey(key: string): number {
   return idx >= 0 ? idx : 500;
 }
 
+function bedroomCardSubtitle(alt: string, title: string, isBathroom: boolean): string {
+  if (isBathroom) return "Baño privado";
+
+  const parts = alt.split(" — ");
+  if (parts.length < 2) return "";
+
+  const afterProperty = parts.slice(1).join(" — ").trim();
+  if (/^habitación\s+\d+$/i.test(afterProperty)) return "";
+  if (afterProperty.toLowerCase() === title.toLowerCase()) return "";
+
+  const bedroomWithDetail = afterProperty.match(/^habitación\s+\d+\s+—\s+(.+)$/i);
+  if (bedroomWithDetail?.[1]) return bedroomWithDetail[1].trim();
+
+  const last = parts[parts.length - 1]!.trim();
+  if (last.toLowerCase() === title.toLowerCase()) return "";
+  return last;
+}
+
 export function groupPropertyPhotos(images: GalleryImage[]): PhotoSection[] {
   const buckets = new Map<string, PhotoSection>();
 
@@ -124,7 +142,7 @@ export function getBedroomCards(images: GalleryImage[]): BedroomCard[] {
       bedrooms.set(key, {
         id: key,
         title: label,
-        subtitle: isBathroom ? "Baño privado" : image.alt.split(" — ").pop() ?? label,
+        subtitle: bedroomCardSubtitle(image.alt, label, isBathroom),
         image,
         globalIndex,
       });
@@ -134,7 +152,7 @@ export function getBedroomCards(images: GalleryImage[]): BedroomCard[] {
     if (!isBathroom && existing.subtitle === "Baño privado") {
       existing.image = image;
       existing.globalIndex = globalIndex;
-      existing.subtitle = image.alt.split(" — ").pop() ?? label;
+      existing.subtitle = bedroomCardSubtitle(image.alt, label, false);
     }
   });
 
